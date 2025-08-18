@@ -1,0 +1,17 @@
+{
+  "name": "intentlang",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "pnpm -r --filter ./packages... run build",
+    "dev": "pnpm -r --filter ./packages... run dev",
+    "lint": "pnpm -r --filter ./packages... run lint",
+    "test": "pnpm -r --filter ./packages... run test"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}
