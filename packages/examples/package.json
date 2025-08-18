@@ -1,8 +1,9 @@
 {
-  "name": "@intentlang/examples",
-  "version": "0.1.0",
+  "name": "@il/examples",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
-    "build": "echo \"Examples only\""
+    "build": "echo \"Examples only\"",
+    "typecheck": "echo \"(no TS here)\""
   }
 }

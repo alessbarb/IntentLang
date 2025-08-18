@@ -14,8 +14,8 @@ importers:
 
   packages/cli:
     dependencies:
-      '@intentlang/core':
-        specifier: workspace:*
+      '@il/core':
+        specifier: workspace:^0.2.0
         version: link:../core
     devDependencies:
       '@types/node':

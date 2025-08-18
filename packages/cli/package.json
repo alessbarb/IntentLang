@@ -1,6 +1,6 @@
 {
-  "name": "@intentlang/cli",
-  "version": "0.1.0",
+  "name": "@il/cli",
+  "version": "0.2.0",
   "type": "module",
   "bin": {
     "ilc": "dist/index.js"
@@ -11,10 +11,11 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json -w",
     "lint": "echo \"(add eslint later)\"",
-    "test": "echo \"(add vitest later)\""
+    "test": "echo \"(add vitest later)\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@intentlang/core": "workspace:*"
+    "@il/core": "workspace:^0.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.19",
