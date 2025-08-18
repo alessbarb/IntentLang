@@ -1,0 +1,23 @@
+{
+  "name": "@intentlang/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "ilc": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json -w",
+    "lint": "echo \"(add eslint later)\"",
+    "test": "echo \"(add vitest later)\""
+  },
+  "dependencies": {
+    "@intentlang/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19",
+    "typescript": "^5.5.4"
+  }
+}
