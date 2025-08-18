@@ -1,6 +1,3 @@
-# `CONTRIBUTING.md`
-
-````markdown
 # Contributing to IntentLang
 
 👋 Welcome! Thank you for contributing to **IntentLang (IL)**.  
