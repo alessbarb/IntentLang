@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import fs from "fs";
-import path from "path";
-import { parse, checkProgram, emitTypeScript } from "@intentlang/core";
+import fs from "node:fs";
+import path from "node:path";
+import { parse, check as checkProgram, emitTypeScript } from "@il/core";
 
 function usage(): never {
   console.error("Usage: ilc <check|build> file.il [--target ts] [--out dir]");
