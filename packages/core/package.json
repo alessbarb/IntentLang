@@ -9,11 +9,12 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json -w",
     "lint": "echo \"(add eslint later)\"",
-    "test": "echo \"(add vitest later)\"",
+    "test": "node --loader ./node_modules/ts-node/esm.mjs test/match-bindings.test.mts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {},
   "devDependencies": {
+    "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
   }
 }
