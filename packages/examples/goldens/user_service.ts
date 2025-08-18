@@ -6,7 +6,10 @@ export interface User {
   email: Email;
   createdAt: Date;
 }
-export interface ApiError { code: number; message: string; }
+export interface ApiError {
+  code: number;
+  message: string;
+}
 
 export function toEmail(s: string): Result<Email, string> {
   // v0.2: implement
@@ -14,7 +17,7 @@ export function toEmail(s: string): Result<Email, string> {
 
 export async function createUser(
   deps: { http: Http; clock: Clock },
-  input: { name: string; email: Email }
+  input: { name: string; email: Email },
 ): Promise<Result<User, ApiError>> {
   // v0.2: implement
 }

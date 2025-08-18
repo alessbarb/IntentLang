@@ -4,11 +4,14 @@ export interface Order {
   userId: string;
   total: number;
 }
-export interface OrderError { code: number; message: string; }
+export interface OrderError {
+  code: number;
+  message: string;
+}
 
 export async function createOrder(
   deps: { http: Http; random: Random },
-  input: { userId: string; total: number }
+  input: { userId: string; total: number },
 ): Promise<Result<Order, OrderError>> {
   // v0.2: implement
 }
