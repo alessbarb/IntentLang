@@ -1,15 +1,839 @@
-import type { Program } from "./ast.js";
+// v0.2 — Semantic checker: symbols, typing, purity, uses, exhaustive match
+import type {
+  Program,
+  TypesSection,
+  TypeDecl,
+  TypeExpr,
+  BasicType,
+  BrandType,
+  RecordType,
+  UnionType,
+  GenericType,
+  LiteralType,
+  FuncDecl,
+  EffectDecl,
+  Block,
+  Stmt,
+  Expr,
+  Identifier,
+  Span,
+  MatchExpr,
+  CaseClause,
+  Pattern,
+  Literal,
+  VariantPattern,
+  LiteralPattern,
+  MatchStmt,
+} from "./ast";
 
-export function checkProgram(program: Program): void {
-  const declared = new Set<string>();
-  if (program.uses) {
-    for (const u of program.uses.entries) declared.add(u.name);
-  }
-  for (const eff of program.effects) {
-    for (const need of eff.uses) {
-      if (!declared.has(need)) {
-        throw new Error(`Effect ${eff.name} uses undeclared capability '${need}'`);
+/* Diagnostics */
+export type Diagnostic = {
+  level: "error" | "warning";
+  message: string;
+  span?: Span;
+};
+const err = (m: string, span?: Span): Diagnostic => ({
+  level: "error",
+  message: m,
+  span,
+});
+const warn = (m: string, span?: Span): Diagnostic => ({
+  level: "warning",
+  message: m,
+  span,
+});
+
+/* Internal types (checker) */
+type T =
+  | { kind: "Bool" }
+  | { kind: "Number" }
+  | { kind: "String" }
+  | { kind: "Bytes" }
+  | { kind: "Uuid" }
+  | { kind: "DateTime" }
+  | { kind: "Brand"; base: "String"; brand: string }
+  | { kind: "Record"; fields: Map<string, T> }
+  | { kind: "UnionNamed"; ctors: Map<string, { fields?: Map<string, T> }> }
+  | { kind: "UnionLiteral"; values: Set<string> }
+  | { kind: "Option"; of: T }
+  | { kind: "Result"; ok: T; err: T }
+  | { kind: "List"; of: T }
+  | { kind: "Map"; key: T; value: T }
+  | { kind: "Unknown" };
+
+const TBool: T = { kind: "Bool" },
+  TNum: T = { kind: "Number" },
+  TString: T = { kind: "String" };
+const TUuid: T = { kind: "Uuid" },
+  TDate: T = { kind: "DateTime" },
+  TUnknown: T = { kind: "Unknown" };
+
+/* Symbols & context */
+type TypeTable = Map<string, T>;
+type FuncTable = Map<string, { params: T[]; ret: T; decl: FuncDecl }>;
+type EffectTable = Map<
+  string,
+  { params: T[]; ret: T; uses: Set<string>; decl: EffectDecl }
+>;
+type Scope = Map<string, T>;
+
+type Ctx = {
+  types: TypeTable;
+  funcs: FuncTable;
+  effects: EffectTable;
+  capsDeclared: Set<string>; // file-level uses
+  diags: Diagnostic[];
+  builtins: Map<string, { params: T[]; ret: T }>;
+};
+
+export function check(program: Program): Diagnostic[] {
+  const ctx: Ctx = {
+    types: new Map(),
+    funcs: new Map(),
+    effects: new Map(),
+    capsDeclared: new Set(
+      (program.uses?.entries ?? []).map((u) => u.name.name),
+    ),
+    diags: [],
+    builtins: builtinSignatures(),
+  };
+
+  if (program.types) loadTypes(ctx, program.types);
+
+  for (const item of program.items) {
+    if (item.kind === "FuncDecl") {
+      ctx.funcs.set(item.name.name, {
+        params: item.params.map((p) => resolveType(ctx, p.type)),
+        ret: resolveType(ctx, item.returnType),
+        decl: item,
+      });
+    } else if (item.kind === "EffectDecl") {
+      const sig = {
+        params: item.params.map((p) => resolveType(ctx, p.type)),
+        ret: resolveType(ctx, item.returnType),
+        uses: new Set(item.uses.map((u) => u.name)),
+        decl: item,
+      };
+      ctx.effects.set(item.name.name, sig);
+      for (const u of sig.uses) {
+        if (!ctx.capsDeclared.has(u))
+          ctx.diags.push(
+            err(
+              `Effect '${item.name.name}' lists undeclared capability '${u}'. Add it to 'uses { ... }'.`,
+              item.span,
+            ),
+          );
       }
     }
   }
+
+  for (const item of program.items) {
+    if (item.kind === "FuncDecl") checkFuncBody(ctx, item);
+    else if (item.kind === "EffectDecl") checkEffectBody(ctx, item);
+  }
+
+  return ctx.diags;
+}
+
+/* Types loading */
+function loadTypes(ctx: Ctx, types: TypesSection) {
+  for (const d of types.declarations) {
+    if (ctx.types.has(d.name.name)) {
+      ctx.diags.push(err(`Duplicate type '${d.name.name}'.`, d.name.span));
+      continue;
+    }
+    ctx.types.set(d.name.name, resolveType(ctx, d.expr));
+  }
+}
+
+function resolveType(ctx: Ctx, tx: TypeExpr): T {
+  switch (tx.kind) {
+    case "BasicType":
+      switch (tx.name) {
+        case "Bool":
+          return TBool;
+        case "Int":
+        case "Float":
+          return TNum;
+        case "String":
+          return TString;
+        case "Bytes":
+          return { kind: "Bytes" };
+        case "Uuid":
+          return TUuid;
+        case "DateTime":
+          return TDate;
+      }
+    case "BrandType":
+      return { kind: "Brand", base: "String", brand: tx.brand };
+    case "LiteralType":
+      return TString;
+    case "RecordType": {
+      const fields = new Map<string, T>();
+      for (const f of tx.fields)
+        fields.set(f.name.name, resolveType(ctx, f.type));
+      return { kind: "Record", fields };
+    }
+    case "UnionType": {
+      const allLit = tx.ctors.every((c) => c.kind === "LiteralCtor");
+      if (allLit) {
+        const values = new Set<string>();
+        for (const c of tx.ctors) values.add((c as any).literal.value);
+        return { kind: "UnionLiteral", values };
+      } else {
+        const ctors = new Map<string, { fields?: Map<string, T> }>();
+        for (const c of tx.ctors) {
+          if (c.kind === "LiteralCtor") {
+            ctx.diags.push(
+              warn(
+                "Mixed literal and named constructors in union. Prefer a single style.",
+                c.span,
+              ),
+            );
+            continue;
+          }
+          const name = c.name.name;
+          if (ctors.has(name)) {
+            ctx.diags.push(
+              err(`Duplicate constructor '${name}' in union.`, c.span),
+            );
+            continue;
+          }
+          let fields: Map<string, T> | undefined;
+          if (c.fields) {
+            fields = new Map();
+            for (const f of c.fields.fields)
+              fields.set(f.name.name, resolveType(ctx, f.type));
+          }
+          ctors.set(name, { fields });
+        }
+        return { kind: "UnionNamed", ctors };
+      }
+    }
+    case "GenericType": {
+      const name = tx.name.name;
+      const ps = tx.params.map((p) => resolveType(ctx, p));
+      if (name === "Option" && ps.length === 1)
+        return { kind: "Option", of: ps[0] };
+      if (name === "Result" && ps.length === 2)
+        return { kind: "Result", ok: ps[0], err: ps[1] };
+      if (name === "List" && ps.length === 1)
+        return { kind: "List", of: ps[0] };
+      if (name === "Map" && ps.length === 2)
+        return { kind: "Map", key: ps[0], value: ps[1] };
+      return TUnknown;
+    }
+  }
+}
+
+/* Bodies */
+type FlowCtx = {
+  scope: Scope;
+  pure: boolean;
+  allowedCaps: Set<string>;
+  expectedReturn: T;
+  usedCaps: Set<string>;
+};
+
+function checkFuncBody(ctx: Ctx, fn: FuncDecl) {
+  const scope = new Map<string, T>();
+  for (const p of fn.params) scope.set(p.name.name, resolveType(ctx, p.type));
+  const expected = resolveType(ctx, fn.returnType);
+  const usedCaps = new Set<string>();
+  checkBlock(
+    ctx,
+    {
+      scope,
+      pure: true,
+      allowedCaps: new Set(),
+      expectedReturn: expected,
+      usedCaps,
+    },
+    fn.body,
+  );
+  for (const c of usedCaps)
+    ctx.diags.push(
+      err(
+        `Pure function '${fn.name.name}' cannot use capability '${c}'. Move this logic to an 'effect' or remove I/O.`,
+        fn.span,
+      ),
+    );
+}
+
+function checkEffectBody(ctx: Ctx, eff: EffectDecl) {
+  const scope = new Map<string, T>();
+  for (const p of eff.params) scope.set(p.name.name, resolveType(ctx, p.type));
+  const expected = resolveType(ctx, eff.returnType);
+  const allowed = new Set(eff.uses.map((u) => u.name));
+  const usedCaps = new Set<string>();
+  checkBlock(
+    ctx,
+    {
+      scope,
+      pure: false,
+      allowedCaps: allowed,
+      expectedReturn: expected,
+      usedCaps,
+    },
+    eff.body,
+  );
+  for (const c of usedCaps) {
+    if (!ctx.capsDeclared.has(c))
+      ctx.diags.push(
+        err(
+          `Effect '${eff.name.name}' uses capability '${c}' which is not declared in file-level 'uses { ... }'.`,
+          eff.span,
+        ),
+      );
+    else if (!allowed.has(c))
+      ctx.diags.push(
+        err(
+          `Effect '${eff.name.name}' uses capability '${c}' but it is not listed in 'uses' for this effect.`,
+          eff.span,
+        ),
+      );
+  }
+}
+
+function checkBlock(ctx: Ctx, f: FlowCtx, block: Block) {
+  for (const s of block.statements) checkStmt(ctx, f, s);
+}
+
+function checkStmt(ctx: Ctx, f: FlowCtx, s: Stmt) {
+  switch (s.kind) {
+    case "LetStmt": {
+      const t = inferExpr(ctx, f, s.init);
+      f.scope.set(s.id.name, t);
+      return;
+    }
+    case "ReturnStmt": {
+      if (s.argument) {
+        const t = inferExpr(ctx, f, s.argument);
+        if (!isAssignableTo(ctx, t, f.expectedReturn))
+          ctx.diags.push(
+            err(
+              `Return type mismatch: got ${showType(t)}, expected ${showType(f.expectedReturn)}.`,
+              s.span,
+            ),
+          );
+      }
+      return;
+    }
+    case "IfStmt": {
+      const t = inferExpr(ctx, f, s.test);
+      if (!isBoolLike(t))
+        ctx.diags.push(
+          err(`If condition must be Bool. Got ${showType(t)}.`, s.test.span),
+        );
+      checkBlock(ctx, { ...f, scope: new Map(f.scope) }, s.consequent);
+      if (s.alternate)
+        checkBlock(ctx, { ...f, scope: new Map(f.scope) }, s.alternate);
+      return;
+    }
+    case "MatchStmt": {
+      checkMatchFromStmt(ctx, f, s);
+      return;
+    }
+    case "ExprStmt": {
+      inferExpr(ctx, f, s.expression);
+      return;
+    }
+  }
+}
+
+/* Expr typing (mínimo útil) */
+function inferExpr(ctx: Ctx, f: FlowCtx, e: Expr): T {
+  switch (e.kind) {
+    case "LiteralExpr":
+      return literalToType(e.value);
+    case "IdentifierExpr": {
+      const name = e.id.name;
+      if (ctx.capsDeclared.has(name)) {
+        f.usedCaps.add(name);
+        if (f.pure)
+          ctx.diags.push(
+            err(
+              `Capability '${name}' cannot be used in pure functions.`,
+              e.span,
+            ),
+          );
+        return TUnknown;
+      }
+      const v = f.scope.get(name);
+      if (v) return v;
+      if (ctx.funcs.has(name)) return ctx.funcs.get(name)!.ret;
+      ctx.diags.push(err(`Unknown identifier '${name}'.`, e.span));
+      return TUnknown;
+    }
+    case "ObjectExpr": {
+      const m = new Map<string, T>();
+      for (const fld of e.fields)
+        m.set(fld.key.name, inferExpr(ctx, f, fld.value));
+      return { kind: "Record", fields: m };
+    }
+    case "ArrayExpr": {
+      if (e.elements.length === 0) return { kind: "List", of: TUnknown };
+      const t0 = inferExpr(ctx, f, e.elements[0]);
+      return { kind: "List", of: t0 };
+    }
+    case "MemberExpr": {
+      const o = e.object;
+      if (o.kind === "IdentifierExpr" && ctx.capsDeclared.has(o.id.name)) {
+        f.usedCaps.add(o.id.name);
+        if (f.pure)
+          ctx.diags.push(
+            err(
+              `Capability '${o.id.name}' cannot be used in pure functions.`,
+              e.span,
+            ),
+          );
+      }
+      return TUnknown;
+    }
+    case "CallExpr": {
+      if (e.callee.kind === "IdentifierExpr") {
+        const name = e.callee.id.name;
+        if (ctx.builtins.has(name)) {
+          const sig = ctx.builtins.get(name)!;
+          checkCallArgs(ctx, f, name, sig.params, e.args, e.span);
+          return sig.ret;
+        }
+        if (ctx.funcs.has(name)) {
+          const sig = ctx.funcs.get(name)!;
+          checkCallArgs(ctx, f, name, sig.params, e.args, e.span);
+          return sig.ret;
+        }
+      }
+      if (e.callee.kind === "MemberExpr") {
+        const obj = e.callee.object;
+        if (
+          obj.kind === "IdentifierExpr" &&
+          ctx.capsDeclared.has(obj.id.name)
+        ) {
+          f.usedCaps.add(obj.id.name);
+          if (f.pure)
+            ctx.diags.push(
+              err(
+                `Capability '${obj.id.name}' cannot be used in pure functions.`,
+                e.span,
+              ),
+            );
+          return TUnknown;
+        }
+      }
+      for (const a of e.args) inferExpr(ctx, f, a);
+      ctx.diags.push(err(`Cannot resolve call target.`, e.span));
+      return TUnknown;
+    }
+    case "UnaryExpr": {
+      const v = inferExpr(ctx, f, e.argument);
+      if (e.op === "!") {
+        if (!isBoolLike(v))
+          ctx.diags.push(err(`'!' expects Bool. Got ${showType(v)}.`, e.span));
+        return { kind: "Bool" };
+      }
+      if (e.op === "-") {
+        if (!isNumberLike(v))
+          ctx.diags.push(
+            err(`Unary '-' expects Number. Got ${showType(v)}.`, e.span),
+          );
+        return { kind: "Number" };
+      }
+      return TUnknown;
+    }
+    case "BinaryExpr": {
+      const l = inferExpr(ctx, f, e.left),
+        r = inferExpr(ctx, f, e.right);
+      switch (e.op) {
+        case "&&":
+        case "||":
+          if (!isBoolLike(l) || !isBoolLike(r))
+            ctx.diags.push(
+              err(`Logical '${e.op}' expects Bool operands.`, e.span),
+            );
+          return { kind: "Bool" };
+        case "==":
+        case "!=":
+          if (!isComparable(l, r))
+            ctx.diags.push(
+              err(
+                `'${e.op}' requires comparable operands. Got ${showType(l)} and ${showType(r)}.`,
+                e.span,
+              ),
+            );
+          return { kind: "Bool" };
+        case "<":
+        case "<=":
+        case ">":
+        case ">=":
+          if (!isNumberLike(l) || !isNumberLike(r))
+            ctx.diags.push(
+              err(`Relational '${e.op}' expects Number operands.`, e.span),
+            );
+          return { kind: "Bool" };
+        case "+":
+        case "-":
+        case "*":
+        case "/":
+        case "%":
+          if (!isNumberLike(l) || !isNumberLike(r))
+            ctx.diags.push(
+              err(`Arithmetic '${e.op}' expects Number operands.`, e.span),
+            );
+          return { kind: "Number" };
+      }
+      return TUnknown;
+    }
+    case "ResultOkExpr": {
+      const v = inferExpr(ctx, f, e.value);
+      return { kind: "Result", ok: v, err: TUnknown };
+    }
+    case "ResultErrExpr": {
+      const er = inferExpr(ctx, f, e.error);
+      return { kind: "Result", ok: TUnknown, err: er };
+    }
+    case "OptionSomeExpr": {
+      const v = inferExpr(ctx, f, e.value);
+      return { kind: "Option", of: v };
+    }
+    case "OptionNoneExpr":
+      return { kind: "Option", of: TUnknown };
+    case "BrandCastExpr": {
+      inferExpr(ctx, f, e.value);
+      return TUnknown;
+    }
+    case "VariantExpr": {
+      const m = new Map<string, T>();
+      for (const fld of e.fields ?? [])
+        m.set(fld.key.name, inferExpr(ctx, f, fld.value));
+      return { kind: "Record", fields: m };
+    }
+    case "MatchExpr": {
+      return checkMatch(ctx, f, e, e.span);
+    }
+  }
+}
+
+function checkCallArgs(
+  ctx: Ctx,
+  f: FlowCtx,
+  name: string,
+  params: T[],
+  args: Expr[],
+  span?: Span,
+) {
+  if (args.length !== params.length)
+    ctx.diags.push(
+      err(
+        `Function '${name}' expects ${params.length} argument(s), got ${args.length}.`,
+        span,
+      ),
+    );
+  const n = Math.min(args.length, params.length);
+  for (let i = 0; i < n; i++) {
+    const ai = inferExpr(ctx, f, args[i]);
+    if (!isAssignableTo(ctx, ai, params[i]))
+      ctx.diags.push(
+        err(
+          `Argument ${i + 1} of '${name}' mismatch: got ${showType(ai)}, expected ${showType(params[i])}.`,
+          args[i].span,
+        ),
+      );
+  }
+}
+
+/* Match exhaustiveness */
+function checkMatch(ctx: Ctx, f: FlowCtx, m: MatchExpr, span?: Span): T {
+  const cases = m.cases;
+  const t = inferExpr(ctx, f, m.expr);
+
+  if (t.kind === "UnionNamed") {
+    const domain = new Set([...t.ctors.keys()]);
+    const covered = new Set<string>();
+    for (const c of cases) {
+      const head = caseHeadKey(c.pattern);
+      if (head.kind !== "Named") {
+        ctx.diags.push(
+          err(`Pattern must be a named constructor for this union.`, c.span),
+        );
+        continue;
+      }
+      const ctor = head.name;
+      if (!domain.has(ctor)) {
+        const suggestion = suggest([...domain], ctor);
+        ctx.diags.push(
+          err(
+            `Unknown case '${ctor}' for union.${suggestion ? ` Did you mean '${suggestion}'?` : ""}`,
+            c.span,
+          ),
+        );
+      } else {
+        covered.add(ctor);
+        const ctorInfo = t.ctors.get(ctor)!;
+        const caseScope = new Map(f.scope);
+        if (
+          c.pattern.kind === "VariantPattern" &&
+          c.pattern.fields &&
+          ctorInfo.fields
+        ) {
+          for (const pf of c.pattern.fields) {
+            const fieldType = ctorInfo.fields.get(pf.name.name);
+            if (!fieldType)
+              ctx.diags.push(
+                err(
+                  `Constructor '${ctor}' has no field '${pf.name.name}'.`,
+                  pf.span,
+                ),
+              );
+            else caseScope.set(pf.alias?.name ?? pf.name.name, fieldType);
+          }
+        }
+        const sub: FlowCtx = { ...f, scope: caseScope };
+        checkCaseBody(ctx, sub, c.body);
+      }
+    }
+    const missing = [...domain].filter((k) => !covered.has(k));
+    if (missing.length > 0)
+      ctx.diags.push(
+        err(`Non-exhaustive match. Missing: ${missing.join(", ")}`, span),
+      );
+    return TUnknown;
+  }
+
+  if (t.kind === "UnionLiteral") {
+    const domain = new Set([...t.values]);
+    const covered = new Set<string>();
+    for (const c of cases) {
+      const head = caseHeadKey(c.pattern);
+      if (head.kind !== "Literal") {
+        ctx.diags.push(
+          err(`Pattern must be a literal for this union.`, c.span),
+        );
+        continue;
+      }
+      const lit = head.value;
+      if (!domain.has(lit)) {
+        const suggestion = suggest([...domain], lit);
+        ctx.diags.push(
+          err(
+            `Unknown literal case '${lit}'.${suggestion ? ` Did you mean '${suggestion}'?` : ""}`,
+            c.span,
+          ),
+        );
+      } else {
+        covered.add(lit);
+        checkCaseBody(ctx, f, c.body);
+      }
+    }
+    const missing = [...domain].filter((k) => !covered.has(k));
+    if (missing.length > 0)
+      ctx.diags.push(
+        err(`Non-exhaustive match. Missing: ${missing.join(", ")}`, span),
+      );
+    return TUnknown;
+  }
+
+  ctx.diags.push(
+    warn(
+      `'match' on non-union type ${showType(t)} — exhaustiveness not enforced.`,
+      span,
+    ),
+  );
+  for (const c of cases) checkCaseBody(ctx, f, c.body);
+  return TUnknown;
+}
+
+function checkCaseBody(ctx: Ctx, f: FlowCtx, body: Block | Expr) {
+  if ("kind" in body && (body as any).kind === "Block")
+    checkBlock(ctx, f, body as Block);
+  else inferExpr(ctx, f, body as Expr);
+}
+
+function caseHeadKey(
+  p: Pattern,
+): { kind: "Named"; name: string } | { kind: "Literal"; value: string } {
+  if (p.kind === "VariantPattern") {
+    if (p.head.tag === "Named")
+      return { kind: "Named", name: p.head.name.name };
+    if (p.head.tag === "Literal")
+      return { kind: "Literal", value: literalRepr(p.head.value) };
+  }
+  if (p.kind === "LiteralPattern")
+    return { kind: "Literal", value: literalRepr(p.value) };
+  return { kind: "Named", name: "<unknown>" };
+}
+
+/* Builtins */
+function builtinSignatures(): Map<string, { params: T[]; ret: T }> {
+  const m = new Map<string, { params: T[]; ret: T }>();
+  m.set("toString", { params: [TUnknown], ret: TString });
+  m.set("matches", { params: [TString, TString], ret: TBool });
+  m.set("parseUuid", {
+    params: [TString],
+    ret: { kind: "Result", ok: TUuid, err: TString },
+  });
+  m.set("parseDateTime", {
+    params: [TString],
+    ret: { kind: "Result", ok: TDate, err: TString },
+  });
+  return m;
+}
+
+/* Helpers */
+function literalToType(l: Literal): T {
+  switch (l.kind) {
+    case "Bool":
+      return TBool;
+    case "Number":
+      return TNum;
+    case "String":
+      return TString;
+  }
+}
+function isBoolLike(t: T) {
+  return t.kind === "Bool";
+}
+function isNumberLike(t: T) {
+  return t.kind === "Number";
+}
+function isComparable(a: T, b: T) {
+  if (a.kind === b.kind) {
+    if (a.kind === "Brand") return (a as any).brand === (b as any).brand;
+    return true;
+  }
+  return false;
+}
+function isAssignableTo(ctx: Ctx, a: T, b: T): boolean {
+  if (a.kind === "Unknown" || b.kind === "Unknown") return true;
+  if (a.kind === b.kind) {
+    switch (a.kind) {
+      case "Brand":
+        return (a as any).brand === (b as any).brand;
+      case "Record": {
+        const fa = a.fields,
+          fb = (b as any).fields as Map<string, T>;
+        for (const [k, vt] of fb) {
+          const va = fa.get(k);
+          if (!va || !isAssignableTo(ctx, va, vt)) return false;
+        }
+        return true;
+      }
+      case "UnionNamed": {
+        const ca = a.ctors,
+          cb = (b as any).ctors as Map<string, any>;
+        if (ca.size !== cb.size) return false;
+        for (const [n, ib] of cb) {
+          const ia = ca.get(n);
+          if (!ia) return false;
+          if (!!ia.fields !== !!ib.fields) return false;
+        }
+        return true;
+      }
+      case "UnionLiteral": {
+        const va = a.values,
+          vb = (b as any).values as Set<string>;
+        if (va.size !== vb.size) return false;
+        for (const v of va) if (!vb.has(v)) return false;
+        return true;
+      }
+      case "Option":
+        return isAssignableTo(ctx, a.of, (b as any).of);
+      case "Result":
+        return (
+          isAssignableTo(ctx, a.ok, (b as any).ok) &&
+          isAssignableTo(ctx, a.err, (b as any).err)
+        );
+      case "List":
+        return isAssignableTo(ctx, a.of, (b as any).of);
+      case "Map":
+        return (
+          isAssignableTo(ctx, a.key, (b as any).key) &&
+          isAssignableTo(ctx, a.value, (b as any).value)
+        );
+      default:
+        return true;
+    }
+  }
+  return false;
+}
+function showType(t: T): string {
+  switch (t.kind) {
+    case "Bool":
+      return "Bool";
+    case "Number":
+      return "Number";
+    case "String":
+      return "String";
+    case "Bytes":
+      return "Bytes";
+    case "Uuid":
+      return "Uuid";
+    case "DateTime":
+      return "DateTime";
+    case "Brand":
+      return `Brand<"${(t as any).brand}">`;
+    case "Record":
+      return `{ ${[...t.fields.entries()].map(([k, v]) => `${k}: ${showType(v)}`).join("; ")} }`;
+    case "UnionNamed":
+      return [...t.ctors.keys()].join(" | ");
+    case "UnionLiteral":
+      return [...t.values].map((v) => JSON.stringify(v)).join(" | ");
+    case "Option":
+      return `Option<${showType((t as any).of)}>`;
+    case "Result":
+      return `Result<${showType((t as any).ok)}, ${showType((t as any).err)}>`;
+    case "List":
+      return `List<${showType((t as any).of)}>`;
+    case "Map":
+      return `Map<${showType((t as any).key)}, ${showType((t as any).value)}>`;
+    case "Unknown":
+      return "Unknown";
+  }
+}
+function literalRepr(l: Literal) {
+  switch (l.kind) {
+    case "String":
+      return l.value;
+    case "Number":
+      return String(l.value);
+    case "Bool":
+      return String(l.value);
+  }
+}
+
+function suggest(cands: string[], target: string) {
+  let best: { s: string; d: number } | null = null;
+  for (const s of cands) {
+    const d = lev(s, target);
+    if (!best || d < best.d) best = { s, d };
+  }
+  return best && best.d <= 2 ? best.s : null;
+}
+function lev(a: string, b: string) {
+  const dp = Array.from({ length: a.length + 1 }, () =>
+    new Array<number>(b.length + 1).fill(0),
+  );
+  for (let i = 0; i <= a.length; i++) dp[i][0] = i;
+  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + cost,
+      );
+    }
+  }
+  return dp[a.length][b.length];
+}
+
+function checkMatchFromStmt(ctx: Ctx, f: FlowCtx, s: MatchStmt) {
+  const m: MatchExpr = {
+    kind: "MatchExpr",
+    expr: s.expr,
+    cases: s.cases,
+    span: s.span,
+  };
+  return checkMatch(ctx, f, m, s.span);
 }
