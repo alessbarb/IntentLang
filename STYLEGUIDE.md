@@ -53,7 +53,7 @@ A `.il` file must follow this order:
 ```intentlang
 type Email = String brand "Email" where matches("^[^@]+@[^@]+\\.[^@]+$")
 ```
-````
+
 
 ### Records
 
