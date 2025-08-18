@@ -6,9 +6,10 @@ This directory contains the **canonical examples** for IntentLang (IL). Each sub
 
 ## The Role of Goldens
 
-This directory is intrinsically linked to the `/goldens` directory at the project root.
+This directory is intrinsically linked to the `/goldens` folder **inside this package**:
+`packages/examples/goldens/`.
 
-- For every `<feature>.il` file in this directory, there is a corresponding `<feature>.ts` file in `/goldens`.
+- For every `<feature>.il` file here, there is a corresponding `<feature>.ts` file in `packages/examples/goldens/`.
 - This `.ts` file is the **"golden" reference output** — the exact, expected TypeScript code that the `ilc` transpiler should generate.
 
 These examples and their golden outputs act as a **snapshot test suite** for the transpiler. They form a contract that ensures any changes to the compiler do not introduce unintended regressions.
@@ -34,7 +35,7 @@ To add a new canonical example and its golden test:
     pnpm test:goldens:update --only new_feature
     ```
 4.  This will generate the initial `.ts` golden file in the `/goldens` directory.
-5.  Commit both the new `.il` file and its generated `.ts` golden.
+5.  Commit both the new `.il` file and its generated `.ts` golden in `packages/examples/goldens/`.
 
 ## Current Examples
 
