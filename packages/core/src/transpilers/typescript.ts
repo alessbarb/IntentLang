@@ -312,13 +312,19 @@ function emitCasesAsIfs(
   const parts: string[] = [];
   cases.forEach((c, idx) => {
     const cond = patternCondition(subject, c.pattern);
+    const bindings = emitBindings(subject, c.pattern).join("\n");
     let body: string;
     if ("kind" in c.body && (c.body as any).kind === "Block") {
-      body = emitBlock(c.body as Block, isEffect);
+      const block = emitBlock(c.body as Block, isEffect);
+      body = bindings ? `${bindings}\n${block}` : block;
       if (returns) body += `\nreturn undefined as any;`; // seguro: checker ya exige exhaustividad
     } else {
       const expr = emitExpr(c.body as Expr, isEffect);
-      body = returns ? `return ${expr};` : `${expr};`;
+      body = bindings
+        ? `${bindings}\n${returns ? `return ${expr};` : `${expr};`}`
+        : returns
+          ? `return ${expr};`
+          : `${expr};`;
     }
     parts.push(
       `${idx === 0 ? "if" : "else if"} (${cond}) {\n${indent(body)}\n}`,
@@ -326,6 +332,18 @@ function emitCasesAsIfs(
   });
   // Nota: el checker asegura exhaustividad; aquí no añadimos else.
   return parts.join("\n");
+}
+
+/** Emit variable bindings for a pattern's fields and aliases. */
+function emitBindings(subject: string, p: Pattern): string[] {
+  const lines: string[] = [];
+  if (p.kind === "VariantPattern" && p.head.tag === "Named" && p.fields?.length) {
+    for (const f of p.fields) {
+      const name = f.alias?.name ?? f.name.name;
+      lines.push(`const ${name} = ${subject}.${f.name.name};`);
+    }
+  }
+  return lines;
 }
 
 function patternCondition(subject: string, p: Pattern): string {
@@ -337,10 +355,7 @@ function patternCondition(subject: string, p: Pattern): string {
     return `${subject} === ${literalJS(p.head.value)}`;
   }
   // Named ctor
-  const base = `${subject}.type === ${JSON.stringify(p.head.name.name)}`;
-  // No emitimos binding aquí; en v0.2 mantenemos el cuerpo con accesos directos.
-  // Si hubiera aliases, el usuario accederá como `${subject}.campo`.
-  return base;
+  return `${subject}.type === ${JSON.stringify(p.head.name.name)}`;
 }
 
 function literalJS(
