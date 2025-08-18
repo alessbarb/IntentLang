@@ -13,7 +13,6 @@ We use **pnpm workspaces**. To bootstrap:
 pnpm install
 pnpm build
 ```
-````
 
 ---
 
