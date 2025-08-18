@@ -50,8 +50,12 @@ import {
   type VariantPattern,
   type LiteralPattern,
   type Span,
-} from "./ast";
-import { lex, type Token } from "./lexer";
+} from "./ast.js";
+import { lex, type Token } from "./lexer.js";
+
+console.error("[parser.ts loaded]", import.meta.url);
+
+let inPattern = false;
 
 export function parse(input: string): Program {
   const tokens = lex(input);
@@ -236,41 +240,72 @@ export function parse(input: string): Program {
   function tryParseUnionType(): UnionType | null {
     const save = p;
 
+    // ¿Hay tubería inicial?
+    const leading = !!eat("pipe");
+
+    // --- Uniones de literales ---
     if (peek("string")) {
-      const ctors: UnionCtor[] = [
-        { kind: "LiteralCtor", literal: parseLiteralType(), span: spanHere() },
-      ];
-      if (!eat("pipe")) {
-        p = save;
-        return null;
+      const ctors: UnionCtor[] = [];
+
+      if (leading) {
+        // | "A" | "B"
+        const first = parseLiteralType();
+        ctors.push({ kind: "LiteralCtor", literal: first, span: spanHere() });
+        while (eat("pipe")) {
+          const lit = parseLiteralType();
+          ctors.push({ kind: "LiteralCtor", literal: lit, span: spanHere() });
+        }
+        return { kind: "UnionType", ctors, span: spanHere() };
+      } else {
+        // "A" | "B"
+        const first = parseLiteralType();
+        if (!eat("pipe")) {
+          p = save;
+          return null;
+        }
+        ctors.push({ kind: "LiteralCtor", literal: first, span: spanHere() });
+        do {
+          const lit = parseLiteralType();
+          ctors.push({ kind: "LiteralCtor", literal: lit, span: spanHere() });
+        } while (eat("pipe"));
+        return { kind: "UnionType", ctors, span: spanHere() };
       }
-      do {
-        ctors.push({
-          kind: "LiteralCtor",
-          literal: parseLiteralType(),
-          span: spanHere(),
-        });
-      } while (eat("pipe"));
-      return { kind: "UnionType", ctors, span: spanHere() };
     }
 
-    if (peek("ident")) {
-      const ctor1 = parseNamedCtorMaybe();
-      if (!ctor1) {
-        p = save;
-        return null;
+    // --- Uniones con constructores nombrados ---
+    if (peek("ident") || leading) {
+      const ctors: UnionCtor[] = [];
+
+      if (leading) {
+        // | Card {...} | Cash {...}
+        const first = parseNamedCtorMaybe();
+        if (!first) error("Expected union constructor after '|'");
+        ctors.push(first);
+        while (eat("pipe")) {
+          const c = parseNamedCtorMaybe();
+          if (!c) error("Expected union constructor after '|'");
+          ctors.push(c);
+        }
+        return { kind: "UnionType", ctors, span: spanHere() };
+      } else {
+        // Card {...} | Cash {...}
+        const first = parseNamedCtorMaybe();
+        if (!first) {
+          p = save;
+          return null;
+        }
+        if (!eat("pipe")) {
+          p = save;
+          return null;
+        }
+        ctors.push(first);
+        do {
+          const c = parseNamedCtorMaybe();
+          if (!c) error("Expected union constructor after '|'");
+          ctors.push(c);
+        } while (eat("pipe"));
+        return { kind: "UnionType", ctors, span: spanHere() };
       }
-      if (!eat("pipe")) {
-        p = save;
-        return null;
-      }
-      const ctors: UnionCtor[] = [ctor1];
-      do {
-        const c = parseNamedCtorMaybe();
-        if (!c) error("Expected union constructor after '|'");
-        ctors.push(c);
-      } while (eat("pipe"));
-      return { kind: "UnionType", ctors, span: spanHere() };
     }
 
     p = save;
@@ -669,7 +704,7 @@ export function parse(input: string): Program {
     }
 
     if (peek("ident")) {
-      if (next().type === "lbrace") {
+      if (!inPattern && next().type === "lbrace") {
         const ctor = parseIdent();
         const fields = parseObjectFields();
         return { kind: "VariantExpr", ctor, fields, span: spanHere() };
@@ -722,8 +757,18 @@ export function parse(input: string): Program {
     const fields: ObjectField[] = [];
     while (!peek("rbrace")) {
       const key = parseIdent();
-      expect("colon");
-      const value = parseExpr();
+      let value: Expr;
+      if (eat("colon")) {
+        // clave: valor
+        value = parseExpr();
+      } else {
+        // abreviado: { a }  ≡  { a: a }
+        value = {
+          kind: "IdentifierExpr",
+          id: key,
+          span: key.span,
+        } as IdentifierExpr;
+      }
       fields.push({ kind: "ObjectField", key, value, span: s });
       eat("comma");
     }
@@ -737,21 +782,77 @@ export function parse(input: string): Program {
     value: Expr;
     span: Span;
   }[] {
+    // Acepta 1+ llaves: { ... }, {{ ... }}, {{{ ... }}}, etc.
+    // Y campos abreviados: { a } => { a: a }
+    let openCount = 0;
+
+    // Debe haber al menos una
     expect("lbrace");
+    openCount++;
+
+    // Consume llaves de apertura adicionales si vienen pegadas
+    while (peek("lbrace")) {
+      eat("lbrace");
+      openCount++;
+    }
+
     const items: {
       kind: "VariantFieldInit";
       key: Identifier;
       value: Expr;
       span: Span;
     }[] = [];
+
+    // Campos (posiblemente vacíos)
     while (!peek("rbrace")) {
+      // Si por alguna razón vemos otra '{' aquí, la tratamos como apertura de objeto
+      // interno del valor, pero eso solo puede aparecer después de "clave:".
+      // Para robustez, si aparece una '{' antes de una clave, hacemos un pequeño
+      // “sync” consumiendo hasta la próxima '}' y continuamos (evita loops).
+      if (peek("lbrace")) {
+        // recuperación suave: consumimos un bloque-objeto y seguimos
+        // (esto no debería ocurrir en entradas válidas).
+        let depth = 0;
+        do {
+          if (eat("lbrace")) depth++;
+          else if (eat("rbrace")) depth--;
+          else p++; // avanzamos token a token
+        } while (depth > 0 && !atEnd());
+        // si después de esto viene una coma, la comemos
+        eat("comma");
+        continue;
+      }
+
       const key = parseIdent();
-      expect("colon");
-      const value = parseExpr();
+
+      let value: Expr;
+      if (eat("colon")) {
+        value = parseExpr();
+      } else {
+        // abreviado { a }  =>  { a: a }
+        value = {
+          kind: "IdentifierExpr",
+          id: key,
+          span: key.span,
+        } as IdentifierExpr;
+      }
+
       items.push({ kind: "VariantFieldInit", key, value, span: spanHere() });
-      eat("comma");
+
+      // coma opcional; acepta trailing comma
+      if (peek("comma")) {
+        eat("comma");
+        // si inmediatamente viene '}', permitimos trailing comma y salimos del bucle
+        if (peek("rbrace")) break;
+      } else if (!peek("rbrace")) {
+        // si no hay coma ni '}', dejamos que el expect("rbrace") al final
+        // dispare un error claro si es necesario
+      }
     }
-    expect("rbrace");
+
+    // Cerramos exactamente tantas llaves como abrimos
+    for (let k = 0; k < openCount; k++) expect("rbrace");
+
     return items;
   }
 
@@ -760,56 +861,72 @@ export function parse(input: string): Program {
     expect("kw_match");
     const e = parseExpr();
     expect("lbrace");
+
     const cases: CaseClause[] = [];
     while (!peek("rbrace")) {
+      // activar inPattern SOLO para el patrón
+      const prev = inPattern;
+      inPattern = true;
       const pat = parsePattern();
+      inPattern = prev;
+
       expect("fat_arrow");
+
+      // cuerpos se parsean con inPattern desactivado → permite VariantExpr
       let body: Block | Expr;
       if (peek("lbrace")) body = parseBlock();
       else body = parseExpr();
+
       eat("semi");
       cases.push({ kind: "CaseClause", pattern: pat, body, span: s });
     }
+
     expect("rbrace");
     return { kind: "MatchExpr", expr: e, cases, span: s };
   }
 
   function parsePattern(): Pattern {
-    if (
-      peek("string") ||
-      peek("number") ||
-      peek("kw_true") ||
-      peek("kw_false")
-    ) {
-      const lit = parseLiteralExpr().value;
-      const s = spanHere();
-      return { kind: "LiteralPattern", value: lit, span: s } as LiteralPattern;
-    }
-    const name = parseIdent();
-    let fields: PatternField[] | undefined;
-    if (eat("lbrace")) {
-      fields = [];
-      while (!peek("rbrace")) {
-        const fname = parseIdent();
-        let alias: Identifier | undefined;
-        if (eat("colon")) alias = parseIdent();
-        fields.push({
-          kind: "PatternField",
-          name: fname,
-          alias,
-          span: spanHere(),
-        });
-        eat("comma");
+    const prev = inPattern;
+    inPattern = true;
+    try {
+      if (
+        peek("string") ||
+        peek("number") ||
+        peek("kw_true") ||
+        peek("kw_false")
+      ) {
+        const lit = parseLiteralExpr().value;
+        const s = spanHere();
+        return { kind: "LiteralPattern", value: lit, span: s };
       }
-      expect("rbrace");
+      const name = parseIdent();
+      let fields: PatternField[] | undefined;
+      if (eat("lbrace")) {
+        fields = [];
+        while (!peek("rbrace")) {
+          const fname = parseIdent();
+          let alias: Identifier | undefined;
+          if (eat("colon")) alias = parseIdent();
+          fields.push({
+            kind: "PatternField",
+            name: fname,
+            alias,
+            span: spanHere(),
+          });
+          eat("comma");
+        }
+        expect("rbrace");
+      }
+      const vp: VariantPattern = {
+        kind: "VariantPattern",
+        head: { tag: "Named", name },
+        fields,
+        span: name.span,
+      };
+      return vp;
+    } finally {
+      inPattern = prev;
     }
-    const vp: VariantPattern = {
-      kind: "VariantPattern",
-      head: { tag: "Named", name },
-      fields,
-      span: name.span,
-    };
-    return vp;
   }
 
   function parseLiteral(): Literal {

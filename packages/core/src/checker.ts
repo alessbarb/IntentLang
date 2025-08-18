@@ -24,7 +24,7 @@ import type {
   VariantPattern,
   LiteralPattern,
   MatchStmt,
-} from "./ast";
+} from "./ast.js";
 
 /* Diagnostics */
 export type Diagnostic = {
@@ -509,7 +509,7 @@ function inferExpr(ctx: Ctx, f: FlowCtx, e: Expr): T {
       return { kind: "Record", fields: m };
     }
     case "MatchExpr": {
-      return checkMatch(ctx, f, e, e.span);
+      return checkMatch(ctx, f, e, e.span, /*asExpr*/ true);
     }
   }
 }
@@ -543,7 +543,13 @@ function checkCallArgs(
 }
 
 /* Match exhaustiveness */
-function checkMatch(ctx: Ctx, f: FlowCtx, m: MatchExpr, span?: Span): T {
+function checkMatch(
+  ctx: Ctx,
+  f: FlowCtx,
+  m: MatchExpr,
+  span?: Span,
+  asExpr: boolean = false,
+): T {
   const cases = m.cases;
   const t = inferExpr(ctx, f, m.expr);
 
@@ -589,7 +595,16 @@ function checkMatch(ctx: Ctx, f: FlowCtx, m: MatchExpr, span?: Span): T {
           }
         }
         const sub: FlowCtx = { ...f, scope: caseScope };
-        checkCaseBody(ctx, sub, c.body);
+        if (asExpr && (c.body as any).kind === "Block") {
+          ctx.diags.push(
+            err(
+              `In a 'match' used as an expression, each case must be an expression (not a block). Use 'match' as a statement or make the case return an expression.`,
+              (c.body as any).span ?? c.span,
+            ),
+          );
+        } else {
+          checkCaseBody(ctx, sub, c.body);
+        }
       }
     }
     const missing = [...domain].filter((k) => !covered.has(k));
@@ -622,7 +637,16 @@ function checkMatch(ctx: Ctx, f: FlowCtx, m: MatchExpr, span?: Span): T {
         );
       } else {
         covered.add(lit);
-        checkCaseBody(ctx, f, c.body);
+        if (asExpr && (c.body as any).kind === "Block") {
+          ctx.diags.push(
+            err(
+              `In a 'match' used as an expression, each case must be an expression (not a block). Use 'match' as a statement or make the case return an expression.`,
+              (c.body as any).span ?? c.span,
+            ),
+          );
+        } else {
+          checkCaseBody(ctx, f, c.body);
+        }
       }
     }
     const missing = [...domain].filter((k) => !covered.has(k));
@@ -639,7 +663,19 @@ function checkMatch(ctx: Ctx, f: FlowCtx, m: MatchExpr, span?: Span): T {
       span,
     ),
   );
-  for (const c of cases) checkCaseBody(ctx, f, c.body);
+  for (const c of cases) {
+    if (asExpr && (c.body as any).kind === "Block") {
+      ctx.diags.push(
+        err(
+          `In a 'match' used as an expression, each case must be an expression (not a block).`,
+          (c.body as any).span ?? c.span,
+        ),
+      );
+    } else {
+      checkCaseBody(ctx, f, c.body);
+    }
+  }
+
   return TUnknown;
 }
 
@@ -835,5 +871,5 @@ function checkMatchFromStmt(ctx: Ctx, f: FlowCtx, s: MatchStmt) {
     cases: s.cases,
     span: s.span,
   };
-  return checkMatch(ctx, f, m, s.span);
+  return checkMatch(ctx, f, m, s.span, /*asExpr*/ false);
 }
