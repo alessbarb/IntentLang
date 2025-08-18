@@ -1,0 +1,66 @@
+# This file controls the behavior of Trunk: https://docs.trunk.io/cli
+# To learn more about the format of this file, see https://docs.trunk.io/reference/trunk-yaml
+version: 0.1
+
+cli:
+  version: 1.25.0
+
+# Trunk provides extensibility via plugins. (https://docs.trunk.io/plugins)
+plugins:
+  sources:
+    - id: trunk
+      ref: v1.7.1
+      uri: https://github.com/trunk-io/plugins
+
+# Many linters and tools depend on runtimes. (https://docs.trunk.io/runtimes)
+runtimes:
+  enabled:
+    - node@22.16.0
+    - python@3.10.8
+
+# Lint configuration. (https://docs.trunk.io/check/configuration)
+lint:
+  enabled:
+    - checkov@3.2.461
+    - git-diff-check
+    - markdownlint@0.45.0
+    - osv-scanner@2.0.3
+    - prettier@3.6.2
+    - trufflehog@3.90.5
+    - yamllint@1.37.1
+
+  # Ignore rules: agrupa paths y decide a qué linters afecta.
+  ignore:
+    # 1) Directorios generados o grandes: ignóralos para TODOS los linters.
+    - paths:
+        - ".trunk/**"
+        - "node_modules/**"
+        - "dist/**"
+        - "build/**"
+        - "coverage/**"
+        - ".next/**"
+        - ".turbo/**"
+        - "**/*.il"
+        - ".gitignore"
+        - "LICENSE"
+      linters:
+        - ALL
+
+    # 2) Archivos de pruebas, tipos y otros que no aportan al linting general.
+    - paths:
+        - "**/*.test.ts"
+        - "**/*.spec.ts"
+        - "**/*.d.ts"
+        - "**/*.il"
+        - "LICENSE"
+      linters:
+        - ALL
+
+    # 3) Lockfiles: evita formateo/lint de YAML, pero permite análisis de seguridad.
+    - paths:
+        - "pnpm-lock.yaml"
+        - "yarn.lock"
+        - "package-lock.json"
+      linters:
+        - prettier
+        - yamllint
