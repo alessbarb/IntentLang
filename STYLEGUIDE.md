@@ -1,6 +1,3 @@
-# `STYLEGUIDE.md`
-
-````markdown
 # IntentLang Style Guide (v0.2)
 
 This document defines the **canonical style rules** for writing IntentLang (IL).  
