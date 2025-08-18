@@ -6,6 +6,7 @@ import type {
   TypeExpr,
   BasicType,
   BrandType,
+  NamedType,
   RecordType,
   UnionType,
   GenericType,
@@ -166,6 +167,14 @@ function resolveType(ctx: Ctx, tx: TypeExpr): T {
       }
     case "BrandType":
       return { kind: "Brand", base: "String", brand: tx.brand };
+    case "NamedType": {
+      const t = ctx.types.get(tx.name.name);
+      if (!t) {
+        ctx.diags.push(err(`Unknown type '${tx.name.name}'.`, tx.span));
+        return TUnknown;
+      }
+      return t;
+    }
     case "LiteralType":
       return TString;
     case "RecordType": {

@@ -53,6 +53,7 @@ export type TypeDecl = {
 export type TypeExpr =
   | BasicType
   | BrandType
+  | NamedType
   | RecordType
   | UnionType
   | GenericType
@@ -68,6 +69,12 @@ export type BrandType = {
   kind: "BrandType";
   base: BasicType;
   brand: string;
+  span: Span;
+};
+
+export type NamedType = {
+  kind: "NamedType";
+  name: Identifier;
   span: Span;
 };
 

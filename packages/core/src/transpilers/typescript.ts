@@ -8,6 +8,7 @@ import type {
   TypeExpr,
   RecordType,
   BrandType,
+  NamedType,
   BasicType,
   LiteralType,
   GenericType,
@@ -110,6 +111,8 @@ function tsType(t: TypeExpr): string {
       return genericToTs(t);
     case "UnionType":
       return unionToTs(t);
+    case "NamedType":
+      return t.name.name;
   }
 }
 
@@ -298,7 +301,10 @@ function emitCall(c: CallExpr, isEffect: boolean): string {
 function emitMatchStmt(s: MatchStmt, isEffect: boolean): string {
   const subject = `_m_${fresh()}`;
   const head = `const ${subject} = ${emitExpr(s.expr, isEffect)};`;
-  const chain = emitCasesAsIfs(subject, s.cases, isEffect);
+  const chain = emitCasesAsIfs(subject, s.cases, isEffect, {
+    returns: true,
+    inlineReturn: true,
+  });
   return `${head}\n${chain}`;
 }
 
@@ -316,7 +322,9 @@ function emitMatchExpr(m: MatchExpr, isEffect: boolean): string {
   return `${head}\n${indent(chain)}\nreturn ${ret};\n})()`;
 }
 
-type CaseEmitOpts = { returns?: false } | { returns: true; assignTo: string };
+type CaseEmitOpts =
+  | { returns?: false }
+  | { returns: true; assignTo?: string; inlineReturn?: boolean };
 
 function emitCasesAsIfs(
   subject: string,
@@ -332,15 +340,28 @@ function emitCasesAsIfs(
     if ("kind" in c.body && (c.body as any).kind === "Block") {
       // statement-mode: bloque tal cual
       const block = emitBlock(c.body as Block, isEffect);
-      body = bindings ? `${bindings}\n${block}` : block;
+      if ((opts as any).returns && (opts as any).inlineReturn) {
+        body = bindings
+          ? `${bindings}\n${block}\nreturn;`
+          : `${block}\nreturn;`;
+      } else {
+        body = bindings ? `${bindings}\n${block}` : block;
+      }
     } else {
       // expresión del caso
       const expr = emitExpr(c.body as Expr, isEffect);
       if ((opts as any).returns) {
-        const asg = (opts as any).assignTo as string;
-        body = bindings
-          ? `${bindings}\n${asg} = ${expr};`
-          : `${asg} = ${expr};`;
+        if ((opts as any).inlineReturn) {
+          const asg = `_r_${fresh()}`;
+          body = bindings
+            ? `${bindings}\nconst ${asg} = ${expr};\nreturn ${asg};`
+            : `const ${asg} = ${expr};\nreturn ${asg};`;
+        } else {
+          const asg = (opts as any).assignTo as string;
+          body = bindings
+            ? `${bindings}\n${asg} = ${expr};`
+            : `${asg} = ${expr};`;
+        }
       } else {
         body = bindings ? `${bindings}\n${expr};` : `${expr};`;
       }

@@ -219,18 +219,35 @@ export function parse(input: string): Program {
 
     if (peek("ident")) {
       if (next().type === "lt") return parseGenericType();
-      const basic = parseBasicTypeOrIdentAsBasic();
-      if (eat("kw_brand")) {
-        const brandName = expect("string").value!;
-        const t: BrandType = {
-          kind: "BrandType",
-          base: basic,
-          brand: brandName,
-          span: basic.span,
+      const id = parseIdent();
+      const basicSet = new Set([
+        "Bool",
+        "Int",
+        "Float",
+        "String",
+        "Bytes",
+        "Uuid",
+        "DateTime",
+      ]);
+      if (basicSet.has(id.name)) {
+        const basic: BasicType = {
+          kind: "BasicType",
+          name: id.name as BasicType["name"],
+          span: id.span,
         };
-        return t;
+        if (eat("kw_brand")) {
+          const brandName = expect("string").value!;
+          const t: BrandType = {
+            kind: "BrandType",
+            base: basic,
+            brand: brandName,
+            span: basic.span,
+          };
+          return t;
+        }
+        return basic;
       }
-      return basic;
+      return { kind: "NamedType", name: id, span: id.span };
     }
     p = save;
     error("Invalid type expression");
@@ -357,24 +374,6 @@ export function parse(input: string): Program {
     const s = spanHere();
     const lit = expect("string").value!;
     return { kind: "LiteralType", value: lit, span: s };
-  }
-
-  function parseBasicTypeOrIdentAsBasic(): BasicType {
-    const t = expect("ident");
-    const name = t.value!;
-    const basicSet = new Set([
-      "Bool",
-      "Int",
-      "Float",
-      "String",
-      "Bytes",
-      "Uuid",
-      "DateTime",
-    ]);
-    const typeName = basicSet.has(name)
-      ? (name as BasicType["name"])
-      : "String";
-    return { kind: "BasicType", name: typeName, span: spanHere() };
   }
 
   function parseIdent(): Identifier {
@@ -859,7 +858,11 @@ export function parse(input: string): Program {
   function parseMatchExpr(): MatchExpr {
     const s = spanHere();
     expect("kw_match");
+    // Avoid interpreting the scrutinee as a VariantExpr when followed by '{'
+    const prev = inPattern;
+    inPattern = true;
     const e = parseExpr();
+    inPattern = prev;
     expect("lbrace");
 
     const cases: CaseClause[] = [];
