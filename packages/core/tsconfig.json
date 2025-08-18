@@ -1,8 +1,18 @@
 {
   "extends": "../../tsconfig.base.json",
+  "include": [
+    "src/**/*"
+  ],
   "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": "src",
     "outDir": "dist",
-    "rootDir": "src"
-  },
-  "include": ["src"]
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "types": [
+      "node"
+    ]
+  }
 }

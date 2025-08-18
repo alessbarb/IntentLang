@@ -1,6 +1,6 @@
 {
   "name": "@il/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,11 +9,11 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json -w",
     "lint": "echo \"(add eslint later)\"",
-    "test": "node --loader ./node_modules/ts-node/esm.mjs test/match-bindings.test.mts",
+    "test": "node --trace-warnings --trace-deprecation --loader ts-node/esm tests/run.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
-  "dependencies": {},
   "devDependencies": {
+    "@types/node": "^24.3.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
   }
