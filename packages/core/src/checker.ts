@@ -247,11 +247,34 @@ type FlowCtx = {
   usedCaps: Set<string>;
 };
 
+function checkContract(
+  ctx: Ctx,
+  scope: Scope,
+  expr: Expr,
+  kind: "requires" | "ensures",
+) {
+  const t = inferExpr(ctx, {
+    scope,
+    pure: true,
+    allowedCaps: new Set(),
+    expectedReturn: TBool,
+    usedCaps: new Set(),
+  }, expr);
+  if (!isBoolLike(t))
+    ctx.diags.push(
+      err(`'${kind}' must be Bool. Got ${showType(t)}.`, expr.span),
+    );
+}
+
 function checkFuncBody(ctx: Ctx, fn: FuncDecl) {
   const scope = new Map<string, T>();
   for (const p of fn.params) scope.set(p.name.name, resolveType(ctx, p.type));
   const expected = resolveType(ctx, fn.returnType);
   const usedCaps = new Set<string>();
+  if (fn.contracts?.requires)
+    checkContract(ctx, scope, fn.contracts.requires, "requires");
+  if (fn.contracts?.ensures)
+    checkContract(ctx, scope, fn.contracts.ensures, "ensures");
   checkBlock(
     ctx,
     {
@@ -278,6 +301,10 @@ function checkEffectBody(ctx: Ctx, eff: EffectDecl) {
   const expected = resolveType(ctx, eff.returnType);
   const allowed = new Set(eff.uses.map((u) => u.name));
   const usedCaps = new Set<string>();
+  if (eff.contracts?.requires)
+    checkContract(ctx, scope, eff.contracts.requires, "requires");
+  if (eff.contracts?.ensures)
+    checkContract(ctx, scope, eff.contracts.ensures, "ensures");
   checkBlock(
     ctx,
     {

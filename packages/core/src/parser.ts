@@ -407,8 +407,25 @@ export function parse(input: string): Program {
     expect("rparen");
     expect("colon");
     const ret = parseTypeExpr();
+    let contracts: { requires?: Expr; ensures?: Expr } | undefined;
+    if (eat("kw_requires")) {
+      const req = parseExpr();
+      contracts = { requires: req };
+    }
+    if (eat("kw_ensures")) {
+      const ens = parseExpr();
+      contracts = { ...(contracts ?? {}), ensures: ens };
+    }
     const body = parseBlock();
-    return { kind: "FuncDecl", name, params, returnType: ret, body, span: s };
+    return {
+      kind: "FuncDecl",
+      name,
+      params,
+      returnType: ret,
+      contracts,
+      body,
+      span: s,
+    };
   }
 
   function parseEffect(): EffectDecl {
@@ -420,6 +437,15 @@ export function parse(input: string): Program {
     expect("rparen");
     expect("colon");
     const ret = parseTypeExpr();
+    let contracts: { requires?: Expr; ensures?: Expr } | undefined;
+    if (eat("kw_requires")) {
+      const req = parseExpr();
+      contracts = { requires: req };
+    }
+    if (eat("kw_ensures")) {
+      const ens = parseExpr();
+      contracts = { ...(contracts ?? {}), ensures: ens };
+    }
     expect("kw_uses");
     const uses: Identifier[] = [parseIdent()];
     while (eat("comma")) uses.push(parseIdent());
@@ -429,6 +455,7 @@ export function parse(input: string): Program {
       name,
       params,
       returnType: ret,
+      contracts,
       uses,
       body,
       span: s,

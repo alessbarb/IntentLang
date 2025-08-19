@@ -10,6 +10,8 @@ export type Token = {
     | "kw_where"
     | "kw_func"
     | "kw_effect"
+    | "kw_requires"
+    | "kw_ensures"
     | "kw_return"
     | "kw_let"
     | "kw_if"
@@ -69,6 +71,8 @@ const KEYWORDS = new Map<string, Token["type"]>([
   ["where", "kw_where"],
   ["func", "kw_func"],
   ["effect", "kw_effect"],
+  ["requires", "kw_requires"],
+  ["ensures", "kw_ensures"],
   ["return", "kw_return"],
   ["let", "kw_let"],
   ["if", "kw_if"],
