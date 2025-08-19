@@ -1,6 +1,7 @@
 import vm from "node:vm";
 import fs from "node:fs";
 import ts from "typescript";
+import _ from "lodash";
 import {
   parse,
   check as checkProgram,
@@ -88,7 +89,7 @@ export async function runTest(files: string[], flags: TestFlags) {
     }
   }
 
-  const onlyRe = flags.only ? new RegExp(flags.only) : null;
+  const onlyRe = flags.only ? new RegExp(_.escapeRegExp(flags.only)) : null;
   const results: { name: string; ok: boolean; error?: string }[] = [];
 
   for (const { program } of programs) {
