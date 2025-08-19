@@ -14,6 +14,8 @@ import type {
   GenericType,
   FuncDecl,
   EffectDecl,
+  TestDecl,
+  TestBlock,
   Block,
   Stmt,
   LetStmt,
@@ -82,10 +84,11 @@ export function emitTypeScript(program: Program): string {
     out.push("");
   }
 
-  // Funcs & Effects
+  // Funcs, Effects & Tests
   for (const item of program.items) {
     if (item.kind === "FuncDecl") out.push(emitFunc(item));
-    if (item.kind === "EffectDecl") out.push(emitEffect(item));
+    else if (item.kind === "EffectDecl") out.push(emitEffect(item));
+    else if (item.kind === "TestDecl") out.push(emitTest(item));
   }
 
   return out.join("\n");
@@ -188,9 +191,14 @@ function emitEffect(eff: EffectDecl): string {
   return `export async function ${eff.name.name}(${paramsTs}): Promise<${retTs}> {\n${indent(body)}\n}\n`;
 }
 
+function emitTest(t: TestDecl): string {
+  const body = emitBlock(t.body, /*isEffect*/ false);
+  return `export async function test_${t.name.name}(): Promise<void> {\n${indent(body)}\n}\n`;
+}
+
 // ---------- Blocks & Statements ----------
 
-function emitBlock(b: Block, isEffect: boolean): string {
+function emitBlock(b: Block | TestBlock, isEffect: boolean): string {
   return b.statements.map((s) => emitStmt(s, isEffect)).join("\n");
 }
 

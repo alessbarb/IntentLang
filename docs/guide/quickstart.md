@@ -55,3 +55,11 @@ pnpm --filter @il/cli ilc build user_service.il --target ts --out dist
 ```
 
 Se creará `dist/user_service.ts` con tipos y stubs equivalentes, listo para completar la lógica.
+
+## Ejecutar pruebas
+
+Para archivos que definan bloques `test`, puedes compilarlos y ejecutarlos con:
+
+```bash
+pnpm --filter @il/cli ilc test user_service.il
+```

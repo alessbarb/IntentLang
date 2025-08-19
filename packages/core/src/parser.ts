@@ -18,6 +18,8 @@ import {
   type Identifier,
   type FuncDecl,
   type EffectDecl,
+  type TestDecl,
+  type TestBlock,
   type ParamSig,
   type Block,
   type Stmt,
@@ -94,7 +96,7 @@ export function parse(input: string): Program {
   let uses: UsesSection | undefined;
   let types: TypesSection | undefined;
   const items: Array<
-    FuncDecl | EffectDecl | TypesSection | UsesSection | IntentSection
+    FuncDecl | EffectDecl | TestDecl | TypesSection | UsesSection | IntentSection
   > = [];
 
   while (!atEnd()) {
@@ -122,6 +124,10 @@ export function parse(input: string): Program {
     }
     if (peek("kw_effect")) {
       items.push(parseEffect());
+      continue;
+    }
+    if (peek("kw_test")) {
+      items.push(parseTest());
       continue;
     }
     error(`Unexpected token ${cur().type} in top-level`);
@@ -425,6 +431,19 @@ export function parse(input: string): Program {
       returnType: ret,
       uses,
       body,
+      span: s,
+    };
+  }
+
+  function parseTest(): TestDecl {
+    const s = spanHere();
+    expect("kw_test");
+    const name = parseIdent();
+    const block = parseBlock();
+    return {
+      kind: "TestDecl",
+      name,
+      body: { kind: "TestBlock", statements: block.statements, span: block.span },
       span: s,
     };
   }

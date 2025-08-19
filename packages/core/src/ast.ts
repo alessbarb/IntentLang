@@ -138,6 +138,13 @@ export type EffectDecl = {
   span: Span;
 };
 
+export type TestDecl = {
+  kind: "TestDecl";
+  name: Identifier;
+  body: TestBlock;
+  span: Span;
+};
+
 export type ParamSig = {
   kind: "ParamSig";
   name: Identifier;
@@ -148,6 +155,7 @@ export type ParamSig = {
 export type TopLevel =
   | FuncDecl
   | EffectDecl
+  | TestDecl
   | TypesSection
   | UsesSection
   | IntentSection;
@@ -155,6 +163,8 @@ export type TopLevel =
 /* ========= Statements ========= */
 
 export type Block = { kind: "Block"; statements: Stmt[]; span: Span };
+
+export type TestBlock = { kind: "TestBlock"; statements: Stmt[]; span: Span };
 
 export type Stmt = LetStmt | ReturnStmt | IfStmt | MatchStmt | ExprStmt;
 
