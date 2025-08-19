@@ -335,7 +335,13 @@ function emitMatchStmt(
 ): string {
   const subject = `_m_${fresh()}`;
   const head = `const ${subject} = ${emitExpr(s.expr, isEffect)};`;
-  const chain = emitCasesAsIfs(subject, s.cases, isEffect, { returns: true, inlineReturn: true }, ensures);
+  const chain = emitCasesAsIfs(
+    subject,
+    s.cases,
+    isEffect,
+    { returns: true, inlineReturn: true },
+    ensures,
+  );
   return `${head}\n${chain}`;
 }
 
@@ -346,7 +352,10 @@ function emitMatchExpr(m: MatchExpr, isEffect: boolean): string {
     `(() => { ` +
     `const ${subject} = ${emitExpr(m.expr, isEffect)}; ` +
     `let ${ret}: any;`;
-  const chain = emitCasesAsIfs(subject, m.cases, isEffect, { returns: true, assignTo: ret });
+  const chain = emitCasesAsIfs(subject, m.cases, isEffect, {
+    returns: true,
+    assignTo: ret,
+  });
   return `${head}\n${indent(chain)}\nreturn ${ret};\n})()`;
 }
 
@@ -375,7 +384,9 @@ function emitCasesAsIfs(
             ? `${bindings}\n${block}\n${chk}\nreturn;`
             : `${block}\n${chk}\nreturn;`;
         } else {
-          body = bindings ? `${bindings}\n${block}\nreturn;` : `${block}\nreturn;`;
+          body = bindings
+            ? `${bindings}\n${block}\nreturn;`
+            : `${block}\nreturn;`;
         }
       } else {
         body = bindings ? `${bindings}\n${block}` : block;

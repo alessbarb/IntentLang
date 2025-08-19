@@ -253,13 +253,17 @@ function checkContract(
   expr: Expr,
   kind: "requires" | "ensures",
 ) {
-  const t = inferExpr(ctx, {
-    scope,
-    pure: true,
-    allowedCaps: new Set(),
-    expectedReturn: TBool,
-    usedCaps: new Set(),
-  }, expr);
+  const t = inferExpr(
+    ctx,
+    {
+      scope,
+      pure: true,
+      allowedCaps: new Set(),
+      expectedReturn: TBool,
+      usedCaps: new Set(),
+    },
+    expr,
+  );
   if (!isBoolLike(t))
     ctx.diags.push(
       err(`'${kind}' must be Bool. Got ${showType(t)}.`, expr.span),
@@ -373,7 +377,12 @@ function checkTest(ctx: Ctx, t: TestDecl) {
             !ctx.effects.has(n) &&
             !ctx.builtins.has(n)
           ) {
-            ctx.diags.push(err(`Unknown function or effect '${n}' in test`, e.callee.id.span));
+            ctx.diags.push(
+              err(
+                `Unknown function or effect '${n}' in test`,
+                e.callee.id.span,
+              ),
+            );
           }
         }
         for (const a of e.args) visitExpr(a);

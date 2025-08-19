@@ -96,7 +96,12 @@ export function parse(input: string): Program {
   let uses: UsesSection | undefined;
   let types: TypesSection | undefined;
   const items: Array<
-    FuncDecl | EffectDecl | TestDecl | TypesSection | UsesSection | IntentSection
+    | FuncDecl
+    | EffectDecl
+    | TestDecl
+    | TypesSection
+    | UsesSection
+    | IntentSection
   > = [];
 
   while (!atEnd()) {
@@ -470,7 +475,11 @@ export function parse(input: string): Program {
     return {
       kind: "TestDecl",
       name,
-      body: { kind: "TestBlock", statements: block.statements, span: block.span },
+      body: {
+        kind: "TestBlock",
+        statements: block.statements,
+        span: block.span,
+      },
       span: s,
     };
   }
