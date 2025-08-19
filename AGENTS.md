@@ -182,7 +182,7 @@ Ejemplos de categorías:
 
 Estructura sugerida de ejemplo:
 
-```
+```tree
 packages/examples/
   user.il
   order.il
