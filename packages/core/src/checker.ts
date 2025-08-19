@@ -485,17 +485,6 @@ function inferExpr(ctx: Ctx, f: FlowCtx, e: Expr): T {
       return literalToType(e.value);
     case "IdentifierExpr": {
       const name = e.id.name;
-      if (ctx.capsDeclared.has(name)) {
-        f.usedCaps.add(name);
-        if (f.pure)
-          ctx.diags.push(
-            err(
-              `Capability '${name}' cannot be used in pure functions.`,
-              e.span,
-            ),
-          );
-        return TUnknown;
-      }
       const v = f.scope.get(name);
       if (v) return v;
       if (ctx.funcs.has(name)) return ctx.funcs.get(name)!.ret;
