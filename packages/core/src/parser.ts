@@ -55,8 +55,6 @@ import {
 } from "./ast.js";
 import { lex, type Token } from "./lexer.js";
 
-console.error("[parser.ts loaded]", import.meta.url);
-
 let inPattern = false;
 
 export function parse(input: string): Program {
@@ -836,20 +834,7 @@ export function parse(input: string): Program {
     value: Expr;
     span: Span;
   }[] {
-    // Acepta 1+ llaves: { ... }, {{ ... }}, {{{ ... }}}, etc.
-    // Y campos abreviados: { a } => { a: a }
-    let openCount = 0;
-
-    // Debe haber al menos una
     expect("lbrace");
-    openCount++;
-
-    // Consume llaves de apertura adicionales si vienen pegadas
-    while (peek("lbrace")) {
-      eat("lbrace");
-      openCount++;
-    }
-
     const items: {
       kind: "VariantFieldInit";
       key: Identifier;
@@ -904,8 +889,7 @@ export function parse(input: string): Program {
       }
     }
 
-    // Cerramos exactamente tantas llaves como abrimos
-    for (let k = 0; k < openCount; k++) expect("rbrace");
+    expect("rbrace");
 
     return items;
   }
