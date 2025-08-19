@@ -10,7 +10,10 @@ pnpm --filter @il/cli ilc check path/to/file.il
 pnpm --filter @il/cli ilc build path/to/file.il --target ts --out dist
 ```
 
-The `--seed-rng` and `--seed-clock` flags make runs deterministic.
+`ilc check` prints `OK` when the file typechecks, exits with code `1` on
+diagnostics, and `2` for usage errors (missing file or unknown flag).
+Use `--strict` to treat warnings as errors. The `--seed-rng` and
+`--seed-clock` flags make runs deterministic.
 
 ## Development
 
