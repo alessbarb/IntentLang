@@ -25,7 +25,10 @@ assert.equal(res.status, 0);
 assert.match(res.stdout, /OK/);
 
 const bad = join(tmp, "bad.il");
-writeFileSync(bad, `intent "X" tags []\nuses {}\ntypes {}\neffect boom(): Int uses http {}`);
+writeFileSync(
+  bad,
+  `intent "X" tags []\nuses {}\ntypes {}\neffect boom(): Int uses http {}`,
+);
 res = spawnSync("node", [cliPath, "check", bad], { encoding: "utf8" });
 assert.equal(res.status, 1);
 assert.match(res.stderr, /undeclared capability 'http'/);

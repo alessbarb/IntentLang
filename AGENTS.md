@@ -13,7 +13,7 @@
 
 ## 1) Contexto del repo
 
-**Paquetes principales**
+**Paquetes principales:**
 
 - `packages/core` — AST, lexer, parser, checker, transpiler, runtime.
 - `packages/cli` — CLI `ilc`.
@@ -40,13 +40,13 @@
 
 ## 3) Alcance y límites
 
-**Puede**
+**Puede:**
 
 - Editar código en `core`, `cli`, `examples` siguiendo esta guía.
 - Abrir PRs con cambios pequeños o medianos.
 - Escribir/actualizar documentación y goldens.
 
-**No puede**
+**No puede:**
 
 - Cambiar licencias o políticas de privacidad.
 - Introducir telemetría remota.
