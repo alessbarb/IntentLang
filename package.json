@@ -1,7 +1,7 @@
 {
   "name": "intentlang",
   "private": true,
-  "version": "0.4.0",
+  "version": "1.1.0",
   "scripts": {
     "build": "pnpm -r run build",
     "dev": "pnpm -r run dev",
@@ -19,6 +19,6 @@
     "@semantic-release/release-notes-generator": "^14.0.3",
     "conventional-changelog-conventionalcommits": "^9.1.0",
     "semantic-release": "^24.2.7",
-    "typescript": "^5.5.4"
+    "typescript": "^5.9.2"
   }
 }
