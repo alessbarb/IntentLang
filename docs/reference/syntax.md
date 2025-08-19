@@ -26,6 +26,21 @@ effect sendPing(): Result<Ping, String> uses clock {
 }
 ```
 
+## Contratos
+
+Antes del cuerpo, las funciones y efectos pueden declarar cláusulas de contrato opcionales:
+
+```intentlang
+func add(a: Int, b: Int): Int requires a > 0 ensures a + b > 0 {
+  return a + b;
+}
+```
+
+- `requires` valida una precondición.
+- `ensures` verifica una postcondición antes de cada `return`.
+
+Si alguna falla, la ejecución arroja un `Error` en el código generado.
+
 ## Comentarios
 
 - `//` para comentarios de una línea.

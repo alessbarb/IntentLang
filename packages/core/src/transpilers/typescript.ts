@@ -177,7 +177,11 @@ function emitFunc(fn: FuncDecl): string {
     .map((p) => `${p.name.name}: ${tsType(p.type)}`)
     .join(", ");
   const retTs = tsType(fn.returnType);
-  const body = emitBlock(fn.body, /*isEffect*/ false);
+  let body = emitBlock(fn.body, /*isEffect*/ false, fn.contracts?.ensures);
+  if (fn.contracts?.requires) {
+    const req = emitExpr(fn.contracts.requires, false);
+    body = `if (!(${req})) throw new Error('Precondition failed');\n${body}`;
+  }
   return `export function ${fn.name.name}(${paramsTs}): ${retTs} {\n${indent(body)}\n}\n`;
 }
 
@@ -187,7 +191,11 @@ function emitEffect(eff: EffectDecl): string {
     ...eff.params.map((p) => `${p.name.name}: ${tsType(p.type)}`),
   ].join(", ");
   const retTs = tsType(eff.returnType);
-  const body = emitBlock(eff.body, /*isEffect*/ true);
+  let body = emitBlock(eff.body, /*isEffect*/ true, eff.contracts?.ensures);
+  if (eff.contracts?.requires) {
+    const req = emitExpr(eff.contracts.requires, true);
+    body = `if (!(${req})) throw new Error('Precondition failed');\n${body}`;
+  }
   return `export async function ${eff.name.name}(${paramsTs}): Promise<${retTs}> {\n${indent(body)}\n}\n`;
 }
 
@@ -198,31 +206,45 @@ function emitTest(t: TestDecl): string {
 
 // ---------- Blocks & Statements ----------
 
-function emitBlock(b: Block | TestBlock, isEffect: boolean): string {
-  return b.statements.map((s) => emitStmt(s, isEffect)).join("\n");
+function emitBlock(
+  b: Block | TestBlock,
+  isEffect: boolean,
+  ensures?: Expr,
+): string {
+  return b.statements.map((s) => emitStmt(s, isEffect, ensures)).join("\n");
 }
 
-function emitStmt(s: Stmt, isEffect: boolean): string {
+function emitStmt(s: Stmt, isEffect: boolean, ensures?: Expr): string {
   switch (s.kind) {
     case "LetStmt": {
       const init = emitExpr(s.init, isEffect);
       return `const ${s.id.name} = ${init};`;
     }
     case "ReturnStmt": {
-      if (!s.argument) return `return;`;
+      if (!s.argument) {
+        const chk = ensures
+          ? `if (!(${emitExpr(ensures, isEffect)})) throw new Error('Postcondition failed');\n`
+          : "";
+        return `${chk}return;`;
+      }
       const e = emitExpr(s.argument, isEffect);
+      if (ensures) {
+        const r = `_r_${fresh()}`;
+        const chk = `if (!(${emitExpr(ensures, isEffect)})) throw new Error('Postcondition failed');`;
+        return `const ${r} = ${e};\n${chk}\nreturn ${r};`;
+      }
       return `return ${e};`;
     }
     case "IfStmt": {
       const test = emitExpr(s.test, isEffect);
-      const cons = emitBlock(s.consequent, isEffect);
-      const alt = s.alternate ? emitBlock(s.alternate, isEffect) : "";
+      const cons = emitBlock(s.consequent, isEffect, ensures);
+      const alt = s.alternate ? emitBlock(s.alternate, isEffect, ensures) : "";
       return s.alternate
         ? `if (${test}) {\n${indent(cons)}\n} else {\n${indent(alt)}\n}`
         : `if (${test}) {\n${indent(cons)}\n}`;
     }
     case "MatchStmt": {
-      return emitMatchStmt(s, isEffect);
+      return emitMatchStmt(s, isEffect, ensures);
     }
     case "ExprStmt": {
       return `${emitExpr(s.expression, isEffect)};`;
@@ -306,13 +328,14 @@ function emitCall(c: CallExpr, isEffect: boolean): string {
 
 // ---------- Match ----------
 
-function emitMatchStmt(s: MatchStmt, isEffect: boolean): string {
+function emitMatchStmt(
+  s: MatchStmt,
+  isEffect: boolean,
+  ensures?: Expr,
+): string {
   const subject = `_m_${fresh()}`;
   const head = `const ${subject} = ${emitExpr(s.expr, isEffect)};`;
-  const chain = emitCasesAsIfs(subject, s.cases, isEffect, {
-    returns: true,
-    inlineReturn: true,
-  });
+  const chain = emitCasesAsIfs(subject, s.cases, isEffect, { returns: true, inlineReturn: true }, ensures);
   return `${head}\n${chain}`;
 }
 
@@ -323,10 +346,7 @@ function emitMatchExpr(m: MatchExpr, isEffect: boolean): string {
     `(() => { ` +
     `const ${subject} = ${emitExpr(m.expr, isEffect)}; ` +
     `let ${ret}: any;`;
-  const chain = emitCasesAsIfs(subject, m.cases, isEffect, {
-    returns: true,
-    assignTo: ret,
-  });
+  const chain = emitCasesAsIfs(subject, m.cases, isEffect, { returns: true, assignTo: ret });
   return `${head}\n${indent(chain)}\nreturn ${ret};\n})()`;
 }
 
@@ -339,6 +359,7 @@ function emitCasesAsIfs(
   cases: CaseClause[],
   isEffect: boolean,
   opts: CaseEmitOpts = { returns: false },
+  ensures?: Expr,
 ): string {
   const parts: string[] = [];
   cases.forEach((c, idx) => {
@@ -346,24 +367,34 @@ function emitCasesAsIfs(
     const bindings = emitBindings(subject, c.pattern).join("\n");
     let body: string;
     if ("kind" in c.body && (c.body as any).kind === "Block") {
-      // statement-mode: bloque tal cual
-      const block = emitBlock(c.body as Block, isEffect);
+      const block = emitBlock(c.body as Block, isEffect, ensures);
       if ((opts as any).returns && (opts as any).inlineReturn) {
-        body = bindings
-          ? `${bindings}\n${block}\nreturn;`
-          : `${block}\nreturn;`;
+        if (ensures) {
+          const chk = `if (!(${emitExpr(ensures, isEffect)})) throw new Error('Postcondition failed');`;
+          body = bindings
+            ? `${bindings}\n${block}\n${chk}\nreturn;`
+            : `${block}\n${chk}\nreturn;`;
+        } else {
+          body = bindings ? `${bindings}\n${block}\nreturn;` : `${block}\nreturn;`;
+        }
       } else {
         body = bindings ? `${bindings}\n${block}` : block;
       }
     } else {
-      // expresión del caso
       const expr = emitExpr(c.body as Expr, isEffect);
       if ((opts as any).returns) {
         if ((opts as any).inlineReturn) {
           const asg = `_r_${fresh()}`;
-          body = bindings
-            ? `${bindings}\nconst ${asg} = ${expr};\nreturn ${asg};`
-            : `const ${asg} = ${expr};\nreturn ${asg};`;
+          if (ensures) {
+            const chk = `if (!(${emitExpr(ensures, isEffect)})) throw new Error('Postcondition failed');`;
+            body = bindings
+              ? `${bindings}\nconst ${asg} = ${expr};\n${chk}\nreturn ${asg};`
+              : `const ${asg} = ${expr};\n${chk}\nreturn ${asg};`;
+          } else {
+            body = bindings
+              ? `${bindings}\nconst ${asg} = ${expr};\nreturn ${asg};`
+              : `const ${asg} = ${expr};\nreturn ${asg};`;
+          }
         } else {
           const asg = (opts as any).assignTo as string;
           body = bindings

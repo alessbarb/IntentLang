@@ -124,6 +124,7 @@ export type FuncDecl = {
   name: Identifier;
   params: ParamSig[];
   returnType: TypeExpr;
+  contracts?: { requires?: Expr; ensures?: Expr };
   body: Block; // v0.2: cuerpo real
   span: Span;
 };
@@ -133,6 +134,7 @@ export type EffectDecl = {
   name: Identifier;
   params: ParamSig[];
   returnType: TypeExpr;
+  contracts?: { requires?: Expr; ensures?: Expr };
   uses: Identifier[]; // capacidades requeridas
   body: Block; // v0.2: cuerpo real
   span: Span;
