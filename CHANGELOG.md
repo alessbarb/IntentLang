@@ -1,3 +1,14 @@
+## [1.2.0](https://github.com/alessbarb/IntentLang/compare/v1.1.0...v1.2.0) (2025-08-19)
+
+### Features
+
+* **cli:** add json output for check ([de56051](https://github.com/alessbarb/IntentLang/commit/de5605127862966c76b6e13cc802e9c47ec40960))
+* **cli:** split into commands (check|build|test), add --strict/--json and strict-aware exit codes; migrate to NodeNext ESM with .js specifiers ([eacd38b](https://github.com/alessbarb/IntentLang/commit/eacd38bf3726dbda189a09aac754b9af0a82cedd))
+
+### Bug Fixes
+
+* **core:** export .js for ESM runtime; keep types to .d.ts ([5ebfd44](https://github.com/alessbarb/IntentLang/commit/5ebfd44a20578ac70f71b6a05d387fc4a4a902a3))
+
 ## [1.1.0](https://github.com/alessbarb/IntentLang/compare/v1.0.0...v1.1.0) (2025-08-19)
 
 ### Features
