@@ -1,13 +1,13 @@
-import assert from "node:assert/strict";
+import { test, expect } from "vitest";
 import { parse } from "../src/parser.js";
 import { check } from "../src/checker.js";
 import { emitTypeScript } from "../src/transpilers/typescript.js";
 import ts from "typescript";
 
-async function compileAndLoad(il, fn) {
+async function compileAndLoad(il: string, fn: string): Promise<any> {
   const program = parse(il);
   const diags = check(program);
-  assert.equal(diags.length, 0, "checker diagnostics must be empty");
+  expect(diags).toHaveLength(0);
   const tsCode = emitTypeScript(program);
   const jsCode = ts.transpileModule(tsCode, {
     compilerOptions: {
@@ -21,28 +21,30 @@ async function compileAndLoad(il, fn) {
   return mod[fn];
 }
 
-{
+test("enforces pre and post conditions", async () => {
   const il = `
     func add(a: Int, b: Int): Int requires a > 0 ensures a + b > 0 {
       return a + b;
     }
   `;
   const add = await compileAndLoad(il, "add");
-  assert.equal(add(1, 2), 3);
-  assert.throws(() => add(-1, 2), /Precondition failed/);
-  assert.throws(() => add(1, -2), /Postcondition failed/);
-}
+  expect(add(1, 2)).toBe(3);
+  expect(() => add(-1, 2)).toThrow(/Precondition failed/);
+  expect(() => add(1, -2)).toThrow(/Postcondition failed/);
+});
 
-{
+test("reports unknown identifiers in contracts", () => {
   const il = `
     func foo(a: Int): Int ensures c > 0 { return a; }
   `;
   const program = parse(il);
   const diags = check(program);
-  assert.ok(diags.some((d) => d.message.includes("Unknown identifier 'c'")));
-}
+  expect(
+    diags.some((d) => d.message.includes("Unknown identifier 'c'")),
+  ).toBe(true);
+});
 
-{
+test("supports contracts on effects", async () => {
   const il = `
     uses { clock: Clock {} }
     effect inc(x: Int): Int requires x > -10 ensures x > 0 uses clock {
@@ -50,9 +52,11 @@ async function compileAndLoad(il, fn) {
     }
   `;
   const inc = await compileAndLoad(il, "inc");
-  assert.equal(await inc({ clock: {} }, 1), 1);
-  await assert.rejects(() => inc({ clock: {} }, -20), /Precondition failed/);
-  await assert.rejects(() => inc({ clock: {} }, -5), /Postcondition failed/);
-}
-
-console.log("OK contracts");
+  await expect(inc({ clock: {} }, 1)).resolves.toBe(1);
+  await expect(() => inc({ clock: {} }, -20)).rejects.toThrow(
+    /Precondition failed/,
+  );
+  await expect(() => inc({ clock: {} }, -5)).rejects.toThrow(
+    /Postcondition failed/,
+  );
+});

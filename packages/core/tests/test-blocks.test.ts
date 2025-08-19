@@ -1,8 +1,8 @@
-import assert from "node:assert/strict";
+import { test, expect } from "vitest";
 import { parse } from "../src/parser.js";
 import { check } from "../src/checker.js";
 
-{
+test("parses valid test blocks", () => {
   const il = `
     test sample {
       ok();
@@ -11,14 +11,14 @@ import { check } from "../src/checker.js";
   `;
   const program = parse(il);
   const diags = check(program);
-  assert.equal(diags.length, 0);
+  expect(diags).toHaveLength(0);
   const t = program.items.find((i) => i.kind === "TestDecl");
-  assert.ok(t);
-  assert.equal(t.name.name, "sample");
-  assert.equal(t.body.statements.length, 1);
-}
+  expect(t).toBeTruthy();
+  expect(t?.name.name).toBe("sample");
+  expect(t?.body.statements).toHaveLength(1);
+});
 
-{
+test("reports missing functions in test blocks", () => {
   const il = `
     test bad {
       missing();
@@ -26,11 +26,9 @@ import { check } from "../src/checker.js";
   `;
   const program = parse(il);
   const diags = check(program);
-  assert.ok(
+  expect(
     diags.some((d) =>
       d.message.includes("Unknown function or effect 'missing'"),
     ),
-  );
-}
-
-console.log("OK test blocks");
+  ).toBe(true);
+});

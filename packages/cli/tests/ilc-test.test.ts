@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import { test, expect } from "vitest";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -16,35 +16,37 @@ spawnSync("pnpm", ["--filter", "@il/cli", "build"], {
 });
 
 const cliPath = fileURLToPath(new URL("../dist/index.js", import.meta.url));
-const tmp = mkdtempSync(join(tmpdir(), "ilc-"));
-const file = join(tmp, "sample.il");
 
-writeFileSync(
-  file,
-  `
+test("ilc test command", () => {
+  const tmp = mkdtempSync(join(tmpdir(), "ilc-"));
+  const file = join(tmp, "sample.il");
+
+  writeFileSync(
+    file,
+    `
   func ok(): Int requires true { return 1; }
   func bad(): Int requires false { return 0; }
   test pass { ok(); }
   test boom { bad(); }
 `,
-);
+  );
 
-let res = spawnSync("node", [cliPath, "test", file], { encoding: "utf8" });
-assert.notEqual(res.status, 0);
-assert.match(res.stdout, /✓ test_pass/);
-assert.match(res.stderr, /✗ test_boom/);
+  let res = spawnSync("node", [cliPath, "test", file], { encoding: "utf8" });
+  expect(res.status).not.toBe(0);
+  expect(res.stdout).toMatch(/✓ test_pass/);
+  expect(res.stderr).toMatch(/✗ test_boom/);
 
-writeFileSync(
-  file,
-  `
+  writeFileSync(
+    file,
+    `
   func ok(): Int requires true { return 1; }
   test pass { ok(); }
 `,
-);
+  );
 
-res = spawnSync("node", [cliPath, "test", file], { encoding: "utf8" });
-assert.equal(res.status, 0);
-assert.match(res.stdout, /✓ test_pass/);
+  res = spawnSync("node", [cliPath, "test", file], { encoding: "utf8" });
+  expect(res.status).toBe(0);
+  expect(res.stdout).toMatch(/✓ test_pass/);
 
-rmSync(tmp, { recursive: true, force: true });
-console.log("OK ilc test command");
+  rmSync(tmp, { recursive: true, force: true });
+});
