@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/alessbarb/IntentLang/compare/v1.0.0...v1.1.0) (2025-08-19)
+
+### Features
+
+* **cli:** add robust check command ([5418a7d](https://github.com/alessbarb/IntentLang/commit/5418a7d55646f3db75905ce4fa69933ba4bb7a53))
+
 # Changelog
 
 ## [0.4.0] — 2025-08-19
