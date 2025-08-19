@@ -1,3 +1,11 @@
+## [1.3.0](https://github.com/alessbarb/IntentLang/compare/v1.2.0...v1.3.0) (2025-08-19)
+
+### Features
+
+* **cli:** add --max-errors and align global help ([52fda6b](https://github.com/alessbarb/IntentLang/commit/52fda6b3d11e619503d4610c39bd5d12850ab403))
+* **cli:** allow globs and directories in 'check' inputs; validate existence only for non-globs ([fbf9965](https://github.com/alessbarb/IntentLang/commit/fbf996590bca02571b53c241e89155162901773e))
+* **cli:** implement 'ilc check --watch' with 200ms debounce, globbing and cached parse; Ctrl+C exits 0 ([1402705](https://github.com/alessbarb/IntentLang/commit/1402705e94ab3ec4ba094b4fbd8aa2825e46e5f8))
+
 ## [1.2.0](https://github.com/alessbarb/IntentLang/compare/v1.1.0...v1.2.0) (2025-08-19)
 
 ### Features
