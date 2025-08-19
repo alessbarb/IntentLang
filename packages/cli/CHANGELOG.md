@@ -6,6 +6,12 @@
 
 - **cli:** add robust check command ([5418a7d](https://github.com/alessbarb/IntentLang/commit/5418a7d55646f3db75905ce4fa69933ba4bb7a53))
 
+## 1.0.2 (2025-08-19)
+
+### Features
+
+* **cli:** add `--json` flag to `check` for machine-readable diagnostics
+
 ## 1.0.1 (2025-08-19)
 
 ### Fixes

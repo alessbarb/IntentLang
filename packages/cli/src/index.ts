@@ -30,7 +30,7 @@ function printDiagnostics(
 
 function usage(): never {
   console.error(
-    "Usage: ilc <check|build|test> file.il [--strict] [--target ts] [--out dir] [--seed-rng n] [--seed-clock n]",
+    "Usage: ilc <check|build|test> file.il [--strict] [--json] [--target ts] [--out dir] [--seed-rng n] [--seed-clock n]",
   );
   process.exit(2);
 }
@@ -45,13 +45,29 @@ if (!cmd) usage();
 switch (cmd) {
   case "check": {
     if (!file) usage();
-    if (rest.some((f) => f.startsWith("--") && f !== "--strict")) usage();
+    if (
+      rest.some(
+        (f) => f.startsWith("--") && f !== "--strict" && f !== "--json",
+      )
+    )
+      usage();
     if (!fs.existsSync(file)) usage();
     const strict = rest.includes("--strict");
+    const json = rest.includes("--json");
     const program = parse(read(file));
     const diags = checkProgram(program);
-    printDiagnostics(diags, strict);
-    if (process.exitCode !== 1) console.log("OK");
+    const hasErr = diags.some((d) => d.level === "error");
+    const hasWarn = diags.some((d) => d.level === "warning");
+    const failed = hasErr || (strict && hasWarn);
+    if (json) {
+      if (failed) process.exitCode = 1;
+      console.log(
+        JSON.stringify({ status: failed ? "error" : "ok", diags }),
+      );
+    } else {
+      printDiagnostics(diags, strict);
+      if (process.exitCode !== 1) console.log("OK");
+    }
     break;
   }
   case "build": {
