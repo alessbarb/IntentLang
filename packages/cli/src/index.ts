@@ -10,6 +10,24 @@ import {
   initRuntime,
 } from "@il/core";
 
+function printDiagnostics(
+  diags: import("@il/core").Diagnostic[],
+  strict = false,
+) {
+  const hasErr = diags.some((d) => d.level === "error");
+  const hasWarn = diags.some((d) => d.level === "warning");
+  for (const d of diags) {
+    const where = d.span
+      ? ` at ${d.span.start.line}:${d.span.start.column}`
+      : "";
+    const tag = d.level === "error" ? "[ERROR]" : "[WARN ]";
+    console.error(`${tag} ${d.message}${where}`);
+  }
+  if (hasErr || (strict && hasWarn)) {
+    process.exitCode = 1;
+  }
+}
+
 function usage(): never {
   console.error(
     "Usage: ilc <check|build|test> file.il [--target ts] [--out dir] [--seed-rng n] [--seed-clock n]",
@@ -27,9 +45,11 @@ if (!cmd) usage();
 switch (cmd) {
   case "check": {
     if (!file) usage();
+    const strict = rest.includes("--strict");
     const program = parse(read(file));
-    checkProgram(program);
-    console.log("OK");
+    const diags = checkProgram(program);
+    printDiagnostics(diags, strict);
+    if (process.exitCode !== 1) console.log("OK");
     break;
   }
   case "build": {
@@ -47,8 +67,11 @@ switch (cmd) {
       else if (flag === "--seed-clock") seedClock = Number(val);
     }
     initRuntime({ seedRng, seedClock });
+    const strict = rest.includes("--strict");
     const program = parse(read(file));
-    checkProgram(program);
+    const diags = checkProgram(program);
+    printDiagnostics(diags, strict);
+    if (process.exitCode === 1) break;
     if (target !== "ts") {
       console.error(`Unsupported target: ${target}`);
       process.exit(2);
@@ -72,8 +95,11 @@ switch (cmd) {
       else if (flag === "--seed-clock") seedClock = Number(val);
     }
     initRuntime({ seedRng, seedClock });
+    const strict = rest.includes("--strict");
     const program = parse(read(file));
-    checkProgram(program);
+    const diags = checkProgram(program);
+    printDiagnostics(diags, strict);
+    if (process.exitCode === 1) break;
     const code = emitTypeScript(program);
     const js = ts.transpileModule(code, {
       compilerOptions: {
