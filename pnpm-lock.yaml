@@ -68,6 +68,10 @@ importers:
         version: 1.6.1(@types/node@22.17.2)
 
   packages/examples:
+    dependencies:
+      '@il/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       picocolors:
         specifier: ^1.1.1

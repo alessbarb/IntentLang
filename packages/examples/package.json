@@ -6,6 +6,9 @@
     "test:goldens": "node ./scripts/goldens.mjs",
     "test:goldens:update": "UPDATE=1 node ./scripts/goldens.mjs"
   },
+  "dependencies": {
+    "@il/core": "workspace:^"
+  },
   "devDependencies": {
     "picocolors": "^1.1.1"
   }
