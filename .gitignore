@@ -4,3 +4,5 @@ scripts
 codereview
 tmp
 *.log
+.env
+.env.*
