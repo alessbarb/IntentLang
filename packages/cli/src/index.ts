@@ -3,7 +3,12 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import ts from "typescript";
-import { parse, check as checkProgram, emitTypeScript, initRuntime } from "@il/core";
+import {
+  parse,
+  check as checkProgram,
+  emitTypeScript,
+  initRuntime,
+} from "@il/core";
 
 function usage(): never {
   console.error(
@@ -71,7 +76,10 @@ switch (cmd) {
     checkProgram(program);
     const code = emitTypeScript(program);
     const js = ts.transpileModule(code, {
-      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2020,
+      },
     }).outputText;
     const sandbox: any = { exports: {}, console, process };
     vm.runInNewContext(js, sandbox);
