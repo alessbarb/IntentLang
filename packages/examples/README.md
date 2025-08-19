@@ -45,3 +45,10 @@ To add a new canonical example and its golden test:
 - **/invoice/**: Complex record structures and multiple pure `func` helpers.
 - **/payment/**: Union types with exhaustive `match` expressions.
 - **/notification/**: Union types for multi-channel dispatch.
+
+## Development
+
+```bash
+pnpm --filter @intentlang/examples test:goldens      # run golden tests
+pnpm --filter @intentlang/examples test:goldens:update --only <name>  # update
+```
