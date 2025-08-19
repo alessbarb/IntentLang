@@ -10,9 +10,14 @@ async function compileAndLoad(il, fn) {
   assert.equal(diags.length, 0, "checker diagnostics must be empty");
   const tsCode = emitTypeScript(program);
   const jsCode = ts.transpileModule(tsCode, {
-    compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 },
+    compilerOptions: {
+      module: ts.ModuleKind.ESNext,
+      target: ts.ScriptTarget.ES2020,
+    },
   }).outputText;
-  const mod = await import(`data:text/javascript,${encodeURIComponent(jsCode)}`);
+  const mod = await import(
+    `data:text/javascript,${encodeURIComponent(jsCode)}`
+  );
   return mod[fn];
 }
 
@@ -34,7 +39,7 @@ async function compileAndLoad(il, fn) {
   `;
   const program = parse(il);
   const diags = check(program);
-  assert.ok(diags.some(d => d.message.includes("Unknown identifier 'c'")));
+  assert.ok(diags.some((d) => d.message.includes("Unknown identifier 'c'")));
 }
 
 {

@@ -12,7 +12,7 @@ import { check } from "../src/checker.js";
   const program = parse(il);
   const diags = check(program);
   assert.equal(diags.length, 0);
-  const t = program.items.find(i => i.kind === "TestDecl");
+  const t = program.items.find((i) => i.kind === "TestDecl");
   assert.ok(t);
   assert.equal(t.name.name, "sample");
   assert.equal(t.body.statements.length, 1);
@@ -26,7 +26,11 @@ import { check } from "../src/checker.js";
   `;
   const program = parse(il);
   const diags = check(program);
-  assert.ok(diags.some(d => d.message.includes("Unknown function or effect 'missing'")));
+  assert.ok(
+    diags.some((d) =>
+      d.message.includes("Unknown function or effect 'missing'"),
+    ),
+  );
 }
 
 console.log("OK test blocks");
