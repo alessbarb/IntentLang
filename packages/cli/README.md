@@ -8,6 +8,8 @@ Command-line interface for IntentLang. The `ilc` binary can typecheck and transp
 ```bash
 pnpm --filter @il/cli ilc check path/to/file.il
 pnpm --filter @il/cli ilc build path/to/file.il --target ts --out dist
+# Watch mode (revalidate on save)
+pnpm --filter @il/cli ilc check "src/**/*.il" --watch --max-errors 50
 ```
 
 `ilc check` prints `OK` when the file typechecks, exits with code `1` on
@@ -30,6 +32,7 @@ ilc check path/to/file.il --json
 ```
 
 The `--seed-rng` and `--seed-clock` flags make runs deterministic.
+Use `--watch` to keep the process running and revalidate on file changes. Press **Ctrl+C** to exit (status **0**).
 
 ## Development
 

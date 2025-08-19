@@ -2,7 +2,9 @@
 
 ### Features
 
-* **cli:** add json output for check ([de56051](https://github.com/alessbarb/IntentLang/commit/de5605127862966c76b6e13cc802e9c47ec40960))
+- **cli:** add json output for check ([de56051](https://github.com/alessbarb/IntentLang/commit/de5605127862966c76b6e13cc802e9c47ec40960))
+
+* **cli:** `ilc check --watch` with debounce (200ms), globbing, cached parse; support `--max-errors`; Ctrl+C exits 0.
 
 # CHANGELOG
 
@@ -16,7 +18,7 @@
 
 ### Features
 
-* **cli:** add `--json` flag to `check` for machine-readable diagnostics
+- **cli:** add `--json` flag to `check` for machine-readable diagnostics
 
 ## 1.0.1 (2025-08-19)
 
