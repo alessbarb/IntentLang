@@ -30,9 +30,9 @@ function printDiagnostics(
 
 function usage(): never {
   console.error(
-    "Usage: ilc <check|build|test> file.il [--target ts] [--out dir] [--seed-rng n] [--seed-clock n]",
+    "Usage: ilc <check|build|test> file.il [--strict] [--target ts] [--out dir] [--seed-rng n] [--seed-clock n]",
   );
-  process.exit(1);
+  process.exit(2);
 }
 
 function read(file: string): string {
@@ -45,6 +45,8 @@ if (!cmd) usage();
 switch (cmd) {
   case "check": {
     if (!file) usage();
+    if (rest.some((f) => f.startsWith("--") && f !== "--strict")) usage();
+    if (!fs.existsSync(file)) usage();
     const strict = rest.includes("--strict");
     const program = parse(read(file));
     const diags = checkProgram(program);

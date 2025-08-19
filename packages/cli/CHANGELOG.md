@@ -1,3 +1,9 @@
+## 1.0.1 (2025-08-19)
+
+### Fixes
+
+* **cli:** return exit code `2` for missing files or unknown flags in `ilc check`
+
 ## 1.0.0 (2025-08-19)
 
 ### Features
