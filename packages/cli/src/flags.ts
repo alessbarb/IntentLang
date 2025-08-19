@@ -2,9 +2,10 @@
 export type GlobalFlags = {
   json?: boolean;
   watch?: boolean;
-  strict?: boolean; // NEW
+  strict?: boolean;
   seedRng?: string;
   seedClock?: string;
+  maxErrors?: number;
 };
 
 export function parseGlobalFlags(argv: string[]): {
@@ -42,6 +43,7 @@ export const GLOBAL_FLAGS_HELP = `
   --strict         Treat warnings as failures (exit code 1)
   --json           JSON output
   --watch          Watch files and re-run
+  --max-errors N    Limit printed diagnostics (human)
   --seed-rng N     Seed the RNG
   --seed-clock N   Seed the clock
 `.trim();
