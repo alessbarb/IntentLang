@@ -3,10 +3,12 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import ts from "typescript";
-import { parse, check as checkProgram, emitTypeScript } from "@il/core";
+import { parse, check as checkProgram, emitTypeScript, initRuntime } from "@il/core";
 
 function usage(): never {
-  console.error("Usage: ilc <check|build|test> file.il [--target ts] [--out dir]");
+  console.error(
+    "Usage: ilc <check|build|test> file.il [--target ts] [--out dir] [--seed-rng n] [--seed-clock n]",
+  );
   process.exit(1);
 }
 
@@ -29,12 +31,17 @@ switch (cmd) {
     if (!file) usage();
     let target = "ts";
     let outDir = "dist";
+    let seedRng: number | undefined;
+    let seedClock: number | undefined;
     for (let i = 0; i < rest.length; i += 2) {
       const flag = rest[i];
       const val = rest[i + 1];
       if (flag === "--target") target = val;
       else if (flag === "--out") outDir = val;
+      else if (flag === "--seed-rng") seedRng = Number(val);
+      else if (flag === "--seed-clock") seedClock = Number(val);
     }
+    initRuntime({ seedRng, seedClock });
     const program = parse(read(file));
     checkProgram(program);
     if (target !== "ts") {
@@ -51,6 +58,15 @@ switch (cmd) {
   }
   case "test": {
     if (!file) usage();
+    let seedRng: number | undefined;
+    let seedClock: number | undefined;
+    for (let i = 0; i < rest.length; i += 2) {
+      const flag = rest[i];
+      const val = rest[i + 1];
+      if (flag === "--seed-rng") seedRng = Number(val);
+      else if (flag === "--seed-clock") seedClock = Number(val);
+    }
+    initRuntime({ seedRng, seedClock });
     const program = parse(read(file));
     checkProgram(program);
     const code = emitTypeScript(program);

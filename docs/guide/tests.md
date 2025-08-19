@@ -19,3 +19,9 @@ Ejecuta las pruebas con:
 ```bash
 pnpm --filter @il/cli ilc test archivo.il
 ```
+
+Para resultados reproducibles, fija las semillas del RNG y del reloj:
+
+```bash
+pnpm --filter @il/cli ilc test archivo.il --seed-rng 1 --seed-clock 0
+```
