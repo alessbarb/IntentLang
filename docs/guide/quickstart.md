@@ -56,10 +56,22 @@ pnpm --filter @il/cli ilc build user_service.il --target ts --out dist
 
 Se creará `dist/user_service.ts` con tipos y stubs equivalentes, listo para completar la lógica.
 
+Para obtener resultados reproducibles puedes fijar las semillas del generador pseudoaleatorio y del reloj:
+
+```bash
+pnpm --filter @il/cli ilc build user_service.il --seed-rng 1 --seed-clock 0
+```
+
 ## Ejecutar pruebas
 
 Para archivos que definan bloques `test`, puedes compilarlos y ejecutarlos con:
 
 ```bash
 pnpm --filter @il/cli ilc test user_service.il
+```
+
+Al igual que con `build`, es posible fijar semillas para repetir exactamente el comportamiento:
+
+```bash
+pnpm --filter @il/cli ilc test user_service.il --seed-rng 1 --seed-clock 0
 ```
