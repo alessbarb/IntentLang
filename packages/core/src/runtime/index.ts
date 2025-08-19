@@ -7,7 +7,9 @@ let clock: () => number = () => Date.now();
 /**
  * Configure deterministic runtime primitives.
  */
-export function initRuntime(opts: { seedRng?: number; seedClock?: number } = {}): void {
+export function initRuntime(
+  opts: { seedRng?: number; seedClock?: number } = {},
+): void {
   if (opts.seedRng !== undefined) {
     let state = opts.seedRng >>> 0;
     rng = () => {
