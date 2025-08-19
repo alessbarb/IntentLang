@@ -22,6 +22,7 @@ export type Token = {
     | "kw_Some"
     | "kw_None"
     | "kw_brand"
+    | "kw_test"
     | "ident"
     | "string"
     | "number"
@@ -80,6 +81,7 @@ const KEYWORDS = new Map<string, Token["type"]>([
   ["Some", "kw_Some"],
   ["None", "kw_None"],
   ["brand", "kw_brand"],
+  ["test", "kw_test"],
 ]);
 
 export function lex(input: string): Token[] {

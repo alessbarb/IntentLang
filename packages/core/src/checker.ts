@@ -13,6 +13,8 @@ import type {
   LiteralType,
   FuncDecl,
   EffectDecl,
+  TestDecl,
+  TestBlock,
   Block,
   Stmt,
   Expr,
@@ -131,6 +133,7 @@ export function check(program: Program): Diagnostic[] {
   for (const item of program.items) {
     if (item.kind === "FuncDecl") checkFuncBody(ctx, item);
     else if (item.kind === "EffectDecl") checkEffectBody(ctx, item);
+    else if (item.kind === "TestDecl") checkTest(ctx, item);
   }
 
   return ctx.diags;
@@ -302,6 +305,95 @@ function checkEffectBody(ctx: Ctx, eff: EffectDecl) {
         ),
       );
   }
+}
+
+function checkTest(ctx: Ctx, t: TestDecl) {
+  function visitStmt(s: Stmt) {
+    switch (s.kind) {
+      case "LetStmt":
+        visitExpr(s.init);
+        break;
+      case "ReturnStmt":
+        if (s.argument) visitExpr(s.argument);
+        break;
+      case "IfStmt":
+        visitExpr(s.test);
+        visitBlock(s.consequent);
+        if (s.alternate) visitBlock(s.alternate);
+        break;
+      case "MatchStmt":
+        visitExpr(s.expr);
+        for (const c of s.cases) {
+          if ((c.body as any).kind === "Block") visitBlock(c.body as Block);
+          else visitExpr(c.body as Expr);
+        }
+        break;
+      case "ExprStmt":
+        visitExpr(s.expression);
+        break;
+    }
+  }
+  function visitBlock(b: { statements: Stmt[] }) {
+    for (const st of b.statements) visitStmt(st);
+  }
+  function visitExpr(e: Expr) {
+    switch (e.kind) {
+      case "CallExpr":
+        if (e.callee.kind === "IdentifierExpr") {
+          const n = e.callee.id.name;
+          if (
+            !ctx.funcs.has(n) &&
+            !ctx.effects.has(n) &&
+            !ctx.builtins.has(n)
+          ) {
+            ctx.diags.push(err(`Unknown function or effect '${n}' in test`, e.callee.id.span));
+          }
+        }
+        for (const a of e.args) visitExpr(a);
+        break;
+      case "ObjectExpr":
+        for (const f of e.fields) visitExpr(f.value);
+        break;
+      case "ArrayExpr":
+        for (const el of e.elements) visitExpr(el);
+        break;
+      case "MemberExpr":
+        visitExpr(e.object);
+        break;
+      case "UnaryExpr":
+        visitExpr(e.argument);
+        break;
+      case "BinaryExpr":
+        visitExpr(e.left);
+        visitExpr(e.right);
+        break;
+      case "ResultOkExpr":
+        visitExpr(e.value);
+        break;
+      case "ResultErrExpr":
+        visitExpr(e.error);
+        break;
+      case "OptionSomeExpr":
+        visitExpr(e.value);
+        break;
+      case "BrandCastExpr":
+        visitExpr(e.value);
+        break;
+      case "VariantExpr":
+        for (const f of e.fields ?? []) visitExpr(f.value);
+        break;
+      case "MatchExpr":
+        visitExpr(e.expr);
+        for (const c of e.cases) {
+          if ((c.body as any).kind === "Block") visitBlock(c.body as Block);
+          else visitExpr(c.body as Expr);
+        }
+        break;
+      default:
+        break;
+    }
+  }
+  visitBlock(t.body);
 }
 
 function checkBlock(ctx: Ctx, f: FlowCtx, block: Block) {

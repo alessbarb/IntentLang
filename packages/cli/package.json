@@ -15,10 +15,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@il/core": "workspace:^0.3.0"
+    "@il/core": "workspace:^0.3.0",
+    "typescript": "^5.5.4"
   },
   "devDependencies": {
-    "@types/node": "^20.11.19",
-    "typescript": "^5.5.4"
+    "@types/node": "^20.11.19"
   }
 }

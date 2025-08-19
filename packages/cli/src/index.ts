@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
+import vm from "node:vm";
+import ts from "typescript";
 import { parse, check as checkProgram, emitTypeScript } from "@il/core";
 
 function usage(): never {
-  console.error("Usage: ilc <check|build> file.il [--target ts] [--out dir]");
+  console.error("Usage: ilc <check|build|test> file.il [--target ts] [--out dir]");
   process.exit(1);
 }
 
@@ -45,6 +47,30 @@ switch (cmd) {
     const dest = path.join(outDir, base);
     fs.writeFileSync(dest, out, "utf8");
     console.log(`Built: ${dest}`);
+    break;
+  }
+  case "test": {
+    if (!file) usage();
+    const program = parse(read(file));
+    checkProgram(program);
+    const code = emitTypeScript(program);
+    const js = ts.transpileModule(code, {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+    }).outputText;
+    const sandbox: any = { exports: {}, console, process };
+    vm.runInNewContext(js, sandbox);
+    const tests = Object.entries(sandbox.exports).filter(
+      ([name, fn]) => name.startsWith("test_") && typeof fn === "function",
+    );
+    for (const [name, fn] of tests) {
+      try {
+        await (fn as any)();
+        console.log(`✓ ${name}`);
+      } catch (err) {
+        console.error(`✗ ${name}:`, err);
+        process.exitCode = 1;
+      }
+    }
     break;
   }
   default:
