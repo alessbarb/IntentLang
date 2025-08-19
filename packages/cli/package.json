@@ -1,6 +1,6 @@
 {
   "name": "@il/cli",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "bin": {
     "ilc": "dist/index.js"
