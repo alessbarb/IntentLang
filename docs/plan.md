@@ -7,6 +7,12 @@
 - **Transpilar a TypeScript**: tipos, firmas y _stubs_ con DI de capacidades —listo para que el equipo rellene lógica.
 - **CLI**: `ilc check`, `ilc build --target ts`.
 
+## v0.4
+
+- Bloques `test` para describir comportamiento y validarlo desde la CLI.
+- Contratos con `requires`/`ensures` que se traducen a _asserts_ en TypeScript.
+- Capacidades con semillas (`--seed-rng`, `--seed-clock`) para ejecuciones deterministas.
+
 ---
 
 # Estructura del repo (pnpm workspaces)

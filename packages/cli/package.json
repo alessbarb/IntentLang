@@ -1,6 +1,6 @@
 {
   "name": "@il/cli",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "bin": {
     "ilc": "dist/index.js"
@@ -15,7 +15,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@il/core": "workspace:^0.3.0",
+    "@il/core": "workspace:^0.4.0",
     "typescript": "^5.5.4"
   },
   "devDependencies": {

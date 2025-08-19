@@ -1,7 +1,15 @@
-func add(a: Int, b: Int): Int {
-  return a + b;
+uses { random: Random { } }
+
+func add(a: Int, b: Int): Int
+  requires a >= 0 && b >= 0
+  ensures _ >= a && _ >= b
+{ return a + b; }
+
+effect rollDie(): Int uses random { }
+
+test deterministic {
+  let sum = add(1, 2);
+  let first = rollDie();
+  let second = rollDie();
 }
 
-test add_works {
-  let result = add(1, 2);
-}

@@ -15,7 +15,7 @@ importers:
   packages/cli:
     dependencies:
       '@il/core':
-        specifier: workspace:^0.3.0
+        specifier: workspace:^0.4.0
         version: link:../core
       typescript:
         specifier: ^5.5.4
