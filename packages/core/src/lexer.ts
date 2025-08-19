@@ -292,7 +292,7 @@ export function lex(input: string): Token[] {
       continue;
     }
 
-    // number
+    // number (int | float)
     if (isDigit(c)) {
       let out = c;
       adv();
@@ -300,6 +300,15 @@ export function lex(input: string): Token[] {
         out += peek();
         adv();
       }
+      if (peek() === "." && isDigit(peek(1))) {
+        out += ".";
+        adv();
+        while (isDigit(peek())) {
+          out += peek();
+          adv();
+        }
+      }
+      // TODO: optional exponent e[+-]?d+
       push("number", out);
       continue;
     }
