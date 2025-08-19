@@ -3,7 +3,10 @@
   "version": "0.4.0",
   "private": true,
   "scripts": {
-    "build": "echo \"Examples only\"",
-    "typecheck": "echo \"(no TS here)\""
+    "test:goldens": "node ./scripts/goldens.mjs",
+    "test:goldens:update": "UPDATE=1 node ./scripts/goldens.mjs"
+  },
+  "devDependencies": {
+    "picocolors": "^1.0.0"
   }
 }

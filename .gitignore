@@ -1,6 +1,7 @@
 node_modules
 dist
 scripts
+!packages/**/scripts
 codereview
 tmp
 *.log
