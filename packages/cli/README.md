@@ -17,7 +17,16 @@ readable diagnostics:
 
 ```bash
 ilc check path/to/file.il --json
-# {"status":"ok","diags":[]}
+# New shape (preferred):
+# {
+#   "kind": "check",
+#   "meta": { "strict": false },
+#   "counts": { "errors": 0, "warnings": 0 },
+#   "diagnostics": [],
+#   "status": "ok",           // legacy-compat
+#   "diags": [],              // legacy-compat
+#   "exitCode": 0
+# }
 ```
 
 The `--seed-rng` and `--seed-clock` flags make runs deterministic.
