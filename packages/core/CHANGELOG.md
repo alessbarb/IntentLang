@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Features
+
+- **runtime:** add `Fixed2` brand type and `fixed2Mul` helper.
+
 ## [1.1.0](https://github.com/alessbarb/IntentLang/compare/@il/core-v1.0.0...@il/core-v1.1.0) (2025-08-19)
 
 ### Features

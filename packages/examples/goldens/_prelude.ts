@@ -2,6 +2,13 @@
 export type Brand<B extends string> = { readonly __brand: B };
 export type Result<T, E> = { type: "Ok"; value: T } | { type: "Err"; error: E };
 
+export function fixed2Mul(
+  a: number & Brand<"Fixed2">,
+  b: number & Brand<"Fixed2">,
+): number & Brand<"Fixed2"> {
+  return ((a as number) * (b as number)) / 100 as number & Brand<"Fixed2">;
+}
+
 export interface Http {
   get(
     path: string,
