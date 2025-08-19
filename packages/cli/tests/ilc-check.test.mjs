@@ -30,6 +30,26 @@ res = spawnSync("node", [cliPath, "check", bad], { encoding: "utf8" });
 assert.equal(res.status, 1);
 assert.match(res.stderr, /undeclared capability 'http'/);
 
+res = spawnSync("node", [cliPath, "check", valid, "--json"], {
+  encoding: "utf8",
+});
+assert.equal(res.status, 0);
+assert.equal(res.stderr, "");
+let out = JSON.parse(res.stdout);
+assert.equal(out.status, "ok");
+assert.equal(out.diags.length, 0);
+
+res = spawnSync("node", [cliPath, "check", bad, "--json"], {
+  encoding: "utf8",
+});
+assert.equal(res.status, 1);
+assert.equal(res.stderr, "");
+out = JSON.parse(res.stdout);
+assert.equal(out.status, "error");
+assert.ok(out.diags.length > 0);
+assert.equal(out.diags[0].level, "error");
+assert.match(out.diags[0].message, /undeclared capability 'http'/);
+
 res = spawnSync("node", [cliPath, "check", join(tmp, "missing.il")], {
   encoding: "utf8",
 });
