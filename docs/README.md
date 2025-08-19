@@ -1,6 +1,6 @@
 # Documentación de IntentLang
 
-Bienvenido a la documentación oficial de **IntentLang**, un lenguaje declarativo diseñado para describir dominios y generar código TypeScript tipado. 
+Bienvenido a la documentación oficial de **IntentLang**, un lenguaje declarativo diseñado para describir dominios y generar código TypeScript tipado.
 
 ## Contenido
 

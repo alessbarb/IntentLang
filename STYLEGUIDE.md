@@ -54,7 +54,6 @@ A `.il` file must follow this order:
 type Email = String brand "Email" where matches("^[^@]+@[^@]+\\.[^@]+$")
 ```
 
-
 ### Records
 
 ```intentlang
