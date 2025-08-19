@@ -174,4 +174,12 @@ effect deleteItem(id: ItemId): Result<Bool, ItemError> uses http { }
 
 ---
 
+## 9. Tests y contratos
+
+- Define bloques `test` al final del archivo para documentar el comportamiento.
+- Usa `requires` y `ensures` en `func` o `effect` para expresar pre y postcondiciones.
+- Para ejecuciones reproducibles, fija semillas con `--seed-rng` y `--seed-clock`.
+
+---
+
 ✅ Following this style guide ensures **consistent, error-free IL code** that both humans and AIs can generate and read with confidence.

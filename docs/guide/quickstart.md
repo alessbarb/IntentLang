@@ -39,7 +39,12 @@ types {
 
 func toEmail(s: String): Result<String, String> { }
 
-effect createUser(input: CreateUserInput): ResultUser uses http, clock { }
+effect createUser(input: CreateUserInput): ResultUser uses http, clock
+  requires input.name.length >= 2
+  ensures _.id != ""
+{ }
+
+test create_user { let now = clock.now(); }
 ```
 
 ## Validar el archivo

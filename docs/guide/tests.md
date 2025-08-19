@@ -4,13 +4,20 @@ IntentLang permite definir bloques de pruebas con la palabra clave `test`.
 Cada prueba puede invocar funciones o efectos existentes y se ejecuta a través de la CLI.
 
 ```intentlang
-func add(a: Int, b: Int): Int {
-  return a + b;
-}
+uses { random: Random { } }
 
-test add_works {
+func add(a: Int, b: Int): Int
+  requires a >= 0 && b >= 0
+  ensures _ >= a && _ >= b
+{ return a + b; }
+
+effect rollDie(): Int uses random { }
+
+test deterministic {
   let sum = add(2, 3);
-  // assertions vendrán en futuras versiones
+  let r1 = rollDie();
+  let r2 = rollDie();
+  // asserts vendrán en futuras versiones
 }
 ```
 
