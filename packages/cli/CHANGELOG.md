@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.1.0...@il/cli-v1.2.0) (2025-08-19)
+
+### Features
+
+* **cli:** add json output for check ([de56051](https://github.com/alessbarb/IntentLang/commit/de5605127862966c76b6e13cc802e9c47ec40960))
+
 # CHANGELOG
 
 ## [1.1.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.0.0...@il/cli-v1.1.0) (2025-08-19)
