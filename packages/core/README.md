@@ -6,7 +6,7 @@ runtime helpers used by the CLI.
 ## Usage
 
 ```ts
-import { parse, check } from '@il/core';
+import { parse, check } from "@il/core";
 ```
 
 ## Development
