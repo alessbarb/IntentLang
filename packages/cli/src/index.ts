@@ -1,146 +1,116 @@
 #!/usr/bin/env node
 import fs from "node:fs";
-import path from "node:path";
-import vm from "node:vm";
-import ts from "typescript";
 import {
-  parse,
-  check as checkProgram,
-  emitTypeScript,
-  initRuntime,
-} from "@il/core";
-
-function printDiagnostics(
-  diags: import("@il/core").Diagnostic[],
-  strict = false,
-) {
-  const hasErr = diags.some((d) => d.level === "error");
-  const hasWarn = diags.some((d) => d.level === "warning");
-  for (const d of diags) {
-    const where = d.span
-      ? ` at ${d.span.start.line}:${d.span.start.column}`
-      : "";
-    const tag = d.level === "error" ? "[ERROR]" : "[WARN ]";
-    console.error(`${tag} ${d.message}${where}`);
-  }
-  if (hasErr || (strict && hasWarn)) {
-    process.exitCode = 1;
-  }
-}
+  parseGlobalFlags,
+  GLOBAL_FLAGS_HELP,
+  type GlobalFlags,
+} from "./flags.js";
+import { runCheck } from "./commands/check.js";
+import { runBuild, type BuildFlags } from "./commands/build.js";
+import { runTest, type TestFlags } from "./commands/test.js";
 
 function usage(): never {
   console.error(
-    "Usage: ilc <check|build|test> file.il [--strict] [--json] [--target ts] [--out dir] [--seed-rng n] [--seed-clock n]",
+    `Usage: ilc <check|build|test> <files...> [flags]
+
+Global flags:
+${GLOBAL_FLAGS_HELP}
+
+Build flags:
+  --target ts|js    Output target (default: ts)
+  --out DIR         Output directory (default: dist)
+  --sourcemap       Emit source maps when --target js
+
+Test flags:
+  --only PATTERN    Run tests matching PATTERN
+  --bail            Stop on first failure
+  --reporter json|human  (human by default; --json implies json)
+`,
   );
   process.exit(2);
 }
 
-function read(file: string): string {
-  return fs.readFileSync(file, "utf8");
-}
-
-const [, , cmd, file, ...rest] = process.argv;
+const argv = process.argv.slice(2);
+const [cmd, ...args] = argv;
 if (!cmd) usage();
 
-switch (cmd) {
-  case "check": {
-    if (!file) usage();
-    if (
-      rest.some(
-        (f) => f.startsWith("--") && f !== "--strict" && f !== "--json",
-      )
-    )
-      usage();
-    if (!fs.existsSync(file)) usage();
-    const strict = rest.includes("--strict");
-    const json = rest.includes("--json");
-    const program = parse(read(file));
-    const diags = checkProgram(program);
-    const hasErr = diags.some((d) => d.level === "error");
-    const hasWarn = diags.some((d) => d.level === "warning");
-    const failed = hasErr || (strict && hasWarn);
-    if (json) {
-      if (failed) process.exitCode = 1;
-      console.log(
-        JSON.stringify({ status: failed ? "error" : "ok", diags }),
-      );
-    } else {
-      printDiagnostics(diags, strict);
-      if (process.exitCode !== 1) console.log("OK");
-    }
-    break;
+const { flags: global, rest } = parseGlobalFlags(args);
+
+function parseBuild(
+  rest: string[],
+  base: GlobalFlags,
+): { files: string[]; flags: BuildFlags } {
+  let target: "ts" | "js" = "ts";
+  let outDir = "dist";
+  let sourcemap = false;
+  const files: string[] = [];
+  for (let i = 0; i < rest.length; i++) {
+    const a = rest[i];
+    if (a === "--target") target = (rest[++i] as any) ?? "ts";
+    else if (a === "--out") outDir = rest[++i] ?? "dist";
+    else if (a === "--sourcemap") sourcemap = true;
+    else if (a.startsWith("-"))
+      usage(); // flag desconocida ⇒ uso
+    else files.push(a);
   }
-  case "build": {
-    if (!file) usage();
-    let target = "ts";
-    let outDir = "dist";
-    let seedRng: number | undefined;
-    let seedClock: number | undefined;
-    for (let i = 0; i < rest.length; i += 2) {
-      const flag = rest[i];
-      const val = rest[i + 1];
-      if (flag === "--target") target = val;
-      else if (flag === "--out") outDir = val;
-      else if (flag === "--seed-rng") seedRng = Number(val);
-      else if (flag === "--seed-clock") seedClock = Number(val);
-    }
-    initRuntime({ seedRng, seedClock });
-    const strict = rest.includes("--strict");
-    const program = parse(read(file));
-    const diags = checkProgram(program);
-    printDiagnostics(diags, strict);
-    if (process.exitCode === 1) break;
-    if (target !== "ts") {
-      console.error(`Unsupported target: ${target}`);
-      process.exit(2);
-    }
-    const out = emitTypeScript(program);
-    fs.mkdirSync(outDir, { recursive: true });
-    const base = path.basename(file).replace(/\.il$/, ".ts");
-    const dest = path.join(outDir, base);
-    fs.writeFileSync(dest, out, "utf8");
-    console.log(`Built: ${dest}`);
-    break;
-  }
-  case "test": {
-    if (!file) usage();
-    let seedRng: number | undefined;
-    let seedClock: number | undefined;
-    for (let i = 0; i < rest.length; i += 2) {
-      const flag = rest[i];
-      const val = rest[i + 1];
-      if (flag === "--seed-rng") seedRng = Number(val);
-      else if (flag === "--seed-clock") seedClock = Number(val);
-    }
-    initRuntime({ seedRng, seedClock });
-    const strict = rest.includes("--strict");
-    const program = parse(read(file));
-    const diags = checkProgram(program);
-    printDiagnostics(diags, strict);
-    if (process.exitCode === 1) break;
-    const code = emitTypeScript(program);
-    const js = ts.transpileModule(code, {
-      compilerOptions: {
-        module: ts.ModuleKind.CommonJS,
-        target: ts.ScriptTarget.ES2020,
-      },
-    }).outputText;
-    const sandbox: any = { exports: {}, console, process };
-    vm.runInNewContext(js, sandbox);
-    const tests = Object.entries(sandbox.exports).filter(
-      ([name, fn]) => name.startsWith("test_") && typeof fn === "function",
-    );
-    for (const [name, fn] of tests) {
-      try {
-        await (fn as any)();
-        console.log(`✓ ${name}`);
-      } catch (err) {
-        console.error(`✗ ${name}:`, err);
-        process.exitCode = 1;
-      }
-    }
-    break;
-  }
-  default:
-    usage();
+  if (files.length === 0 || files.some((f) => !fs.existsSync(f))) usage();
+  return { files, flags: { ...base, target, outDir, sourcemap } };
 }
+
+function parseTest(
+  rest: string[],
+  base: GlobalFlags,
+): { files: string[]; flags: TestFlags } {
+  let only: string | undefined;
+  let bail = false;
+  let reporter: "json" | "human" | undefined;
+  const files: string[] = [];
+  for (let i = 0; i < rest.length; i++) {
+    const a = rest[i];
+    if (a === "--only") only = rest[++i];
+    else if (a === "--bail") bail = true;
+    else if (a === "--reporter") reporter = rest[++i] as any;
+    else if (a.startsWith("-"))
+      usage(); // flag desconocida
+    else files.push(a);
+  }
+  if (files.length === 0 || files.some((f) => !fs.existsSync(f))) usage();
+  const effReporter = base.json ? "json" : (reporter ?? "human");
+  return { files, flags: { ...base, only, bail, reporter: effReporter } };
+}
+
+function parseCheck(rest: string[]): string[] {
+  const files: string[] = [];
+  for (let i = 0; i < rest.length; i++) {
+    const a = rest[i];
+    if (a.startsWith("-")) usage(); // en 'check' no hay flags específicas
+    files.push(a);
+  }
+  if (files.length === 0 || files.some((f) => !fs.existsSync(f))) usage();
+  return files;
+}
+
+(async () => {
+  switch (cmd) {
+    case "check": {
+      const files = parseCheck(rest);
+      await runCheck(files, global);
+      break;
+    }
+    case "build": {
+      const { files, flags } = parseBuild(rest, global);
+      await runBuild(files, flags);
+      break;
+    }
+    case "test": {
+      const { files, flags } = parseTest(rest, global);
+      await runTest(files, flags);
+      break;
+    }
+    default:
+      usage();
+  }
+})().catch((err) => {
+  console.error(err?.stack ?? String(err));
+  process.exit(2);
+});
