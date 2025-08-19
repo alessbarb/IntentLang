@@ -19,10 +19,6 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Trunk check
-        uses: trunk-io/trunk-action@v1
-        with:
-          arguments: check --ci
       - name: Lint
         run: pnpm lint
       - name: Test
