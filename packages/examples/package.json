@@ -7,6 +7,6 @@
     "test:goldens:update": "UPDATE=1 node ./scripts/goldens.mjs"
   },
   "devDependencies": {
-    "picocolors": "^1.0.0"
+    "picocolors": "^1.1.1"
   }
 }
