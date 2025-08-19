@@ -6,7 +6,9 @@
     "build": "pnpm -r run build",
     "dev": "pnpm -r run dev",
     "lint": "pnpm -r run lint",
-    "test": "pnpm -r run test",
+    "test": "pnpm run test:core && pnpm run test:cli",
+    "test:core": "pnpm --filter @il/core test",
+    "test:cli": "pnpm --filter @il/cli test",
     "typecheck": "pnpm -r run typecheck"
   },
   "devDependencies": {

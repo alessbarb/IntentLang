@@ -37,4 +37,17 @@ async function compileAndLoad(il, fn) {
   assert.ok(diags.some(d => d.message.includes("Unknown identifier 'c'")));
 }
 
+{
+  const il = `
+    uses { clock: Clock {} }
+    effect inc(x: Int): Int requires x > -10 ensures x > 0 uses clock {
+      return x;
+    }
+  `;
+  const inc = await compileAndLoad(il, "inc");
+  assert.equal(await inc({ clock: {} }, 1), 1);
+  await assert.rejects(() => inc({ clock: {} }, -20), /Precondition failed/);
+  await assert.rejects(() => inc({ clock: {} }, -5), /Postcondition failed/);
+}
+
 console.log("OK contracts");
