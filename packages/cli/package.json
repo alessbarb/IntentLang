@@ -7,6 +7,9 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json -w",
@@ -19,7 +22,7 @@
     "typescript": "^5.5.4"
   },
   "devDependencies": {
-    "@types/node": "^20.11.19",
+    "@types/node": "^22",
     "ts-node": "^10.9.2"
   }
 }

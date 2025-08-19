@@ -10,6 +10,9 @@
       "import": "./dist/index.js"
     }
   },
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -19,7 +22,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
-    "@types/node": "^24.3.0",
+    "@types/node": "^22",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
   }
