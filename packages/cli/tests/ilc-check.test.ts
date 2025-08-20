@@ -89,3 +89,30 @@ test("--max-errors truncates errors output", () => {
   expect(stderr).toMatch(/\+1 errors not shown/);
   rmSync(tmp, { recursive: true, force: true });
 });
+
+test("stdin support", () => {
+  const srcValid = `intent "Test" tags []\nuses {}\ntypes {}`;
+  let res = spawnSync("node", [cliPath, "check", "-"], {
+    encoding: "utf8",
+    input: srcValid,
+  });
+  expect(res.status).toBe(0);
+  expect(res.stdout).toMatch(/OK/);
+
+  const srcInvalid =
+    `intent "X" tags []\nuses {}\ntypes {}\neffect boom(): Int uses http {}`;
+  res = spawnSync("node", [cliPath, "check", "-"], {
+    encoding: "utf8",
+    input: srcInvalid,
+  });
+  expect(res.status).toBe(1);
+  expect(res.stderr).toMatch(/\(stdin\)/);
+
+  res = spawnSync("node", [cliPath, "check", "-", "--json"], {
+    encoding: "utf8",
+    input: srcInvalid,
+  });
+  expect(res.status).toBe(1);
+  const out = JSON.parse(res.stdout);
+  expect(out.diags[0].file).toBe("(stdin)");
+});

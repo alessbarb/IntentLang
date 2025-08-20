@@ -85,10 +85,15 @@ function parseCheck(rest: string[]): string[] {
   const looksLikeGlob = (s: string) => /[*?\[]/.test(s);
   for (let i = 0; i < rest.length; i++) {
     const a = rest[i];
-    if (a.startsWith("-")) usage(); // 'check' has no specific flags
-    files.push(a);
+    if (a === "-") files.push(a);
+    else if (a.startsWith("-")) usage(); // 'check' has no specific flags
+    else files.push(a);
   }
   if (files.length === 0) usage();
+  if (files.includes("-")) {
+    if (files.length > 1) usage();
+    return ["-"];
+  }
   // Permite globs/directorios; solo exige existencia cuando no parece glob
   if (files.some((f) => !looksLikeGlob(f) && !fs.existsSync(f))) usage();
   return files;

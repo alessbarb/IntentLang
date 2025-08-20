@@ -8,7 +8,7 @@ import {
   severityOf,
 } from "../diagnostics/exit-code.js";
 
-type Diagnostic = import("@il/core").Diagnostic;
+type Diagnostic = import("@il/core").Diagnostic & { file?: string };
 
 function isIlFile(p: string): boolean {
   try {
@@ -89,7 +89,8 @@ function printDiagnostics(diags: Diagnostic[], maxErrors?: number) {
       : "";
     const tag =
       sev === "error" ? "[ERROR]" : sev === "warning" ? "[WARN ]" : "[INFO ]";
-    console.error(`${tag} ${(d as any).message}${where}`);
+    const file = (d as any).file ? `${(d as any).file}: ` : "";
+    console.error(`${file}${tag} ${(d as any).message}${where}`);
   }
   if (maxErrors !== undefined && totalErrors > errorsPrinted) {
     console.error(`+${totalErrors - errorsPrinted} errors not shown`);
@@ -145,7 +146,47 @@ async function runOnce(filePatterns: string[], cache: Map<string, CacheEntry>) {
   return { diagnostics };
 }
 
+async function readStdin(): Promise<string> {
+  return await new Promise<string>((resolve, reject) => {
+    let data = "";
+    process.stdin.setEncoding("utf8");
+    process.stdin.on("data", (chunk) => {
+      data += chunk;
+    });
+    process.stdin.on("end", () => resolve(data));
+    process.stdin.on("error", reject);
+  });
+}
+
 export async function runCheck(files: string[], global: GlobalFlags) {
+  if (files.length === 1 && files[0] === "-") {
+    const src = await readStdin();
+    const diagnostics: Diagnostic[] =
+      /^\s*$/.test(src) ? [] : checkProgram(parse(src));
+    for (const d of diagnostics) (d as any).file = "(stdin)";
+    const { errors, warnings } = summarize(diagnostics);
+    const code = exitCodeFrom(diagnostics, { strict: global.strict });
+
+    if (global.json) {
+      process.stdout.write(
+        JSON.stringify({
+          kind: "check",
+          meta: { strict: !!global.strict, watch: !!global.watch },
+          counts: { errors, warnings },
+          diagnostics,
+          status: code === 0 ? "ok" : "error",
+          diags: diagnostics,
+          exitCode: code,
+        }) + "\n",
+      );
+    } else {
+      printDiagnostics(diagnostics, global.maxErrors);
+      if (code === 0) console.log("OK");
+    }
+    process.exitCode = code;
+    return;
+  }
+
   const cache = new Map<string, CacheEntry>();
 
   const doPass = async () => {
