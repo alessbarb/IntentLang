@@ -1,3 +1,13 @@
+## [1.9.0](https://github.com/alessbarb/IntentLang/compare/v1.8.0...v1.9.0) (2025-08-20)
+
+### Features
+
+* **core:** add Python transpiler and export from core index ([b3d00c6](https://github.com/alessbarb/IntentLang/commit/b3d00c654d2f99b0dad487a91cb90d28292ed389))
+
+### Refactors
+
+* **examples:** split examples into intentlang and goldens (ts/py); add datasets and export script ([8f80e45](https://github.com/alessbarb/IntentLang/commit/8f80e45e30801ca97d45c5e8966e1a5e81ed682f))
+
 ## [1.8.0](https://github.com/alessbarb/IntentLang/compare/v1.7.0...v1.8.0) (2025-08-20)
 
 ### Features
