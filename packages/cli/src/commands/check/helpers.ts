@@ -85,9 +85,14 @@ export async function readStdin(): Promise<string> {
 export function checkFiles(
   filePatterns: string[],
   cache: Map<string, CacheEntry>,
-): { diagnostics: Diagnostic[]; files: string[] } {
+): {
+  diagnostics: Diagnostic[];
+  files: string[];
+  sources: Map<string, string>;
+} {
   const files = expandInputs(filePatterns);
   const diagnostics: Diagnostic[] = [];
+  const sources = new Map<string, string>();
 
   // Purga entradas del caché para ficheros eliminados
   for (const k of Array.from(cache.keys())) {
@@ -102,10 +107,15 @@ export function checkFiles(
 
       if (!prev || prev.mtimeMs !== st.mtimeMs) {
         const src = fs.readFileSync(f, "utf8");
+        sources.set(f, src);
         diags = /^\s*$/.test(src) ? [] : checkProgram(parse(src));
         cache.set(f, { mtimeMs: st.mtimeMs, diags });
       } else {
         diags = prev.diags;
+        // Si está en caché, aún necesitamos el fuente para el reportero
+        if (!sources.has(f)) {
+          sources.set(f, fs.readFileSync(f, "utf8"));
+        }
       }
 
       const normFile = f.split(path.sep).join("/");
@@ -115,5 +125,5 @@ export function checkFiles(
       cache.delete(f); // Elimina del caché si hay un error al leer
     }
   }
-  return { diagnostics, files };
+  return { diagnostics, files, sources };
 }

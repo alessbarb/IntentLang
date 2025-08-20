@@ -11,6 +11,7 @@ import type { BuildFlags } from "./commands/build/types.js";
 import { runBuild } from "./commands/build/index.js";
 import type { TestFlags } from "./commands/test/types.js";
 import { runTest } from "./commands/test/index.js";
+import { setColors } from "./term/colors.js";
 
 function usage(): never {
   console.error(
@@ -39,6 +40,10 @@ if (!cmd) usage();
 
 const { flags: global, rest } = parseGlobalFlags(args);
 
+if (global.noColor) {
+  setColors(false);
+}
+
 function parseBuild(
   rest: string[],
   base: GlobalFlags,
@@ -56,7 +61,7 @@ function parseBuild(
       usage(); // flag desconocida ⇒ uso
     else files.push(a);
   }
-  if (files.length === 0 || files.some((f) => !fs.existsSync(f))) usage();
+  if (files.length === 0 && !files.some((f) => fs.existsSync(f))) usage();
   return { files, flags: { ...base, target, outDir, sourcemap } };
 }
 
@@ -77,7 +82,7 @@ function parseTest(
       usage(); // flag desconocida
     else files.push(a);
   }
-  if (files.length === 0 || files.some((f) => !fs.existsSync(f))) usage();
+  if (files.length === 0 && !files.some((f) => fs.existsSync(f))) usage();
   const effReporter = base.json ? "json" : (reporter ?? "human");
   return { files, flags: { ...base, only, bail, reporter: effReporter } };
 }

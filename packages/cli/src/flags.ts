@@ -6,6 +6,7 @@ export type GlobalFlags = {
   seedRng?: string;
   seedClock?: string;
   maxErrors?: number;
+  noColor?: boolean;
 };
 
 export function parseGlobalFlags(argv: string[]): {
@@ -25,7 +26,10 @@ export function parseGlobalFlags(argv: string[]): {
         break;
       case "--strict":
         flags.strict = true;
-        break; // NEW
+        break;
+      case "--no-color":
+        flags.noColor = true;
+        break;
       case "--max-errors": {
         const n = Number(argv[++i]);
         if (Number.isInteger(n) && n >= 0) flags.maxErrors = n;
@@ -49,6 +53,7 @@ export const GLOBAL_FLAGS_HELP = `
   --strict         Treat warnings as failures (exit code 1)
   --json           JSON output
   --watch          Watch files and re-run
+  --no-color       Disable colorized output
   --max-errors N   Limit printed errors (human)
   --seed-rng N     Seed the RNG
   --seed-clock N   Seed the clock

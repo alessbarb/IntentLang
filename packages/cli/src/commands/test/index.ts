@@ -15,7 +15,7 @@ export async function runTest(files: string[], flags: TestFlags) {
     seedClock: flags.seedClock ? Number(flags.seedClock) : undefined,
   });
 
-  const { programs, diagnostics } = processFiles(files);
+  const { programs, diagnostics, sources } = processFiles(files);
   const counts = summarize(diagnostics);
   const preCode = exitCodeFrom(diagnostics, { strict: flags.strict });
 
@@ -34,7 +34,7 @@ export async function runTest(files: string[], flags: TestFlags) {
       exitCode: finalExit,
     });
   } else {
-    printDiagnostics(diagnostics);
+    printDiagnostics(diagnostics, sources);
     printHumanResults(results);
     printTestSummary(results, diagnostics);
 

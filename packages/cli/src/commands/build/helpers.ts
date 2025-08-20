@@ -22,20 +22,25 @@ export function isIlFile(p: string): boolean {
 export function processFiles(files: string[]): {
   programs: ProgramInfo[];
   diagnostics: Diagnostic[];
+  sources: Map<string, string>;
 } {
   const diagnostics: Diagnostic[] = [];
+  const sources = new Map<string, string>();
   const programs = files
     .filter(isIlFile)
     .map((file) => {
       const src = fs.readFileSync(file, "utf8");
+      sources.set(file, src);
       if (/^\s*$/.test(src)) return null;
       const program = parse(src);
-      diagnostics.push(...checkProgram(program));
+      const diags = checkProgram(program);
+      diags.forEach((d) => ((d as any).file = file));
+      diagnostics.push(...diags);
       return { file, program };
     })
     .filter((p): p is ProgramInfo => p !== null);
 
-  return { programs, diagnostics };
+  return { programs, diagnostics, sources };
 }
 
 /** Escribe los archivos de salida (TS o JS) en el directorio de destino. */

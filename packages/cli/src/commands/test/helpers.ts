@@ -23,15 +23,20 @@ function isIlFile(p: string): boolean {
 export function processFiles(files: string[]): {
   programs: ProgramInfo[];
   diagnostics: Diagnostic[];
+  sources: Map<string, string>;
 } {
   const diagnostics: Diagnostic[] = [];
+  const sources = new Map<string, string>();
   const programs = files.filter(isIlFile).map((f) => {
     const src = fs.readFileSync(f, "utf8");
+    sources.set(f, src);
     const program = parse(src);
-    diagnostics.push(...checkProgram(program));
+    const diags = checkProgram(program);
+    diags.forEach((d) => ((d as any).file = f));
+    diagnostics.push(...diags);
     return { file: f, program };
   });
-  return { programs, diagnostics };
+  return { programs, diagnostics, sources };
 }
 
 /** Ejecuta los tests de los programas compilados en un sandbox. */

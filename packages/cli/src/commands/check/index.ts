@@ -21,7 +21,8 @@ async function handleStdin(global: GlobalFlags) {
   if (global.json) {
     handleJsonOutput({ global, diagnostics, errors, warnings, code });
   } else {
-    printDiagnostics(diagnostics, global.maxErrors);
+    const sources = new Map([["(stdin)", src]]);
+    printDiagnostics(diagnostics, sources, global.maxErrors);
     printCheckSummary(errors, warnings, !!global.strict);
   }
   process.exitCode = code;
@@ -39,7 +40,7 @@ export async function runCheck(files: string[], global: GlobalFlags) {
   const cache = new Map<string, CacheEntry>();
 
   const doPass = async () => {
-    const { diagnostics, files: matched } = checkFiles(files, cache);
+    const { diagnostics, files: matched, sources } = checkFiles(files, cache);
 
     if (matched.length === 0) {
       if (global.json) {
@@ -64,7 +65,7 @@ export async function runCheck(files: string[], global: GlobalFlags) {
     if (global.json) {
       handleJsonOutput({ global, diagnostics, errors, warnings, code });
     } else {
-      printDiagnostics(diagnostics, global.maxErrors);
+      printDiagnostics(diagnostics, sources, global.maxErrors);
       if (!global.watch) {
         printCheckSummary(errors, warnings, !!global.strict);
       } else {

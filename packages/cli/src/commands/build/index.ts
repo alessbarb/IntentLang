@@ -14,7 +14,7 @@ export async function runBuild(
     seedClock: flags.seedClock ? Number(flags.seedClock) : undefined,
   });
 
-  const { programs, diagnostics } = processFiles(files);
+  const { programs, diagnostics, sources } = processFiles(files);
   const { errors, warnings } = summarize(diagnostics);
   const code = exitCodeFrom(diagnostics, { strict: flags.strict });
 
@@ -24,7 +24,7 @@ export async function runBuild(
     return;
   }
 
-  printDiagnostics(diagnostics);
+  printDiagnostics(diagnostics, sources);
 
   const built = code === 0 ? emitFiles(programs, flags) : [];
   printBuildSummary(errors, warnings, !!flags.strict, built.length);

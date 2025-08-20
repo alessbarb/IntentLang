@@ -1,6 +1,7 @@
 // packages/cli/src/term/output.ts
 
 import path from "node:path";
+import fs from "node:fs";
 import type { Diagnostic } from "@il/core";
 import { severityOf } from "../diagnostics/exit-code.js";
 import { colors } from "./colors.js";
@@ -8,10 +9,12 @@ import { colors } from "./colors.js";
 /**
  * Imprime diagnósticos a `stderr` con un formato mejorado y colores.
  * @param diags - La lista de diagnósticos a imprimir.
+ * @param sources - Un mapa del nombre de archivo a su contenido.
  * @param maxErrors - El número máximo de errores a mostrar.
  */
 export function printDiagnostics(
   diags: Diagnostic[],
+  sources: Map<string, string>,
   maxErrors?: number,
 ): void {
   if (diags.length === 0) return;
@@ -28,16 +31,42 @@ export function printDiagnostics(
       errorsPrinted++;
     }
 
+    const code = d.code ?? "UNKNOWN";
     const tag =
-      sev === "error" ? colors.red("[ERROR]") : colors.yellow("[WARNING]");
-    const location = (d as any).span
-      ? colors.cyan(
-          `${path.basename((d as any).file ?? "")}:${(d as any).span.start.line}:${(d as any).span.start.column}`,
-        )
-      : colors.cyan((d as any).file ?? "");
+      sev === "error"
+        ? colors.red(colors.bold("ERROR"))
+        : colors.yellow(colors.bold("WARNING"));
 
-    console.error(`\n${tag} ${colors.bold(d.message)}`);
-    console.error(`  ${colors.gray("-->")} ${location}`);
+    // Header
+    console.error(`\n-- ${tag} (${colors.bold(code)}) ${"-".repeat(50)}`);
+    // Message
+    console.error(`\n${colors.bold(d.message)}\n`);
+
+    const file = (d as any).file;
+    if (d.span && file) {
+      const location = colors.cyan(
+        `${path.basename(file)}:${d.span.start.line}:${d.span.start.column}`,
+      );
+      console.error(`  ${colors.gray("-->")} ${location}`);
+
+      // Code frame
+      const source = sources.get(file);
+      if (source) {
+        const lines = source.split("\n");
+        const line = lines[d.span.start.line - 1];
+        if (line) {
+          const lineNumStr = String(d.span.start.line);
+          const gutter = `${colors.gray(`${lineNumStr} |`)}`;
+          console.error(`\n${gutter} ${line}`);
+          const caret = colors.red(
+            "^".repeat(Math.max(1, d.span.end.column - d.span.start.column)),
+          );
+          console.error(
+            `${colors.gray(" ".repeat(lineNumStr.length + 2))}${" ".repeat(d.span.start.column - 1)}${caret}`,
+          );
+        }
+      }
+    }
   }
 
   if (maxErrors !== undefined && totalErrors > errorsPrinted) {
