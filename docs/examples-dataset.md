@@ -14,13 +14,19 @@ If the file transpiles successfully, copy the output to `packages/examples/golde
 
 ## 2. Generate the dataset
 
-Use the helper script to export `{source_il, transpiled_ts, ast}` triples in JSON Lines format:
+The dataset is generated during the workspace build. Run:
 
 ```bash
-node packages/examples/scripts/export-dataset.mjs
+pnpm -w build
 ```
 
-This creates `packages/examples/dataset.jsonl` with one JSON object per line. Entries without goldens are skipped and files that fail to parse will have `ast: null`.
+This writes `{source_il, transpiled_ts, ast}` triples to `packages/examples/dataset.jsonl`. Entries without goldens are skipped and files that fail to parse will have `ast: null`.
+
+To regenerate just the dataset after other packages are built, run:
+
+```bash
+pnpm --filter @il/examples build
+```
 
 ## 3. Next steps
 

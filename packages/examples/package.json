@@ -3,6 +3,7 @@
   "version": "0.4.0",
   "private": true,
   "scripts": {
+    "build": "node ./scripts/export-dataset.mjs",
     "test:goldens": "node ./scripts/goldens.mjs",
     "test:goldens:update": "UPDATE=1 node ./scripts/goldens.mjs"
   },
