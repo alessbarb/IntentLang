@@ -2,8 +2,9 @@ intent "warning-only fixture"
 
 // Duplicate case produces an unreachable-branch warning (no errors)
 
-types
-  Letter = A | B
+types {
+  type Letter = A | B;
+}
 
 func show(x: Letter): string {
   match x {
