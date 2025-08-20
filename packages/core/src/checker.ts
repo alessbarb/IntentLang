@@ -700,7 +700,16 @@ function checkMatch(
           ),
         );
       } else {
-        covered.add(ctor);
+        if (covered.has(ctor)) {
+          ctx.diags.push(
+            warn(
+              `Unreachable duplicate case for constructor '${ctor}'.`,
+              c.span,
+            ),
+          );
+        } else {
+          covered.add(ctor);
+        }
         const ctorInfo = t.ctors.get(ctor)!;
         const caseScope = new Map(f.scope);
         if (
@@ -762,7 +771,13 @@ function checkMatch(
           ),
         );
       } else {
-        covered.add(lit);
+        if (covered.has(lit)) {
+          ctx.diags.push(
+            warn(`Unreachable duplicate case for literal '${lit}'.`, c.span),
+          );
+        } else {
+          covered.add(lit);
+        }
         if (asExpr && (c.body as any).kind === "Block") {
           ctx.diags.push(
             err(

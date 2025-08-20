@@ -1,0 +1,74 @@
+import fs from "node:fs";
+import vm from "node:vm";
+import ts from "typescript";
+import _ from "lodash";
+import { parse, check as checkProgram, emitTypeScript } from "@il/core";
+import type {
+  TestFlags,
+  TestResult,
+  ProgramInfo,
+  Diagnostic,
+} from "./types.js";
+
+/** Comprueba si una ruta corresponde a un archivo `.il`. */
+function isIlFile(p: string): boolean {
+  try {
+    return fs.statSync(p).isFile() && /\.il$/i.test(p);
+  } catch {
+    return false;
+  }
+}
+
+/** Lee y procesa los ficheros .il, devolviendo los programas y diagnósticos. */
+export function processFiles(files: string[]): {
+  programs: ProgramInfo[];
+  diagnostics: Diagnostic[];
+} {
+  const diagnostics: Diagnostic[] = [];
+  const programs = files.filter(isIlFile).map((f) => {
+    const src = fs.readFileSync(f, "utf8");
+    const program = parse(src);
+    diagnostics.push(...checkProgram(program));
+    return { file: f, program };
+  });
+  return { programs, diagnostics };
+}
+
+/** Ejecuta los tests de los programas compilados en un sandbox. */
+export async function executeTests(
+  programs: ProgramInfo[],
+  flags: TestFlags,
+): Promise<TestResult[]> {
+  const onlyRe = flags.only ? new RegExp(_.escapeRegExp(flags.only)) : null;
+  const results: TestResult[] = [];
+
+  for (const { program } of programs) {
+    const tsCode = emitTypeScript(program);
+    const js = ts.transpileModule(tsCode, {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2020,
+      },
+    }).outputText;
+
+    const sandbox: any = { exports: {}, console, process };
+    vm.runInNewContext(js, sandbox);
+    const tests = Object.entries(sandbox.exports).filter(
+      ([name, fn]) => name.startsWith("test_") && typeof fn === "function",
+    );
+
+    for (const [name, fn] of tests) {
+      if (onlyRe && !onlyRe.test(name)) continue;
+      try {
+        await (fn as any)();
+        results.push({ name, ok: true });
+      } catch (err: any) {
+        results.push({ name, ok: false, error: String(err?.message ?? err) });
+        if (flags.bail) break;
+      }
+    }
+    if (flags.bail && results.some((r) => !r.ok)) break;
+  }
+
+  return results;
+}

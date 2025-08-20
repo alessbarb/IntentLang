@@ -18,7 +18,7 @@ export type Program = {
 export type IntentSection = {
   kind: "IntentSection";
   description: string;
-  tags: string[];
+  tags?: string[];
   span: Span;
 };
 

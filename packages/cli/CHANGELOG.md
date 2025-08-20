@@ -1,3 +1,10 @@
+## [1.7.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.6.0...@il/cli-v1.7.0) (2025-08-20)
+
+### Features
+
+* **core:** extend parser and checker with new constructs ([01899fc](https://github.com/alessbarb/IntentLang/commit/01899fcf6dc6aa2bc2dced7607e4c9f9c60e40fe))
+* **examples:** update dataset export script and example intent ([86e5bad](https://github.com/alessbarb/IntentLang/commit/86e5badb8daf0ab089ad4a5662706ca9bca9f2d7))
+
 ## [1.6.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.5.0...@il/cli-v1.6.0) (2025-08-20)
 
 ### Features
