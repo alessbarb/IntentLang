@@ -1,7 +1,6 @@
-# Pruebas
+# Testing
 
-IntentLang permite definir bloques de pruebas con la palabra clave `test`.
-Cada prueba puede invocar funciones o efectos existentes y se ejecuta a través de la CLI.
+IntentLang lets you define test blocks using the `test` keyword. Each test may call existing functions or effects and is executed through the CLI.
 
 ```intentlang
 uses { random: Random { } }
@@ -17,18 +16,18 @@ test deterministic {
   let sum = add(2, 3);
   let r1 = rollDie();
   let r2 = rollDie();
-  // asserts vendrán en futuras versiones
+  // assertions will come in future versions
 }
 ```
 
-Ejecuta las pruebas con:
+Run tests with:
 
 ```bash
-pnpm --filter @il/cli ilc test archivo.il
+pnpm --filter @il/cli ilc test file.il
 ```
 
-Para resultados reproducibles, fija las semillas del RNG y del reloj:
+For reproducible results, fix RNG and clock seeds:
 
 ```bash
-pnpm --filter @il/cli ilc test archivo.il --seed-rng 1 --seed-clock 0
+pnpm --filter @il/cli ilc test file.il --seed-rng 1 --seed-clock 0
 ```

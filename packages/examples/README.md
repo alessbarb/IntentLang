@@ -39,7 +39,7 @@ To add a new canonical example and its golden test:
 
 ## Current Examples
 
-- **add.il**: muestra `test`, contratos y capacidades con semillas.
+- **add.il**: showcases `test`, contracts, and capabilities with seeds.
 - **/user/**: Basic CRUD operations, brands, and records.
 - **/order/**: Usage of multiple capabilities (`http`, `clock`, `random`).
 - **/invoice/**: Complex record structures and multiple pure `func` helpers.

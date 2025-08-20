@@ -1,5 +1,5 @@
 // packages/core/src/ast.ts
-// AST v0.2 — añade Expr/Stmt/Pattern y cuerpos reales en func/effect
+// AST v0.2 — adds Expr/Stmt/Pattern and real bodies in func/effect
 
 export type Position = { line: number; column: number; index: number };
 export type Span = { start: Position; end: Position };
@@ -92,7 +92,7 @@ export type RecordType = {
   span: Span;
 };
 
-// Uniones: constructores nombrados o literales (p.ej. "EUR")
+// Unions: named constructors or literals (e.g. "EUR")
 export type UnionCtor =
   | { kind: "NamedCtor"; name: Identifier; fields?: RecordType; span: Span }
   | { kind: "LiteralCtor"; literal: LiteralType; span: Span };
@@ -125,7 +125,7 @@ export type FuncDecl = {
   params: ParamSig[];
   returnType: TypeExpr;
   contracts?: { requires?: Expr; ensures?: Expr };
-  body: Block; // v0.2: cuerpo real
+  body: Block; // v0.2: real body
   span: Span;
 };
 
@@ -135,8 +135,8 @@ export type EffectDecl = {
   params: ParamSig[];
   returnType: TypeExpr;
   contracts?: { requires?: Expr; ensures?: Expr };
-  uses: Identifier[]; // capacidades requeridas
-  body: Block; // v0.2: cuerpo real
+  uses: Identifier[]; // required capabilities
+  body: Block; // v0.2: real body
   span: Span;
 };
 

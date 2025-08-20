@@ -1,47 +1,47 @@
-# AGENTS.md — Guía del paquete **Core**
+# AGENTS.md — Core Package Guide
 
-**Ámbito**: AST, lexer, parser, checker, transpiler(s), runtime y `index.ts` público.
+**Scope**: AST, lexer, parser, checker, transpilers, runtime and public `index.ts`.
 
-## Principios
+## Principles
 
-- **Determinismo**: salidas estables, sin dependencia del reloj ni RNG (usa semillas del runtime).
-- **Fuente única de verdad**: el **AST** define capacidades del lenguaje; cualquier cambio en sintaxis, tipos o semántica empieza allí.
-- **Compatibilidad**: evoluciona con cambios _aditivos_; las rupturas requieren nota de migración y `minor` bump.
-- **Exhaustividad**: `match` y uniones deben tener cobertura total en checker y goldens.
+- **Determinism**: outputs must be stable, independent of clock or RNG (seed the runtime).
+- **Single source of truth**: the **AST** defines language capabilities; syntax, types and semantics changes start here.
+- **Compatibility**: evolve with additive changes; breaking changes require migration notes and a minor version bump.
+- **Exhaustiveness**: `match` and union types must be fully covered in the checker and goldens.
 
-## Responsabilidades del paquete
+## Package responsibilities
 
-- **`ast.ts`**: contratos de nodos y spans. Mantén **comentarios de versión** (v0.x) y _fields_ opcionales para crecer.
-- **`lexer.ts`**: tokens, comentarios, números (int/float), strings. No _logs_ en producción.
-- **`parser.ts`**: gramática recursiva, bloques, patrones. Sin efectos laterales.
-- **`checker.ts`**: símbolos, tipos internos, reglas de exhaustividad y capacidades. Emite **ILC02xx/ILC03xx**.
-- **`transpilers/typescript.ts`**: mapeo IL→TS determinista; prelude mínimo inline; orden fijo de propiedades.
-- **`runtime/`**: primitivos deterministas (`initRuntime`, RNG, clock). Super pequeño y estable.
+- **`ast.ts`**: node contracts and spans. Keep **version comments** (v0.x) and optional fields for growth.
+- **`lexer.ts`**: tokens, comments, numbers (int/float), strings. No production logs.
+- **`parser.ts`**: recursive grammar, blocks, patterns. No side effects.
+- **`checker.ts`**: symbols, internal types, exhaustiveness rules and capabilities. Emit **ILC02xx/ILC03xx**.
+- **`transpilers/typescript.ts`**: IL→TS deterministic mapping; inline minimal prelude; fixed property order.
+- **`runtime/`**: deterministic primitives (`initRuntime`, RNG, clock). Tiny and stable.
 
-## Flujo de cambio
+## Change flow
 
-1. **Diseño**: si afecta semántica/sintaxis → abre RFC.
-2. **AST**: añade nodos/campos opcionales; no rompas existentes si puedes evitarlo.
-3. **Lexer/Parser**: añade tokens y reglas juntas; incluye tests de error y recuperación.
-4. **Checker**: crea/usa códigos **ILC000x** nuevos; redacta mensajes con snippet y caret.
-5. **Transpiler**: garantiza idempotencia y orden estable; ajusta goldens.
-6. **Runtime**: documenta cualquier nueva primitiva.
+1. **Design**: if it affects semantics or syntax → open an RFC.
+2. **AST**: add nodes/optional fields; avoid breaking existing ones when possible.
+3. **Lexer/Parser**: add tokens and rules together; include error and recovery tests.
+4. **Checker**: create/use new `ILC000x` codes; write messages with snippet and caret.
+5. **Transpiler**: ensure determinism and stable ordering; adjust goldens.
+6. **Runtime**: document any new primitive.
 
-## Checklist de PR (Core)
+## PR checklist (Core)
 
-- [ ] `pnpm -w build` sin errores.
-- [ ] `ilc check` a repo de ejemplos (si aplica) sin errores.
-- [ ] Tests de lexer/parser/checker/transpiler añadidos.
-- [ ] `ilc goldens run` sin diffs (o `update` justificado).
-- [ ] Nuevos códigos ILC documentados y `--explain` actualizado.
-- [ ] Sin `console.*` ni dependencias nuevas sin justificación.
+- [ ] `pnpm -w build` passes.
+- [ ] `ilc check` on examples (if touched) passes.
+- [ ] Tests for lexer/parser/checker/transpiler added.
+- [ ] `ilc goldens run` passes (or justified `update`).
+- [ ] New ILC codes documented and `--explain` updated.
+- [ ] No `console.*` or new dependencies without justification.
 
-## Códigos de diagnóstico sugeridos
+## Suggested diagnostic codes
 
-- **ILC010x**: léxico/parsing (token inesperado, string sin cierre, etc.).
-- **ILC020x**: tipos/exhaustividad (match no exhaustivo, tipos incompatibles).
-- **ILC030x**: capacidades/efectos (uso en contexto puro, capability no declarada).
+- **ILC010x**: lexing/parsing (unexpected token, unterminated string, etc.).
+- **ILC020x**: typing/exhaustiveness (non-exhaustive match, incompatible types).
+- **ILC030x**: capabilities/effects (effect used in pure context, undeclared capability).
 
-## Rendimiento
+## Performance
 
-- Mide con `--trace`; evita regresiones >10% en ejemplos medianos. Si sucede, explica causa/mitigación.
+- Measure with `--trace`; avoid >10% regressions on medium examples. Explain cause/mitigation if it occurs.

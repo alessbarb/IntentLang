@@ -18,17 +18,17 @@ function isIlFile(p: string): boolean {
   }
 }
 
-// Header mínimo aceptado (case-insensitive, tolera espacios/EOL)
+// Minimal accepted header (case-insensitive, tolerates spaces/EOL)
 const MIN_HEADER_RE =
   /^\s*intent\s+"[^"]*"\s+tags\s*\[\]\s*(?:\r?\n)+\s*uses\s*{\s*}\s*(?:\r?\n)+\s*types\s*{\s*}\s*$/i;
 
-// ---------- globbing mínimo ----------
+// ---------- minimal globbing ----------
 const SEP = path.sep;
 const GLOB_RE = /[*?\[]/;
 const looksLikeGlob = (s: string) => GLOB_RE.test(s);
 
 function globToRegExp(glob: string): RegExp {
-  // Soporte: **, *, ?, escapado simple; normaliza a '/'
+    // Support: **, *, ?, simple escaping; normalize to '/'
   let re = glob.replace(/[.+^${}()|\\]/g, "\\$&");
   re = re.replace(/\*\*/g, "§§DS§§");
   re = re.replace(/\*/g, "[^/]*").replace(/\?/g, "[^/]");
@@ -110,7 +110,7 @@ function printWatchStatus(info: {
   );
 }
 
-// ---------- caché por archivo ----------
+// ---------- per-file cache ----------
 type CacheEntry = { mtimeMs: number; diags: Diagnostic[] };
 
 async function runOnce(filePatterns: string[], cache: Map<string, CacheEntry>) {

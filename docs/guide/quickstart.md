@@ -1,19 +1,19 @@
-# Guía de inicio rápido
+# Quick Start Guide
 
-Esta guía muestra cómo escribir un archivo en IntentLang y generar el código TypeScript correspondiente.
+This guide shows how to write an IntentLang file and generate the corresponding TypeScript code.
 
-## Prerrequisitos
+## Prerequisites
 
-- Node.js y pnpm instalados
-- Dependencias del repositorio instaladas con:
+- Node.js and pnpm installed
+- Repository dependencies installed:
 
 ```bash
 pnpm install
 ```
 
-## Crear un servicio simple
+## Create a simple service
 
-Crea `user_service.il` con el siguiente contenido:
+Create `user_service.il` with the following content:
 
 ```intentlang
 intent "User service" tags ["api", "users"]
@@ -47,35 +47,35 @@ effect createUser(input: CreateUserInput): ResultUser uses http, clock
 test create_user { let now = clock.now(); }
 ```
 
-## Validar el archivo
+## Validate the file
 
 ```bash
 pnpm --filter @il/cli ilc check user_service.il
 ```
 
-## Generar TypeScript
+## Generate TypeScript
 
 ```bash
 pnpm --filter @il/cli ilc build user_service.il --target ts --out dist
 ```
 
-Se creará `dist/user_service.ts` con tipos y stubs equivalentes, listo para completar la lógica.
+`dist/user_service.ts` will contain equivalent types and stubs ready for business logic.
 
-Para obtener resultados reproducibles puedes fijar las semillas del generador pseudoaleatorio y del reloj:
+For reproducible results you can fix the pseudo-random generator and clock seeds:
 
 ```bash
 pnpm --filter @il/cli ilc build user_service.il --seed-rng 1 --seed-clock 0
 ```
 
-## Ejecutar pruebas
+## Run tests
 
-Para archivos que definan bloques `test`, puedes compilarlos y ejecutarlos con:
+For files with `test` blocks, compile and run them with:
 
 ```bash
 pnpm --filter @il/cli ilc test user_service.il
 ```
 
-Al igual que con `build`, es posible fijar semillas para repetir exactamente el comportamiento:
+As with `build`, you may seed the RNG and clock to replay behavior exactly:
 
 ```bash
 pnpm --filter @il/cli ilc test user_service.il --seed-rng 1 --seed-clock 0

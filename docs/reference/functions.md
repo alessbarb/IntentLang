@@ -1,16 +1,16 @@
-# Funciones y efectos
+# Functions and Effects
 
-Las **funciones** (`func`) son puras y deterministas, mientras que los **efectos** (`effect`) interactúan con el exterior y deben declarar sus capacidades en `uses`.
+**Functions** (`func`) are pure and deterministic, while **effects** (`effect`) interact with the outside world and must declare their capabilities in `uses`.
 
-## Funciones puras
+## Pure functions
 
 ```intentlang
 func toUpper(s: String): String {
-  // sin efectos
+  // no effects
 }
 ```
 
-## Efectos con dependencias
+## Effects with dependencies
 
 ```intentlang
 effect now(): DateTime uses clock {
@@ -18,11 +18,11 @@ effect now(): DateTime uses clock {
 }
 ```
 
-Las dependencias (`clock` en el ejemplo) se resuelven por inyección al generar el código TypeScript.
+Dependencies (e.g., `clock` above) are injected when generating TypeScript code.
 
-## Contratos (`requires` / `ensures`)
+## Contracts (`requires` / `ensures`)
 
-Las funciones y efectos pueden declarar **contratos** para documentar y validar sus supuestos.
+Functions and effects may declare **contracts** to document and validate assumptions.
 
 ```intentlang
 func add(a: Int, b: Int): Int requires a > 0 ensures a + b > 0 {
@@ -30,8 +30,8 @@ func add(a: Int, b: Int): Int requires a > 0 ensures a + b > 0 {
 }
 ```
 
-- `requires <expr>` se evalúa al inicio y aborta si es falso.
-- `ensures <expr>` se comprueba antes de cada `return`.
-- Las expresiones deben devolver `Bool` y solo pueden usar variables en el alcance.
+- `requires <expr>` runs at the start and aborts if false.
+- `ensures <expr>` runs before each `return`.
+- Expressions must return `Bool` and only use variables in scope.
 
-En la salida TypeScript, los contratos se traducen a `if` que lanzan `Error` cuando no se cumplen.
+In the TypeScript output, contracts become `if` statements that throw `Error` when not satisfied.
