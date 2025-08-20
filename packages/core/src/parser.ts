@@ -148,14 +148,16 @@ export function parse(input: string): Program {
     const s = spanHere();
     expect("kw_intent");
     const description = expect("string").value!;
-    expect("kw_tags");
-    expect("lbrack");
-    const tags: string[] = [];
-    if (!peek("rbrack")) {
-      tags.push(expect("string").value!);
-      while (eat("comma")) tags.push(expect("string").value!);
+    let tags: string[] | undefined;
+    if (eat("kw_tags")) {
+      expect("lbrack");
+      tags = [];
+      if (!peek("rbrack")) {
+        tags.push(expect("string").value!);
+        while (eat("comma")) tags.push(expect("string").value!);
+      }
+      expect("rbrack");
     }
-    expect("rbrack");
     return { kind: "IntentSection", description, tags, span: s };
   }
 
