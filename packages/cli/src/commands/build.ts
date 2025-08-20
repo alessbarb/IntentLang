@@ -6,6 +6,7 @@ import {
   check as checkProgram,
   emitTypeScript,
   initRuntime,
+  type Diagnostic,
 } from "@il/core";
 import type { GlobalFlags } from "../flags.js";
 import {
@@ -14,8 +15,24 @@ import {
   severityOf,
 } from "../diagnostics/exit-code.js";
 
-type Diagnostic = import("@il/core").Diagnostic;
+// Types and Flags
+// =============================================================================
 
+export type BuildFlags = GlobalFlags & {
+  target: "ts" | "js";
+  outDir: string;
+  sourcemap?: boolean;
+};
+
+type ProgramInfo = {
+  file: string;
+  program: any;
+};
+
+// Helper Functions (Pure)
+// =============================================================================
+
+/** Checks if a path corresponds to an `.il` file. */
 function isIlFile(p: string): boolean {
   try {
     return fs.statSync(p).isFile() && /\.il$/i.test(p);
@@ -24,7 +41,66 @@ function isIlFile(p: string): boolean {
   }
 }
 
-function printDiagnostics(diags: Diagnostic[]) {
+/** Processes input files, parsing and checking each one. */
+function processFiles(files: string[]): {
+  programs: ProgramInfo[];
+  diagnostics: Diagnostic[];
+} {
+  const diagnostics: Diagnostic[] = [];
+  const programs = files
+    .filter(isIlFile)
+    .map((file) => {
+      const src = fs.readFileSync(file, "utf8");
+      if (/^\s*$/.test(src)) return null;
+      const program = parse(src);
+      diagnostics.push(...checkProgram(program));
+      return { file, program };
+    })
+    .filter((p): p is ProgramInfo => p !== null);
+
+  return { programs, diagnostics };
+}
+
+/** Writes the output files (TS or JS) to the destination directory. */
+function emitFiles(programs: ProgramInfo[], flags: BuildFlags): string[] {
+  fs.mkdirSync(flags.outDir, { recursive: true });
+  const built: string[] = [];
+
+  for (const { file, program } of programs) {
+    const tsCode = emitTypeScript(program);
+    const baseName = path.basename(file).replace(/\.il$/i, "");
+    const destPath = (ext: string) =>
+      path.join(flags.outDir, `${baseName}${ext}`);
+
+    if (flags.target === "ts") {
+      const dest = destPath(".ts");
+      fs.writeFileSync(dest, tsCode, "utf8");
+      built.push(dest);
+    } else if (flags.target === "js") {
+      const js = ts.transpileModule(tsCode, {
+        compilerOptions: {
+          module: ts.ModuleKind.CommonJS,
+          target: ts.ScriptTarget.ES2020,
+          sourceMap: !!flags.sourcemap,
+        },
+      });
+      const dest = destPath(".js");
+      fs.writeFileSync(dest, js.outputText, "utf8");
+      built.push(dest);
+
+      if (flags.sourcemap && js.sourceMapText) {
+        fs.writeFileSync(destPath(".js.map"), js.sourceMapText, "utf8");
+      }
+    }
+  }
+  return built;
+}
+
+// Effectful Functions (Console/Process Output)
+// =============================================================================
+
+/** Prints diagnostics to `stderr`. */
+function printDiagnostics(diags: Diagnostic[]): void {
   for (const d of diags) {
     const where = (d as any).span
       ? ` at ${(d as any).span.start.line}:${(d as any).span.start.column}`
@@ -36,11 +112,12 @@ function printDiagnostics(diags: Diagnostic[]) {
   }
 }
 
+/** Prints the status in `--watch` mode. */
 function printWatchStatus(info: {
   errors: number;
   warnings: number;
   strict: boolean;
-}) {
+}): void {
   const cause =
     info.errors > 0
       ? "errors"
@@ -52,123 +129,82 @@ function printWatchStatus(info: {
   );
 }
 
-export type BuildFlags = GlobalFlags & {
-  target: "ts" | "js";
-  outDir: string;
-  sourcemap?: boolean;
-};
+/** Handles JSON output, writing to `stdout`. */
+function handleJsonOutput({
+  flags,
+  diagnostics,
+  errors,
+  warnings,
+  built,
+  code,
+}: {
+  flags: BuildFlags;
+  diagnostics: Diagnostic[];
+  errors: number;
+  warnings: number;
+  built: string[];
+  code: number;
+}): void {
+  const output = {
+    kind: "build",
+    meta: {
+      strict: !!flags.strict,
+      target: flags.target,
+      outDir: flags.outDir,
+    },
+    counts: { errors, warnings },
+    diagnostics,
+    status: code === 0 ? "ok" : "error",
+    diags: diagnostics, // For legacy compatibility
+    built,
+    exitCode: code,
+  };
+  process.stdout.write(JSON.stringify(output) + "\n");
+  process.exitCode = code;
+}
 
-export async function runBuild(files: string[], flags: BuildFlags) {
+// Main Function
+// =============================================================================
+
+export async function runBuild(
+  files: string[],
+  flags: BuildFlags,
+): Promise<void> {
   initRuntime({
     seedRng: flags.seedRng ? Number(flags.seedRng) : undefined,
     seedClock: flags.seedClock ? Number(flags.seedClock) : undefined,
   });
 
-  const diagnostics: Diagnostic[] = [];
-  const programs = files
-    .filter(isIlFile)
-    .map((f) => {
-      const src = fs.readFileSync(f, "utf8");
-      if (/^\s*$/.test(src)) return null as any; // skip empty ones
-      const program = parse(src);
-      diagnostics.push(...checkProgram(program));
-      return { file: f, program };
-    })
-    .filter(Boolean);
-
+  const { programs, diagnostics } = processFiles(files);
   const { errors, warnings } = summarize(diagnostics);
   const code = exitCodeFrom(diagnostics, { strict: flags.strict });
 
   if (flags.json) {
-    if (code === 1) {
-      process.exitCode = 1;
-      process.stdout.write(
-        JSON.stringify({
-          kind: "build",
-          meta: {
-            strict: !!flags.strict,
-            target: flags.target,
-            outDir: flags.outDir,
-          },
-          counts: { errors, warnings },
-          diagnostics,
-          status: "error",
-          diags: diagnostics,
-          built: [],
-          exitCode: 1,
-        }) + "\n",
-      );
-      return;
-    }
-  } else {
-    printDiagnostics(diagnostics);
-    if (code === 1 && errors === 0 && warnings > 0 && flags.strict) {
+    const built = code === 0 ? emitFiles(programs, flags) : [];
+    handleJsonOutput({ flags, diagnostics, errors, warnings, built, code });
+    return;
+  }
+
+  printDiagnostics(diagnostics);
+
+  if (code !== 0) {
+    if (errors === 0 && warnings > 0 && flags.strict) {
       console.error("Build failed due to warnings (strict).");
     }
-    if (!flags.watch) process.exitCode = code;
-    else printWatchStatus({ errors, warnings, strict: !!flags.strict });
-    if (code === 1) return;
-  }
-
-  // Emit
-  fs.mkdirSync(flags.outDir, { recursive: true });
-  const built: string[] = [];
-
-  for (const { file, program } of programs as Array<{
-    file: string;
-    program: any;
-  }>) {
-    const tsCode = emitTypeScript(program);
-    if (flags.target === "ts") {
-      const dest = path.join(
-        flags.outDir,
-        path.basename(file).replace(/\.il$/i, ".ts"),
-      );
-      fs.writeFileSync(dest, tsCode, "utf8");
-      built.push(dest);
-    } else if (flags.target === "js") {
-      const js = ts.transpileModule(tsCode, {
-        compilerOptions: {
-          module: ts.ModuleKind.CommonJS,
-          target: ts.ScriptTarget.ES2020,
-          sourceMap: !!flags.sourcemap,
-        },
-      });
-      const dest = path.join(
-        flags.outDir,
-        path.basename(file).replace(/\.il$/i, ".js"),
-      );
-      fs.writeFileSync(dest, js.outputText, "utf8");
-      if (flags.sourcemap && js.sourceMapText)
-        fs.writeFileSync(dest + ".map", js.sourceMapText, "utf8");
-      built.push(dest);
+    if (!flags.watch) {
+      process.exitCode = code;
     } else {
-      console.error(`Unsupported target: ${flags.target}`);
-      if (!flags.watch) process.exitCode = 2;
-      return;
+      printWatchStatus({ errors, warnings, strict: !!flags.strict });
     }
+    return;
   }
 
-  if (flags.json) {
-    process.exitCode = 0;
-    process.stdout.write(
-      JSON.stringify({
-        kind: "build",
-        meta: {
-          strict: !!flags.strict,
-          target: flags.target,
-          outDir: flags.outDir,
-        },
-        counts: { errors, warnings },
-        diagnostics,
-        status: "ok",
-        diags: diagnostics,
-        built,
-        exitCode: 0,
-      }) + "\n",
-    );
-  } else if (!flags.watch) {
+  const built = emitFiles(programs, flags);
+
+  if (!flags.watch) {
     for (const f of built) console.log(`Built: ${f}`);
     process.exitCode = 0;
+  } else {
+    printWatchStatus({ errors, warnings, strict: !!flags.strict });
   }
 }
