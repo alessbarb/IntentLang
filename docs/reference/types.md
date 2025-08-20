@@ -10,6 +10,8 @@ Restrict a `String` with a name and a condition:
 type Email = String brand "Email" where matches("^[^@]+@[^@]+\\.[^@]+$");
 ```
 
+`where` acepta solo comparaciones simples o llamadas a funciones predefinidas. Las comparaciones usan `_` para referirse al valor del campo.
+
 ## Records
 
 Collections of named fields. For more than three fields, use one line per field.
