@@ -1,3 +1,15 @@
+## [1.10.0](https://github.com/alessbarb/IntentLang/compare/v1.9.0...v1.10.0) (2025-08-20)
+
+### Features
+
+* **cli:** implement rich diagnostic reporter ([6af8b39](https://github.com/alessbarb/IntentLang/commit/6af8b39dfb07a966ca9a61681c858e95427893ae)), closes [#21](https://github.com/alessbarb/IntentLang/issues/21)
+* **core:** introduce centralized diagnostics system ([b1117ea](https://github.com/alessbarb/IntentLang/commit/b1117eadcdd5a56fabf08bfe698f10f4614e0803))
+
+### Refactors
+
+* **cli:** reorganize command structure and output handling ([b235909](https://github.com/alessbarb/IntentLang/commit/b235909e80ea9d0ed543abb7f92f2a3edff53aab))
+* **cli:** reorganize command structure and output handling ([eeac117](https://github.com/alessbarb/IntentLang/commit/eeac117eabfc89a57568c92aa3e5445c91478ddf))
+
 ## [1.9.0](https://github.com/alessbarb/IntentLang/compare/v1.8.0...v1.9.0) (2025-08-20)
 
 ### Features
