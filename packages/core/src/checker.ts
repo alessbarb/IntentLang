@@ -28,23 +28,35 @@ import type {
   LiteralPattern,
   MatchStmt,
 } from "./ast.js";
+import { DIAGNOSTICS } from "./diagnostics.js";
 
 /* Diagnostics */
 export type Diagnostic = {
   level: "error" | "warning";
+  code: string;
   message: string;
   span?: Span;
 };
-const err = (m: string, span?: Span): Diagnostic => ({
-  level: "error",
-  message: m,
-  span,
-});
-const warn = (m: string, span?: Span): Diagnostic => ({
-  level: "warning",
-  message: m,
-  span,
-});
+
+function report(
+  diags: Diagnostic[],
+  code: keyof typeof DIAGNOSTICS,
+  span: Span | undefined,
+  params: Record<string, string | number>,
+): void {
+  const def = DIAGNOSTICS[code];
+  let message: string = def.message;
+  for (const [key, value] of Object.entries(params)) {
+    message = message.replace(`{${key}}`, String(value));
+  }
+  const level: Diagnostic["level"] = def.level;
+  diags.push({
+    level,
+    code,
+    message,
+    span,
+  });
+}
 
 /* Internal types (checker) */
 type T =
@@ -120,12 +132,10 @@ export function check(program: Program): Diagnostic[] {
       ctx.effects.set(item.name.name, sig);
       for (const u of sig.uses) {
         if (!ctx.capsDeclared.has(u))
-          ctx.diags.push(
-            err(
-              `Effect '${item.name.name}' lists undeclared capability '${u}'. Add it to 'uses { ... }'.`,
-              item.span,
-            ),
-          );
+          report(ctx.diags, "ILC0301", item.span, {
+            effect: item.name.name,
+            cap: u,
+          });
       }
     }
   }
@@ -143,7 +153,7 @@ export function check(program: Program): Diagnostic[] {
 function loadTypes(ctx: Ctx, types: TypesSection) {
   for (const d of types.declarations) {
     if (ctx.types.has(d.name.name)) {
-      ctx.diags.push(err(`Duplicate type '${d.name.name}'.`, d.name.span));
+      report(ctx.diags, "ILC0201", d.name.span, { type: d.name.name });
       continue;
     }
     ctx.types.set(d.name.name, resolveType(ctx, d.expr));
@@ -173,7 +183,7 @@ function resolveType(ctx: Ctx, tx: TypeExpr): T {
     case "NamedType": {
       const t = ctx.types.get(tx.name.name);
       if (!t) {
-        ctx.diags.push(err(`Unknown type '${tx.name.name}'.`, tx.span));
+        report(ctx.diags, "ILC0202", tx.span, { type: tx.name.name });
         return TUnknown;
       }
       return t;
@@ -196,19 +206,12 @@ function resolveType(ctx: Ctx, tx: TypeExpr): T {
         const ctors = new Map<string, { fields?: Map<string, T> }>();
         for (const c of tx.ctors) {
           if (c.kind === "LiteralCtor") {
-            ctx.diags.push(
-              warn(
-                "Mixed literal and named constructors in union. Prefer a single style.",
-                c.span,
-              ),
-            );
+            report(ctx.diags, "ILC0203", c.span, {});
             continue;
           }
           const name = c.name.name;
           if (ctors.has(name)) {
-            ctx.diags.push(
-              err(`Duplicate constructor '${name}' in union.`, c.span),
-            );
+            report(ctx.diags, "ILC0204", c.span, { ctor: name });
             continue;
           }
           let fields: Map<string, T> | undefined;
@@ -265,9 +268,7 @@ function checkContract(
     expr,
   );
   if (!isBoolLike(t))
-    ctx.diags.push(
-      err(`'${kind}' must be Bool. Got ${showType(t)}.`, expr.span),
-    );
+    report(ctx.diags, "ILC0205", expr.span, { kind, type: showType(t) });
 }
 
 function checkFuncBody(ctx: Ctx, fn: FuncDecl) {
@@ -291,12 +292,7 @@ function checkFuncBody(ctx: Ctx, fn: FuncDecl) {
     fn.body,
   );
   for (const c of usedCaps)
-    ctx.diags.push(
-      err(
-        `Pure function '${fn.name.name}' cannot use capability '${c}'. Move this logic to an 'effect' or remove I/O.`,
-        fn.span,
-      ),
-    );
+    report(ctx.diags, "ILC0302", fn.span, { func: fn.name.name, cap: c });
 }
 
 function checkEffectBody(ctx: Ctx, eff: EffectDecl) {
@@ -322,19 +318,9 @@ function checkEffectBody(ctx: Ctx, eff: EffectDecl) {
   );
   for (const c of usedCaps) {
     if (!ctx.capsDeclared.has(c))
-      ctx.diags.push(
-        err(
-          `Effect '${eff.name.name}' uses capability '${c}' which is not declared in file-level 'uses { ... }'.`,
-          eff.span,
-        ),
-      );
+      report(ctx.diags, "ILC0301", eff.span, { effect: eff.name.name, cap: c });
     else if (!allowed.has(c))
-      ctx.diags.push(
-        err(
-          `Effect '${eff.name.name}' uses capability '${c}' but it is not listed in 'uses' for this effect.`,
-          eff.span,
-        ),
-      );
+      report(ctx.diags, "ILC0303", eff.span, { effect: eff.name.name, cap: c });
   }
 }
 
@@ -377,12 +363,7 @@ function checkTest(ctx: Ctx, t: TestDecl) {
             !ctx.effects.has(n) &&
             !ctx.builtins.has(n)
           ) {
-            ctx.diags.push(
-              err(
-                `Unknown function or effect '${n}' in test`,
-                e.callee.id.span,
-              ),
-            );
+            report(ctx.diags, "ILC0206", e.callee.id.span, { name: n });
           }
         }
         for (const a of e.args) visitExpr(a);
@@ -447,21 +428,17 @@ function checkStmt(ctx: Ctx, f: FlowCtx, s: Stmt) {
       if (s.argument) {
         const t = inferExpr(ctx, f, s.argument);
         if (!isAssignableTo(ctx, t, f.expectedReturn))
-          ctx.diags.push(
-            err(
-              `Return type mismatch: got ${showType(t)}, expected ${showType(f.expectedReturn)}.`,
-              s.span,
-            ),
-          );
+          report(ctx.diags, "ILC0207", s.span, {
+            got: showType(t),
+            expected: showType(f.expectedReturn),
+          });
       }
       return;
     }
     case "IfStmt": {
       const t = inferExpr(ctx, f, s.test);
       if (!isBoolLike(t))
-        ctx.diags.push(
-          err(`If condition must be Bool. Got ${showType(t)}.`, s.test.span),
-        );
+        report(ctx.diags, "ILC0208", s.test.span, { type: showType(t) });
       checkBlock(ctx, { ...f, scope: new Map(f.scope) }, s.consequent);
       if (s.alternate)
         checkBlock(ctx, { ...f, scope: new Map(f.scope) }, s.alternate);
@@ -488,7 +465,7 @@ function inferExpr(ctx: Ctx, f: FlowCtx, e: Expr): T {
       const v = f.scope.get(name);
       if (v) return v;
       if (ctx.funcs.has(name)) return ctx.funcs.get(name)!.ret;
-      ctx.diags.push(err(`Unknown identifier '${name}'.`, e.span));
+      report(ctx.diags, "ILC0209", e.span, { name });
       return TUnknown;
     }
     case "ObjectExpr": {
@@ -507,12 +484,10 @@ function inferExpr(ctx: Ctx, f: FlowCtx, e: Expr): T {
       if (o.kind === "IdentifierExpr" && ctx.capsDeclared.has(o.id.name)) {
         f.usedCaps.add(o.id.name);
         if (f.pure)
-          ctx.diags.push(
-            err(
-              `Capability '${o.id.name}' cannot be used in pure functions.`,
-              e.span,
-            ),
-          );
+          report(ctx.diags, "ILC0302", e.span, {
+            func: "<lambda>",
+            cap: o.id.name,
+          });
       }
       return TUnknown;
     }
@@ -538,31 +513,27 @@ function inferExpr(ctx: Ctx, f: FlowCtx, e: Expr): T {
         ) {
           f.usedCaps.add(obj.id.name);
           if (f.pure)
-            ctx.diags.push(
-              err(
-                `Capability '${obj.id.name}' cannot be used in pure functions.`,
-                e.span,
-              ),
-            );
+            report(ctx.diags, "ILC0302", e.span, {
+              func: "<lambda>",
+              cap: obj.id.name,
+            });
           return TUnknown;
         }
       }
       for (const a of e.args) inferExpr(ctx, f, a);
-      ctx.diags.push(err(`Cannot resolve call target.`, e.span));
+      report(ctx.diags, "ILC0210", e.span, {});
       return TUnknown;
     }
     case "UnaryExpr": {
       const v = inferExpr(ctx, f, e.argument);
       if (e.op === "!") {
         if (!isBoolLike(v))
-          ctx.diags.push(err(`'!' expects Bool. Got ${showType(v)}.`, e.span));
+          report(ctx.diags, "ILC0211", e.span, { type: showType(v) });
         return { kind: "Bool" };
       }
       if (e.op === "-") {
         if (!isNumberLike(v))
-          ctx.diags.push(
-            err(`Unary '-' expects Number. Got ${showType(v)}.`, e.span),
-          );
+          report(ctx.diags, "ILC0212", e.span, { type: showType(v) });
         return { kind: "Number" };
       }
       return TUnknown;
@@ -574,28 +545,23 @@ function inferExpr(ctx: Ctx, f: FlowCtx, e: Expr): T {
         case "&&":
         case "||":
           if (!isBoolLike(l) || !isBoolLike(r))
-            ctx.diags.push(
-              err(`Logical '${e.op}' expects Bool operands.`, e.span),
-            );
+            report(ctx.diags, "ILC0213", e.span, { op: e.op });
           return { kind: "Bool" };
         case "==":
         case "!=":
           if (!isComparable(l, r))
-            ctx.diags.push(
-              err(
-                `'${e.op}' requires comparable operands. Got ${showType(l)} and ${showType(r)}.`,
-                e.span,
-              ),
-            );
+            report(ctx.diags, "ILC0214", e.span, {
+              op: e.op,
+              left: showType(l),
+              right: showType(r),
+            });
           return { kind: "Bool" };
         case "<":
         case "<=":
         case ">":
         case ">=":
           if (!isNumberLike(l) || !isNumberLike(r))
-            ctx.diags.push(
-              err(`Relational '${e.op}' expects Number operands.`, e.span),
-            );
+            report(ctx.diags, "ILC0215", e.span, { op: e.op });
           return { kind: "Bool" };
         case "+":
         case "-":
@@ -603,9 +569,7 @@ function inferExpr(ctx: Ctx, f: FlowCtx, e: Expr): T {
         case "/":
         case "%":
           if (!isNumberLike(l) || !isNumberLike(r))
-            ctx.diags.push(
-              err(`Arithmetic '${e.op}' expects Number operands.`, e.span),
-            );
+            report(ctx.diags, "ILC0216", e.span, { op: e.op });
           return { kind: "Number" };
       }
       return TUnknown;
@@ -649,22 +613,21 @@ function checkCallArgs(
   span?: Span,
 ) {
   if (args.length !== params.length)
-    ctx.diags.push(
-      err(
-        `Function '${name}' expects ${params.length} argument(s), got ${args.length}.`,
-        span,
-      ),
-    );
+    report(ctx.diags, "ILC0217", span, {
+      name,
+      expected: params.length,
+      got: args.length,
+    });
   const n = Math.min(args.length, params.length);
   for (let i = 0; i < n; i++) {
     const ai = inferExpr(ctx, f, args[i]);
     if (!isAssignableTo(ctx, ai, params[i]))
-      ctx.diags.push(
-        err(
-          `Argument ${i + 1} of '${name}' mismatch: got ${showType(ai)}, expected ${showType(params[i])}.`,
-          args[i].span,
-        ),
-      );
+      report(ctx.diags, "ILC0218", args[i].span, {
+        index: i + 1,
+        name,
+        got: showType(ai),
+        expected: showType(params[i]),
+      });
   }
 }
 
@@ -685,28 +648,16 @@ function checkMatch(
     for (const c of cases) {
       const head = caseHeadKey(c.pattern);
       if (head.kind !== "Named") {
-        ctx.diags.push(
-          err(`Pattern must be a named constructor for this union.`, c.span),
-        );
+        report(ctx.diags, "ILC0219", c.span, {});
         continue;
       }
       const ctor = head.name;
       if (!domain.has(ctor)) {
-        const suggestion = suggest([...domain], ctor);
-        ctx.diags.push(
-          err(
-            `Unknown case '${ctor}' for union.${suggestion ? ` Did you mean '${suggestion}'?` : ""}`,
-            c.span,
-          ),
-        );
+        const suggestion = suggest([...domain], ctor) ?? "a valid constructor";
+        report(ctx.diags, "ILC0220", c.span, { ctor, suggestion });
       } else {
         if (covered.has(ctor)) {
-          ctx.diags.push(
-            warn(
-              `Unreachable duplicate case for constructor '${ctor}'.`,
-              c.span,
-            ),
-          );
+          report(ctx.diags, "ILC0221", c.span, { ctor });
         } else {
           covered.add(ctor);
         }
@@ -720,23 +671,16 @@ function checkMatch(
           for (const pf of c.pattern.fields) {
             const fieldType = ctorInfo.fields.get(pf.name.name);
             if (!fieldType)
-              ctx.diags.push(
-                err(
-                  `Constructor '${ctor}' has no field '${pf.name.name}'.`,
-                  pf.span,
-                ),
-              );
+              report(ctx.diags, "ILC0222", pf.span, {
+                ctor,
+                field: pf.name.name,
+              });
             else caseScope.set(pf.alias?.name ?? pf.name.name, fieldType);
           }
         }
         const sub: FlowCtx = { ...f, scope: caseScope };
         if (asExpr && (c.body as any).kind === "Block") {
-          ctx.diags.push(
-            err(
-              `In a 'match' used as an expression, each case must be an expression (not a block). Use 'match' as a statement or make the case return an expression.`,
-              (c.body as any).span ?? c.span,
-            ),
-          );
+          report(ctx.diags, "ILC0223", (c.body as any).span ?? c.span, {});
         } else {
           checkCaseBody(ctx, sub, c.body);
         }
@@ -744,9 +688,7 @@ function checkMatch(
     }
     const missing = [...domain].filter((k) => !covered.has(k));
     if (missing.length > 0)
-      ctx.diags.push(
-        err(`Non-exhaustive match. Missing: ${missing.join(", ")}`, span),
-      );
+      report(ctx.diags, "ILC0224", span, { missing: missing.join(", ") });
     return TUnknown;
   }
 
@@ -756,35 +698,24 @@ function checkMatch(
     for (const c of cases) {
       const head = caseHeadKey(c.pattern);
       if (head.kind !== "Literal") {
-        ctx.diags.push(
-          err(`Pattern must be a literal for this union.`, c.span),
-        );
+        report(ctx.diags, "ILC0225", c.span, {});
         continue;
       }
       const lit = head.value;
       if (!domain.has(lit)) {
-        const suggestion = suggest([...domain], lit);
-        ctx.diags.push(
-          err(
-            `Unknown literal case '${lit}'.${suggestion ? ` Did you mean '${suggestion}'?` : ""}`,
-            c.span,
-          ),
-        );
+        const suggestion = suggest([...domain], lit) ?? "a valid literal";
+        report(ctx.diags, "ILC0226", c.span, {
+          literal: lit,
+          suggestion,
+        });
       } else {
         if (covered.has(lit)) {
-          ctx.diags.push(
-            warn(`Unreachable duplicate case for literal '${lit}'.`, c.span),
-          );
+          report(ctx.diags, "ILC0227", c.span, { literal: lit });
         } else {
           covered.add(lit);
         }
         if (asExpr && (c.body as any).kind === "Block") {
-          ctx.diags.push(
-            err(
-              `In a 'match' used as an expression, each case must be an expression (not a block). Use 'match' as a statement or make the case return an expression.`,
-              (c.body as any).span ?? c.span,
-            ),
-          );
+          report(ctx.diags, "ILC0223", (c.body as any).span ?? c.span, {});
         } else {
           checkCaseBody(ctx, f, c.body);
         }
@@ -792,26 +723,14 @@ function checkMatch(
     }
     const missing = [...domain].filter((k) => !covered.has(k));
     if (missing.length > 0)
-      ctx.diags.push(
-        err(`Non-exhaustive match. Missing: ${missing.join(", ")}`, span),
-      );
+      report(ctx.diags, "ILC0224", span, { missing: missing.join(", ") });
     return TUnknown;
   }
 
-  ctx.diags.push(
-    warn(
-      `'match' on non-union type ${showType(t)} — exhaustiveness not enforced.`,
-      span,
-    ),
-  );
+  report(ctx.diags, "ILC0228", span, { type: showType(t) });
   for (const c of cases) {
     if (asExpr && (c.body as any).kind === "Block") {
-      ctx.diags.push(
-        err(
-          `In a 'match' used as an expression, each case must be an expression (not a block).`,
-          (c.body as any).span ?? c.span,
-        ),
-      );
+      report(ctx.diags, "ILC0223", (c.body as any).span ?? c.span, {});
     } else {
       checkCaseBody(ctx, f, c.body);
     }
