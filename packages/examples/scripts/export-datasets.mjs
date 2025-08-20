@@ -4,25 +4,30 @@ import { fileURLToPath } from "node:url";
 import { parse, emitTypeScript, emitPython } from "@il/core";
 
 // --- Configuración de Transpiladores ---
+// Define aquí cada lenguaje de destino.
 const TRANSPILER_TARGETS = [
   {
     name: "ts",
     fileExtension: ".ts",
+    // Los goldens de TS están en el subdirectorio 'ts'.
     goldensSubDir: "ts",
     transpiler: (program) => emitTypeScript(program),
   },
   {
     name: "py",
     fileExtension: ".py",
+    // Los goldens de Py están en el subdirectorio 'py'.
     goldensSubDir: "py",
     transpiler: (program) => emitPython(program),
   },
 ];
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const examplesDir = path.resolve(__dirname, "..");
-const goldensRoot = path.join(examplesDir, "goldens");
-const datasetsDir = path.join(examplesDir, "datasets");
+const examplesRoot = path.resolve(__dirname, "..");
+// CORRECCIÓN: Los ficheros .il están dentro de 'intentlang'
+const sourceIlDir = path.join(examplesRoot, "intentlang");
+const goldensRoot = path.join(examplesRoot, "goldens");
+const datasetsDir = path.join(examplesRoot, "datasets");
 
 // Asegúrate de que el directorio de datasets exista
 fs.mkdirSync(datasetsDir, { recursive: true });
@@ -33,11 +38,19 @@ for (const target of TRANSPILER_TARGETS) {
   const entries = [];
   const goldensDir = path.join(goldensRoot, target.goldensSubDir);
 
-  for (const file of fs.readdirSync(examplesDir)) {
+  if (!fs.existsSync(goldensDir)) {
+    console.warn(
+      `[${target.name}] Skipping target: directory not found at ${goldensDir}`,
+    );
+    continue;
+  }
+
+  // Itera sobre los ficheros en el directorio de código fuente .il
+  for (const file of fs.readdirSync(sourceIlDir)) {
     if (!file.endsWith(".il")) continue;
 
     const baseName = path.basename(file, ".il");
-    const ilPath = path.join(examplesDir, file);
+    const ilPath = path.join(sourceIlDir, file);
     const goldenPath = path.join(
       goldensDir,
       `${baseName}${target.fileExtension}`,
