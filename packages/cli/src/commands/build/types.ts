@@ -1,7 +1,7 @@
 import type { GlobalFlags } from "../../flags.js";
 
 export type BuildFlags = GlobalFlags & {
-  target: "ts" | "js";
+  target: "ts" | "js" | "py";
   outDir: string;
   sourcemap?: boolean;
 };
