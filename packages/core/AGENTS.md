@@ -1,5 +1,7 @@
 # AGENTS.md — Core Package Guide
 
+Refer first to the [repository-wide guide](../../AGENTS.md). This file adds rules specific to the core package.
+
 **Scope**: AST, lexer, parser, checker, transpilers, runtime and public `index.ts`.
 
 ## Principles

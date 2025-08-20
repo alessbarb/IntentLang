@@ -1,5 +1,7 @@
 # AGENTS.md — CLI Package (`ilc`)
 
+Refer first to the [repository-wide guide](../../AGENTS.md). This file covers CLI-specific rules.
+
 **Scope**: binary, flag parsing, human/JSON reporting, exit codes and UX.
 
 ## Principles
