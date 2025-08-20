@@ -4,7 +4,7 @@ export type Result<T, E> = { type: "Ok"; value: T } | { type: "Err"; error: E };
 export type Fixed2 = number & Brand<"Fixed2">;
 
 export function fixed2Mul(a: Fixed2, b: Fixed2): Fixed2 {
-  return ((a as number) * (b as number)) / 100 as Fixed2;
+  return (((a as number) * (b as number)) / 100) as Fixed2;
 }
 
 let rng: () => number = Math.random;

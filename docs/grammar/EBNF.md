@@ -1,4 +1,5 @@
 # IntentLang Grammar (EBNF, v0.2)
+
 Status: normative
 Source of truth: `packages/core/grammar/intentlang.ebnf`
 
@@ -177,4 +178,3 @@ RecordPattern   = "{" , [ PatternFieldList ] , "}" ;
 PatternFieldList = PatternField , { "," , PatternField } , [ "," ] ;
 PatternField     = ident , [ ":" , ident ] ;
 ```
-

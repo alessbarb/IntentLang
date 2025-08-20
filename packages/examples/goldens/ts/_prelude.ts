@@ -6,7 +6,7 @@ export function fixed2Mul(
   a: number & Brand<"Fixed2">,
   b: number & Brand<"Fixed2">,
 ): number & Brand<"Fixed2"> {
-  return ((a as number) * (b as number)) / 100 as number & Brand<"Fixed2">;
+  return (((a as number) * (b as number)) / 100) as number & Brand<"Fixed2">;
 }
 
 export interface Http {

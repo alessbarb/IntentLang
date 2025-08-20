@@ -2,26 +2,26 @@
 
 ### Features
 
-* **core:** extend parser and checker with new constructs ([01899fc](https://github.com/alessbarb/IntentLang/commit/01899fcf6dc6aa2bc2dced7607e4c9f9c60e40fe))
-* **examples:** update dataset export script and example intent ([86e5bad](https://github.com/alessbarb/IntentLang/commit/86e5badb8daf0ab089ad4a5662706ca9bca9f2d7))
+- **core:** extend parser and checker with new constructs ([01899fc](https://github.com/alessbarb/IntentLang/commit/01899fcf6dc6aa2bc2dced7607e4c9f9c60e40fe))
+- **examples:** update dataset export script and example intent ([86e5bad](https://github.com/alessbarb/IntentLang/commit/86e5badb8daf0ab089ad4a5662706ca9bca9f2d7))
 
 ## [1.6.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.5.0...@il/cli-v1.6.0) (2025-08-20)
 
 ### Features
 
-* **cli:** cross-platform globbing ([db48ba6](https://github.com/alessbarb/IntentLang/commit/db48ba68ec576e657f9da7f67e3530b36c56a1b4))
+- **cli:** cross-platform globbing ([db48ba6](https://github.com/alessbarb/IntentLang/commit/db48ba68ec576e657f9da7f67e3530b36c56a1b4))
 
 ## [1.5.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.4.0...@il/cli-v1.5.0) (2025-08-20)
 
 ### Features
 
-* **examples:** export IL to TS dataset ([3eed159](https://github.com/alessbarb/IntentLang/commit/3eed15991723e3d910daf05fede2d1169bd6ab55))
+- **examples:** export IL to TS dataset ([3eed159](https://github.com/alessbarb/IntentLang/commit/3eed15991723e3d910daf05fede2d1169bd6ab55))
 
 ## [1.4.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.3.0...@il/cli-v1.4.0) (2025-08-20)
 
 ### Features
 
-* **cli:** truncate error output ([7c21094](https://github.com/alessbarb/IntentLang/commit/7c2109497d5da77fd688c7bc880015aad5fa79a5))
+- **cli:** truncate error output ([7c21094](https://github.com/alessbarb/IntentLang/commit/7c2109497d5da77fd688c7bc880015aad5fa79a5))
 
 ## [Unreleased]
 
