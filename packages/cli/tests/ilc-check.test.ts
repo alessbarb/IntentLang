@@ -69,3 +69,23 @@ test("ilc check command", () => {
 
   rmSync(tmp, { recursive: true, force: true });
 });
+
+test("--max-errors truncates errors output", () => {
+  const tmp = mkdtempSync(join(tmpdir(), "ilc-maxerr-"));
+  const file = join(tmp, "sample.il");
+  writeFileSync(
+    file,
+    `intent "X" tags []\nuses {}\ntypes {}\n\neffect boom1(): Int uses http {}\neffect boom2(): Int uses http {}\neffect boom3(): Int uses http {}`,
+  );
+  const res = spawnSync(
+    "node",
+    [cliPath, "check", file, "--max-errors", "2"],
+    { encoding: "utf8" },
+  );
+  expect(res.status).toBe(1);
+  const stderr = res.stderr;
+  const errs = stderr.match(/undeclared capability 'http'/g) ?? [];
+  expect(errs).toHaveLength(2);
+  expect(stderr).toMatch(/\+1 errors not shown/);
+  rmSync(tmp, { recursive: true, force: true });
+});

@@ -26,6 +26,12 @@ export function parseGlobalFlags(argv: string[]): {
       case "--strict":
         flags.strict = true;
         break; // NEW
+      case "--max-errors": {
+        const n = Number(argv[++i]);
+        if (Number.isInteger(n) && n >= 0) flags.maxErrors = n;
+        else rest.push(a);
+        break;
+      }
       case "--seed-rng":
         flags.seedRng = argv[++i];
         break;
@@ -43,7 +49,7 @@ export const GLOBAL_FLAGS_HELP = `
   --strict         Treat warnings as failures (exit code 1)
   --json           JSON output
   --watch          Watch files and re-run
-  --max-errors N    Limit printed diagnostics (human)
+  --max-errors N   Limit printed errors (human)
   --seed-rng N     Seed the RNG
   --seed-clock N   Seed the clock
 `.trim();

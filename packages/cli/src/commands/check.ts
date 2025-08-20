@@ -74,23 +74,25 @@ function expandInputs(inputs: string[]): string[] {
   return Array.from(out).sort();
 }
 
-function printDiagnostics(diags: Diagnostic[], limit?: number) {
-  let printed = 0;
+function printDiagnostics(diags: Diagnostic[], maxErrors?: number) {
+  let errorsPrinted = 0;
+  let totalErrors = 0;
   for (const d of diags) {
-    if (limit && printed >= limit) break;
+    const sev = severityOf(d as any);
+    if (sev === "error") {
+      totalErrors++;
+      if (maxErrors !== undefined && errorsPrinted >= maxErrors) continue;
+      errorsPrinted++;
+    }
     const where = (d as any).span
       ? ` at ${(d as any).span.start.line}:${(d as any).span.start.column}`
       : "";
-    const sev = severityOf(d as any);
     const tag =
       sev === "error" ? "[ERROR]" : sev === "warning" ? "[WARN ]" : "[INFO ]";
     console.error(`${tag} ${(d as any).message}${where}`);
-    printed++;
   }
-  if (limit && diags.length > limit) {
-    console.error(
-      `... ${diags.length - limit} more diagnostic(s) not shown (use --max-errors N).`,
-    );
+  if (maxErrors !== undefined && totalErrors > errorsPrinted) {
+    console.error(`+${totalErrors - errorsPrinted} errors not shown`);
   }
 }
 
