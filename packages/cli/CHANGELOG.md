@@ -10,6 +10,7 @@
 
 - **check:** limit printed errors with `--max-errors` and show truncation summary.
 - **check:** accept `-` to read from stdin and label diagnostics as `(stdin)`.
+- **check:** cross-platform globbing; exit `2` when no files match.
 
 ## [1.3.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.2.0...@il/cli-v1.3.0) (2025-08-19)
 

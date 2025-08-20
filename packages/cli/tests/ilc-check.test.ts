@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -115,4 +115,51 @@ test("stdin support", () => {
   expect(res.status).toBe(1);
   const out = JSON.parse(res.stdout);
   expect(out.diags[0].file).toBe("(stdin)");
+});
+
+test("globbing is cross-platform and reports missing matches", () => {
+  const tmp = mkdtempSync(join(tmpdir(), "ilc-glob-"));
+  const ok = join(tmp, "src", "good.il");
+  const bad = join(tmp, "src", "sub", "bad.il");
+  mkdirSync(join(tmp, "src", "sub"), { recursive: true });
+  writeFileSync(ok, `intent "A" tags []\nuses {}\ntypes {}`);
+  writeFileSync(
+    bad,
+    `intent "X" tags []\nuses {}\ntypes {}\neffect boom(): Int uses http {}`,
+  );
+
+  // forward slashes
+  let res = spawnSync("node", [cliPath, "check", "src/**/*.il"], {
+    cwd: tmp,
+    encoding: "utf8",
+  });
+  expect(res.status).toBe(1);
+
+  // Windows-style backslashes
+  res = spawnSync("node", [cliPath, "check", "src\\**\\*.il"], {
+    cwd: tmp,
+    encoding: "utf8",
+  });
+  expect(res.status).toBe(1);
+  const normalized = `<tmp>/${res.stderr}`;
+  expect(normalized).toMatchInlineSnapshot(
+    `"<tmp>/src/sub/bad.il: [ERROR] Effect 'boom' lists undeclared capability 'http'. Add it to 'uses { ... }'. at 4:7\n"`,
+  );
+
+  // quoted glob
+  res = spawnSync("node", [cliPath, "check", '"src/**/*.il"'], {
+    cwd: tmp,
+    encoding: "utf8",
+  });
+  expect(res.status).toBe(1);
+
+  // no matches
+  res = spawnSync("node", [cliPath, "check", "nomatch/**/*.il"], {
+    cwd: tmp,
+    encoding: "utf8",
+  });
+  expect(res.status).toBe(2);
+  expect(res.stderr).toMatch(/No files matched/);
+
+  rmSync(tmp, { recursive: true, force: true });
 });
