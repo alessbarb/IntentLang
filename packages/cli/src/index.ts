@@ -6,9 +6,11 @@ import {
   GLOBAL_FLAGS_HELP,
   type GlobalFlags,
 } from "./flags.js";
-import { runCheck } from "./commands/check.js";
-import { runBuild, type BuildFlags } from "./commands/build.js";
-import { runTest, type TestFlags } from "./commands/test.js";
+import { runCheck } from "./commands/check/index.js";
+import type { BuildFlags } from "./commands/build/types.js";
+import { runBuild } from "./commands/build/index.js";
+import type { TestFlags } from "./commands/test/types.js";
+import { runTest } from "./commands/test/index.js";
 
 function usage(): never {
   console.error(
@@ -86,11 +88,15 @@ function parseCheck(rest: string[]): string[] {
   for (let i = 0; i < rest.length; i++) {
     let a = rest[i];
     // strip surrounding quotes to support quoted globs on Windows
-    if ((a.startsWith("\"") && a.endsWith("\"")) || (a.startsWith("'") && a.endsWith("'"))) {
+    if (
+      (a.startsWith('"') && a.endsWith('"')) ||
+      (a.startsWith("'") && a.endsWith("'"))
+    ) {
       a = a.slice(1, -1);
     }
     if (a === "-") files.push(a);
-    else if (a.startsWith("-")) usage(); // 'check' has no specific flags
+    else if (a.startsWith("-"))
+      usage(); // 'check' has no specific flags
     else files.push(a);
   }
   if (files.length === 0) usage();
