@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/alessbarb/IntentLang/compare/v1.4.0...v1.5.0) (2025-08-20)
+
+### Features
+
+* **examples:** export IL to TS dataset ([3eed159](https://github.com/alessbarb/IntentLang/commit/3eed15991723e3d910daf05fede2d1169bd6ab55))
+
 ## [1.4.0](https://github.com/alessbarb/IntentLang/compare/v1.3.0...v1.4.0) (2025-08-20)
 
 ### Features
