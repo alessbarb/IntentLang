@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Features
+
+- **check:** limit printed errors with `--max-errors` and show truncation summary.
+
 ## [1.3.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.2.0...@il/cli-v1.3.0) (2025-08-19)
 
 ### Features
