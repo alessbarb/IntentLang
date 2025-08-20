@@ -12,12 +12,17 @@ export interface ApiError {
 }
 
 export function toEmail(s: string): Result<Email, string> {
-  // v0.2: implement
+  return /^[^@]+@[^@]+\.[^@]+$/.test(s)
+    ? { type: "Ok", value: s as Email }
+    : { type: "Err", error: "Invalid email" };
 }
 
 export async function createUser(
   deps: { http: Http; clock: Clock },
   input: { name: string; email: Email },
 ): Promise<Result<User, ApiError>> {
-  // v0.2: implement
+  return deps.http.post<User>("/users", {
+    ...input,
+    createdAt: deps.clock.now(),
+  });
 }

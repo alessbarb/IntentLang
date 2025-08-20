@@ -12,5 +12,5 @@ export async function processPayment(
   deps: { http: Http },
   p: Payment,
 ): Promise<Result<boolean, PaymentError>> {
-  // v0.2: implement
+  return deps.http.post<boolean>("/payments", p);
 }

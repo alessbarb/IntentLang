@@ -18,9 +18,17 @@ types {
 }
 
 func toEmail(s: String): Result<Email, String> {
-  // v0.2: implement
+  if matches("^[^@]+@[^@]+\\.[^@]+$", s) {
+    return Ok(s as Email);
+  } else {
+    return Err("Invalid email");
+  }
 }
 
 effect createUser(input: { name: String, email: Email }): Result<User, ApiError> uses http, clock {
-  // v0.2: implement
+  return http.post("/users", {
+    name: input.name,
+    email: input.email,
+    createdAt: clock.now(),
+  });
 }

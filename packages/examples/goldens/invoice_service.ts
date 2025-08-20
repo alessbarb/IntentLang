@@ -13,5 +13,8 @@ export async function generateInvoice(
   deps: { http: Http; clock: Clock },
   orderId: string,
 ): Promise<Result<Invoice, InvoiceError>> {
-  // v0.2: implement
+  return deps.http.post<Invoice>("/invoices", {
+    orderId,
+    issuedAt: deps.clock.now(),
+  });
 }

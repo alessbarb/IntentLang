@@ -15,5 +15,5 @@ types {
 }
 
 effect sendNotification(input: { userId: Uuid, message: String }): Result<Notification, NotificationError> uses http {
-  // v0.2: implement
+  return http.post("/notifications", input);
 }

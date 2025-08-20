@@ -16,5 +16,5 @@ types {
 }
 
 effect generateInvoice(orderId: Uuid): Result<Invoice, InvoiceError> uses http, clock {
-  // v0.2: implement
+  return http.post("/invoices", { orderId, issuedAt: clock.now() });
 }
