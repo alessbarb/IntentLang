@@ -1,14 +1,14 @@
-# AGENTS.md — Guía del paquete **Examples & Goldens**
+# AGENTS.md — Examples & Goldens
 
-**Ámbito**: ejemplos canónicos `.il`, goldens `.ts`, runner de comparaciones y prelude TS.
+**Scope**: canonical `.il` examples, `.ts` golden files, comparison runner and TS prelude.
 
-## Principios
+## Principles
 
-- **Contrato público** del transpiler: los goldens definen la salida esperada.
-- **Determinismo**: encabezado/prelude común; sin fechas ni aleatoriedad sin seed.
-- **Paridad**: cada `*.il` tiene su `goldens/*.ts` correspondiente.
+- **Public contract** of the transpiler: goldens define the expected output.
+- **Determinism**: shared header/prelude; no dates or randomness without a seed.
+- **Parity**: each `*.il` has a corresponding `goldens/*.ts` file.
 
-## Estructura
+## Structure
 
 ```tree
 packages/examples/
@@ -28,23 +28,23 @@ packages/examples/
     goldens.mjs
 ```
 
-## Flujo para añadir/actualizar un ejemplo
+## Flow to add/update an example
 
-1. Crear `<feature>.il` minimal y legible.
-2. Ejecutar `ilc build <feature>.il --target ts` para ver salida.
-3. Copiar salida + `_prelude.ts` al golden equivalente.
-4. Correr `ilc goldens run`.
-5. Si el cambio es intencional, `ilc goldens update --only <feature>` y abre PR.
+1. Create a minimal, readable `<feature>.il`.
+2. Run `ilc build <feature>.il --target ts` to see the output.
+3. Copy the output plus `_prelude.ts` to the matching golden file.
+4. Run `ilc goldens run`.
+5. If intentional, accept changes with `ilc goldens update --only <feature>` and open a PR.
 
-## Checklist de PR (Examples)
+## PR checklist (Examples)
 
-- [ ] Ejemplo `.il` idiomático y con comentarios breves.
-- [ ] Golden actualizado y válido (compila como TS).
-- [ ] No usa dependencias externas; solo el prelude.
-- [ ] Runner de goldens pasa en CI.
+- [ ] Idiomatic `.il` example with brief comments.
+- [ ] Golden updated and valid (compiles as TS).
+- [ ] No external dependencies; only the prelude.
+- [ ] Golden runner passes in CI.
 
-## Buenas prácticas
+## Best practices
 
-- Nombres consistentes (`Email`, `UserId`, `PaymentId`).
-- `match` exhaustivos en ejemplos de uniones.
-- Inputs y outputs simples; evita lógica de negocio innecesaria.
+- Consistent names (`Email`, `UserId`, `PaymentId`).
+- Exhaustive `match` for union examples.
+- Simple inputs and outputs; avoid unnecessary business logic.

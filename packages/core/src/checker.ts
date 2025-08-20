@@ -478,7 +478,7 @@ function checkStmt(ctx: Ctx, f: FlowCtx, s: Stmt) {
   }
 }
 
-/* Expr typing (mínimo útil) */
+/* Expr typing (minimal useful) */
 function inferExpr(ctx: Ctx, f: FlowCtx, e: Expr): T {
   switch (e.kind) {
     case "LiteralExpr":

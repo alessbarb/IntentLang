@@ -1,12 +1,12 @@
-# Documentación de IntentLang
+# IntentLang Documentation
 
-Bienvenido a la documentación oficial de **IntentLang**, un lenguaje declarativo diseñado para describir dominios y generar código TypeScript tipado.
+Welcome to the official documentation for **IntentLang**, a declarative language designed to describe domains and generate typed TypeScript code.
 
-## Contenido
+## Contents
 
-- [Guía de inicio rápido](guide/quickstart.md)
-- [Referencia del lenguaje](reference/syntax.md)
-  - [Tipos](reference/types.md)
-  - [Funciones y efectos](reference/functions.md)
+- [Quick Start Guide](guide/quickstart.md)
+- [Language Reference](reference/syntax.md)
+  - [Types](reference/types.md)
+  - [Functions and effects](reference/functions.md)
 
-Consulta cada sección para entender el flujo completo: desde escribir archivos `.il` hasta generar código ejecutable.
+Visit each section to understand the full workflow: from writing `.il` files to generating executable code.

@@ -1,64 +1,64 @@
-# AGENTS.md — Guía para agentes en IntentLang (IL)
+# AGENTS.md — Guide for IntentLang (IL)
 
-> Documento vivo. Orienta a agentes automatizados y humanos sobre **qué pueden hacer**, **cómo** y **con qué garantías** en este monorepo.
+> Living document for automated agents and humans. It describes what you may change, how, and with what guarantees in this monorepo.
 
 ## TL;DR
 
-- Trabaja **determinista**, seguro y con cambios mínimos.
-- Usa `ilc` para todo: `check | build | test | fmt | inspect | goldens`.
-- Antes de abrir PR: actualiza EBNF/lexer/parser **en conjunto**, ejecuta **goldens**, añade pruebas.
-- Nunca subas secretos ni hagas llamadas externas no aprobadas. Si hay dudas —eleva a humana/o.
+- Work deterministically, safely, and with minimal changes.
+- Use `ilc` for everything: `check | build | test | fmt | inspect | goldens`.
+- Before opening a PR: update EBNF/lexer/parser together, run golden tests, add tests.
+- Never commit secrets or make unapproved network calls. Escalate to a human if unsure.
 
 ---
 
-## 1) Contexto del repo
+## 1) Repository context
 
-**Paquetes principales:**
+**Main packages:**
 
 - `packages/core` — AST, lexer, parser, checker, transpiler, runtime.
-- `packages/cli` — CLI `ilc`.
-- `packages/examples` — ejemplos canónicos y **goldens** (salida TS esperada).
+- `packages/cli` — `ilc` command-line tool.
+- `packages/examples` — canonical examples and golden outputs (expected TS code).
 
-**Arquitectura del lenguaje** (resumen):
+**Language architecture (summary):**
 
-- AST con `Program` + secciones (`intent`, `uses`, `types`) y _top-level items_ (`func`, `effect`, `test`).
-- Tipado total con `Option`/`Result`, `match` exhaustivo.
-- Transpilación principal → TypeScript.
-
----
-
-## 2) Principios para agentes
-
-1. **Determinismo primero** — usa semillas y reloj fijo cuando corresponda.
-2. **Cambios mínimos** — evita refactors masivos sin RFC.
-3. **Contrato ZFA** (Zero‑Fault Authoring) — no dejes el repo en rojo: si introduces una regla, añade test o golden.
-4. **Exhaustividad** — si tocas `match`, `union` o `types`, asegúrate de coberturas en checker y goldens.
-5. **Sin sorpresas** — no añadas dependencias sin justificar; documenta flags y códigos de error.
-6. **Privacidad y seguridad** — no exportes código/ficheros a servicios externos.
+- AST with `Program` and sections (`intent`, `uses`, `types`) plus top-level items (`func`, `effect`, `test`).
+- Total typing with `Option`/`Result` and exhaustive `match`.
+- Main transpilation target → TypeScript.
 
 ---
 
-## 3) Alcance y límites
+## 2) Principles for agents
 
-**Puede:**
-
-- Editar código en `core`, `cli`, `examples` siguiendo esta guía.
-- Abrir PRs con cambios pequeños o medianos.
-- Escribir/actualizar documentación y goldens.
-
-**No puede:**
-
-- Cambiar licencias o políticas de privacidad.
-- Introducir telemetría remota.
-- Publicar versiones o crear releases sin aprobación humana.
-
-Si el cambio afecta **semántica del lenguaje** (p. ej., sintaxis nueva, ruptura del AST, reglas de exhaustividad), **abre una RFC** antes.
+1. **Determinism first** — use seeds and fixed clock when needed.
+2. **Minimal changes** — avoid large refactors without an RFC.
+3. **Zero-Fault Authoring** — keep the repo green; new rules need tests or golden updates.
+4. **Exhaustiveness** — changes to `match`, `union` or `types` must be covered in checker and goldens.
+5. **No surprises** — avoid new dependencies; document flags and error codes.
+6. **Privacy and security** — never export code/files to external services.
 
 ---
 
-## 4) Herramientas del proyecto
+## 3) Scope and limits
 
-Comandos `ilc` esperados (algunos pueden vivir tras flags si aún no existen):
+**Allowed:**
+
+- Edit code in `core`, `cli`, `examples` following this guide.
+- Open small or medium PRs.
+- Write/update documentation and goldens.
+
+**Disallowed:**
+
+- Change licenses or privacy policies.
+- Introduce remote telemetry.
+- Publish releases without human approval.
+
+If a change affects **language semantics** (e.g., new syntax, AST breakage, exhaustiveness rules), open an **RFC** first.
+
+---
+
+## 4) Project tools
+
+Expected `ilc` commands:
 
 ```bash
 ilc check <files/globs> [--strict] [--json] [--watch] [--max-errors N]
@@ -70,7 +70,7 @@ ilc goldens run|update [--only NAME] [--yes]
 ilc doctor
 ```
 
-Utilidades de Node/pnpm:
+Node/pnpm helpers:
 
 ```bash
 pnpm i
@@ -78,109 +78,109 @@ pnpm -w build
 pnpm -w typecheck
 ```
 
-Flags de determinismo (runtime): `--seed-rng`, `--seed-clock`.
+Runtime determinism flags: `--seed-rng`, `--seed-clock`.
 
 ---
 
-## 5) Flujo estándar de cambios
+## 5) Standard change flow
 
-### 5.1 Cambios en gramática/sintaxis
+### 5.1 Grammar/syntax changes
 
-1. Actualiza la **EBNF** en documentación (o sección README correspondiente).
-2. Modifica **lexer** y **parser** en conjunto —evita estados intermedios incoherentes.
-3. Añade **tests** de parsing e incluye ejemplos `.il`.
-4. Ejecuta `ilc inspect tokens|ast` para validar árboles.
-5. Si afecta al checker/transpiler, sigue los flujos 5.2/5.3.
+1. Update the **EBNF** in documentation or README.
+2. Modify **lexer** and **parser** together — avoid inconsistent intermediate states.
+3. Add **parsing tests** and include `.il` examples.
+4. Run `ilc inspect tokens|ast` to validate trees.
+5. If it affects the checker/transpiler, follow 5.2/5.3.
 
-### 5.2 Cambios en checker
+### 5.2 Checker changes
 
-1. Añade nuevos **diagnósticos** con código `ILC000x` y mensaje claro.
-2. Implementa la regla y cubre con tests unitarios y ejemplos `.il`.
-3. Si la regla cambia salidas esperadas, actualiza **goldens**.
+1. Add new **diagnostics** with code `ILC000x` and clear message.
+2. Implement the rule and cover with unit tests and `.il` examples.
+3. If the rule changes expected outputs, update **goldens**.
 
-### 5.3 Cambios en transpiler
+### 5.3 Transpiler changes
 
-1. Garantiza **salida estable** y determinista (orden de campos/casos).
-2. Añade/actualiza goldens relevantes en `packages/examples/goldens`.
-3. Ejecuta `ilc goldens run` y verifica diffs.
+1. Ensure **stable, deterministic output** (order of fields/cases).
+2. Add/update relevant goldens in `packages/examples/goldens`.
+3. Run `ilc goldens run` and verify diffs.
 
-### 5.4 Cambios en CLI
+### 5.4 CLI changes
 
-1. Añade el comando/flag y su ayuda (`--help`).
-2. Implementa salida **humana** y **JSON** si aplica.
-3. Añade tests E2E con fixtures `.il`.
+1. Add the command/flag and its `--help` output.
+2. Implement **human** and **JSON** output when applicable.
+3. Add E2E tests with `.il` fixtures.
 
-### 5.5 Cambios en runtime
+### 5.5 Runtime changes
 
-1. Mantén APIs pequeñas; documenta seeds y reloj.
-2. Cubre con tests unitarios.
-
----
-
-## 6) Checklist de PR (obligatorio)
-
-Marca todo lo que aplique antes de pedir revisión:
-
-- [ ] `ilc fmt` sin cambios pendientes o `--check` limpio.
-- [ ] `ilc check` sin errores —y sin _warnings_ si `--strict` se usa en CI.
-- [ ] Tests unitarios y E2E pasan.
-- [ ] `ilc goldens run` sin diffs —o `goldens update` justificado en la descripción.
-- [ ] Documentación actualizada (README/EBNF/AGENTS.md si aplica).
-- [ ] Sin dependencias nuevas no justificadas.
-- [ ] Sin llamadas externas ni exposición de secretos.
+1. Keep APIs small; document seeds and clock.
+2. Cover with unit tests.
 
 ---
 
-## 7) Convenciones de commits y PRs
+## 6) PR checklist (required)
+
+Tick what applies before requesting review:
+
+- [ ] `ilc fmt` has no pending changes or passes with `--check`.
+- [ ] `ilc check` reports no errors (and no warnings with `--strict` in CI).
+- [ ] Unit and E2E tests pass.
+- [ ] `ilc goldens run` shows no diffs — or `goldens update` is justified in the description.
+- [ ] Documentation updated (README/EBNF/AGENTS if applicable).
+- [ ] No unjustified new dependencies.
+- [ ] No external calls or secret leakage.
+
+---
+
+## 7) Commit and PR conventions
 
 - **Conventional Commits**: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, `perf:`.
-- Prefiere PRs pequeños, con una intención clara.
-- Descripción breve con **motivación**, **cambio**, **riesgos** y **cómo probar**.
+- Prefer small PRs with a clear intent.
+- Provide a short description with **motivation**, **change**, **risks**, and **how to test**.
 
-Plantilla de PR:
+PR template:
 
 ```md
-### Motivo
+### Motivation
 
-¿Qué problema resuelve? ¿Por qué ahora?
+What problem does it solve? Why now?
 
-### Cambios
+### Changes
 
-Lista corta con bullets.
+Short bullet list.
 
-### Riesgos y mitigaciones
+### Risks and mitigations
 
-Impacto en parser/checker/transpiler/CLI, flags, backward-compat.
+Impact on parser/checker/transpiler/CLI, flags, backward-compat.
 
-### Pruebas
+### Tests
 
-Comandos ejecutados, goldens afectados.
+Commands run, goldens affected.
 ```
 
 ---
 
-## 8) Política de diagnósticos (ILC000x)
+## 8) Diagnostic policy (ILC000x)
 
-- Todo mensaje de error/aviso público debe tener un **código único**.
-- `--explain ILC000x` imprime contexto y ejemplo mínimo.
-- Evita términos ambiguos; incluye posición (línea/columna) y _snippet_ con `^`.
+- Every public error/warning must have a **unique code**.
+- `--explain ILC000x` prints context and a minimal example.
+- Avoid ambiguous terms; include position (line/column) and snippet with `^`.
 
-Ejemplos de categorías:
+Example categories:
 
-- ILC010x — Léxico/Parser.
-- ILC020x — Tipado/Exhaustividad.
-- ILC030x — Capacidades/Efectos.
+- ILC010x — Lexing/Parser.
+- ILC020x — Typing/Exhaustiveness.
+- ILC030x — Capabilities/Effects.
 - ILC040x — CLI/Flags/Config.
 
 ---
 
-## 9) Goldens y ejemplos
+## 9) Goldens and examples
 
-- Cada ejemplo `.il` debe tener su **golden** `.ts` equivalente.
-- El **prelude** TS para goldens vive en `packages/examples/goldens/_prelude.ts`.
-- Usa `ilc goldens update --only <name>` para aceptar cambios deliberados.
+- Each `.il` example must have a matching `.ts` **golden**.
+- The TS **prelude** for goldens lives in `packages/examples/goldens/_prelude.ts`.
+- Use `ilc goldens update --only <name>` to accept deliberate changes.
 
-Estructura sugerida de ejemplo:
+Suggested example structure:
 
 ```tree
 packages/examples/
@@ -198,83 +198,83 @@ packages/examples/
 
 ---
 
-## 10) Seguridad y privacidad
+## 10) Security and privacy
 
-- No subas llaves, tokens ni rutas privadas.
-- No agregues telemetría ni dependencias que hagan **red** por defecto.
-- Si necesitas _fixtures_ con datos, **anonimiza**.
+- Do not commit keys, tokens or private paths.
+- Do not add telemetry or dependencies that make **network** calls by default.
+- If fixtures contain data, **anonymize** it.
 
-Escalada obligatoria:
+Mandatory escalation:
 
-- Cambios de licencia, gobernanza o _compliance_.
-- Integraciones de red, sandbox o ejecución de código no confiable.
-
----
-
-## 11) Rendimiento y trazas
-
-- Usa `ilc --trace` para cronometrar `lex|parse|check|emit|write`.
-- Si un cambio empeora tiempos >10% en goldens medianos, coméntalo en el PR y aporta alternativa.
+- Changes to license, governance or compliance.
+- Network integrations, sandboxing or execution of untrusted code.
 
 ---
 
-## 12) Estabilidad del AST y versionado
+## 11) Performance and tracing
 
-- Cambios que rompen AST → **minor** en `@il/core` y nota de migración.
-- Añadir nodos/campos opcionales es preferible a romper campos existentes.
-- Documenta en `CHANGELOG.md` y ajusta goldens.
+- Use `ilc --trace` to time `lex|parse|check|emit|write`.
+- If a change worsens timings >10% on medium goldens, mention it in the PR and offer alternatives.
 
 ---
 
-## 13) Estilo de código y formato
+## 12) AST stability and versioning
+
+- Breaking AST changes → **minor** bump in `@il/core` and migration notes.
+- Prefer adding optional nodes/fields over breaking existing ones.
+- Document in `CHANGELOG.md` and adjust goldens.
+
+---
+
+## 13) Code style and formatting
 
 - TypeScript ESM, Node ≥20.
-- Sin `console.*` de depuración en código de producción.
-- `ilc fmt` es fuente de verdad para `.il`.
+- No debug `console.*` in production code.
+- `ilc fmt` is the source of truth for `.il` files.
 
 ---
 
-## 14) Plantillas rápidas para agentes
+## 14) Quick templates for agents
 
-### 14.1 Cambio pequeño en parser
+### 14.1 Small parser change
 
-- [ ] Actualicé EBNF.
-- [ ] Cambié tokens en `lexer.ts`.
-- [ ] Ajusté `parser.ts` y añadí caso al _printer_ si aplica.
-- [ ] Añadí ejemplo `.il` y test.
+- [ ] Updated EBNF.
+- [ ] Changed tokens in `lexer.ts`.
+- [ ] Adjusted `parser.ts` and added printer case if needed.
+- [ ] Added `.il` example and test.
 - [ ] `ilc inspect ast` OK.
 
-### 14.2 Nueva regla de checker
+### 14.2 New checker rule
 
-- [ ] Añadí código `ILC02xx` y mensaje.
-- [ ] Cobertura con test `.il` que falla y otro que pasa.
-- [ ] Actualicé docs `--explain`.
+- [ ] Added `ILC02xx` code and message.
+- [ ] Covered with failing and passing `.il` tests.
+- [ ] Updated `--explain` docs.
 
-### 14.3 Cambio en transpiler
+### 14.3 Transpiler change
 
-- [ ] Salida ordenada y determinista.
-- [ ] Goldens actualizados conscientemente.
-- [ ] `ilc goldens run` pasa.
-
----
-
-## 15) Preguntas frecuentes (para agentes)
-
-**¿Puedo renombrar símbolos públicos?** — Solo con migración y nota de ruptura.
-
-**¿Puedo añadir dependencias?** — Evítalo. Si es imprescindible, justifica: tamaño, seguridad, licencia, uso.
-
-**¿Puedo tocar todas las carpetas a la vez?** — Mejor no. Divide por PRs y describe el plan.
+- [ ] Deterministic output and ordering.
+- [ ] Goldens updated consciously.
+- [ ] `ilc goldens run` passes.
 
 ---
 
-## 16) Contacto y gobernanza
+## 15) Frequently asked questions
 
-- Mantainers: asigna el PR a quienes figuren en `CODEOWNERS` (si existe) o etiqueta `lang-core`, `cli`, `examples` según el área.
-- Las RFCs se abren en `/rfcs` con plantilla y tiempo de comentarios de 5 días laborables.
+**Can I rename public symbols?** — Only with migration notes and a breaking change.
+
+**Can I add dependencies?** — Avoid it. If essential, justify size, security, license and use.
+
+**Can I touch all folders at once?** — Prefer splitting into separate PRs and describe the plan.
 
 ---
 
-## 17) Última palabra
+## 16) Contact and governance
 
-Trabaja con intención —pequeño, seguro, claro. Si algo no encaja con estos principios, **para y consulta**. Mejor un PR pequeño bien explicado que una “gran mejora” que rompa todo.
+- Maintainers: assign the PR to those in `CODEOWNERS` (if present) or tag `lang-core`, `cli`, `examples` according to area.
+- RFCs live in `/rfcs` with a template and a 5 business day comment period.
+
+---
+
+## 17) Final word
+
+Work with intent—small, safe, clear. If something doesn't fit these principles, **stop and ask**. Better a small well-explained PR than a “big improvement” that breaks everything.

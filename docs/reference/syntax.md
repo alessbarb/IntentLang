@@ -1,14 +1,14 @@
-# Sintaxis básica
+# Basic Syntax
 
-Un archivo `.il` debe seguir este orden de secciones:
+An `.il` file must follow this order of sections:
 
-1. `intent` – describe el servicio y sus etiquetas.
-2. `uses` – declara capacidades externas.
-3. `types` – define tipos de dominio.
-4. `func` – funciones puras.
-5. `effect` – funciones con efectos.
+1. `intent` – describes the service and its tags.
+2. `uses` – declares external capabilities.
+3. `types` – defines domain types.
+4. `func` – pure functions.
+5. `effect` – functions with effects.
 
-Ejemplo mínimo:
+Minimal example:
 
 ```intentlang
 intent "Ping" tags ["demo"]
@@ -22,13 +22,13 @@ types {
 }
 
 effect sendPing(): Result<Ping, String> uses clock {
-  // implementación pendiente
+  // implementation pending
 }
 ```
 
-## Contratos
+## Contracts
 
-Antes del cuerpo, las funciones y efectos pueden declarar cláusulas de contrato opcionales:
+Before the body, functions and effects may declare optional contract clauses:
 
 ```intentlang
 func add(a: Int, b: Int): Int requires a > 0 ensures a + b > 0 {
@@ -36,12 +36,12 @@ func add(a: Int, b: Int): Int requires a > 0 ensures a + b > 0 {
 }
 ```
 
-- `requires` valida una precondición.
-- `ensures` verifica una postcondición antes de cada `return`.
+- `requires` validates a precondition.
+- `ensures` checks a postcondition before each `return`.
 
-Si alguna falla, la ejecución arroja un `Error` en el código generado.
+If any fail, the execution throws an `Error` in the generated code.
 
-## Comentarios
+## Comments
 
-- `//` para comentarios de una línea.
-- `/* ... */` para bloques.
+- `//` for single-line comments.
+- `/* ... */` for blocks.

@@ -85,7 +85,7 @@ function parseCheck(rest: string[]): string[] {
   const looksLikeGlob = (s: string) => /[*?\[]/.test(s);
   for (let i = 0; i < rest.length; i++) {
     const a = rest[i];
-    if (a.startsWith("-")) usage(); // en 'check' no hay flags específicas
+    if (a.startsWith("-")) usage(); // 'check' has no specific flags
     files.push(a);
   }
   if (files.length === 0) usage();

@@ -69,7 +69,7 @@ export async function runBuild(files: string[], flags: BuildFlags) {
     .filter(isIlFile)
     .map((f) => {
       const src = fs.readFileSync(f, "utf8");
-      if (/^\s*$/.test(src)) return null as any; // skip vacíos
+      if (/^\s*$/.test(src)) return null as any; // skip empty ones
       const program = parse(src);
       diagnostics.push(...checkProgram(program));
       return { file: f, program };

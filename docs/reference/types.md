@@ -1,18 +1,18 @@
-# Tipos en IntentLang
+# Types in IntentLang
 
-IntentLang soporta tres formas principales de tipos: **marcas**, **registros** y **uniones**.
+IntentLang supports three main kinds of types: **brands**, **records**, and **unions**.
 
-## Marcas
+## Brands
 
-Permiten restringir `String` mediante un nombre y una condición:
+Restrict a `String` with a name and a condition:
 
 ```intentlang
 type Email = String brand "Email" where matches("^[^@]+@[^@]+\\.[^@]+$");
 ```
 
-## Registros
+## Records
 
-Colecciones con campos nombrados. Para más de tres campos, usa una línea por campo.
+Collections of named fields. For more than three fields, use one line per field.
 
 ```intentlang
 type User = {
@@ -23,9 +23,9 @@ type User = {
 };
 ```
 
-## Uniones
+## Unions
 
-Combinan alternativas etiquetadas que se deben manejar exhaustivamente con `match`.
+Combine tagged alternatives that must be handled exhaustively with `match`.
 
 ```intentlang
 type Payment =

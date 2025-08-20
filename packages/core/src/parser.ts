@@ -266,7 +266,7 @@ export function parse(input: string): Program {
   function tryParseUnionType(): UnionType | null {
     const save = p;
 
-    // ¿Hay tubería inicial?
+    // Is there a leading pipe?
     const leading = !!eat("pipe");
 
     // --- Uniones de literales ---
@@ -842,22 +842,22 @@ export function parse(input: string): Program {
       span: Span;
     }[] = [];
 
-    // Campos (posiblemente vacíos)
+    // Fields (possibly empty)
     while (!peek("rbrace")) {
-      // Si por alguna razón vemos otra '{' aquí, la tratamos como apertura de objeto
-      // interno del valor, pero eso solo puede aparecer después de "clave:".
-      // Para robustez, si aparece una '{' antes de una clave, hacemos un pequeño
-      // “sync” consumiendo hasta la próxima '}' y continuamos (evita loops).
+      // If we somehow see another '{' here, treat it as the start of an inner object
+      // inside the value, but that can only appear after "key:".
+      // For robustness, if a '{' appears before a key we do a small
+      // "sync" consuming up to the next '}' and continue (avoids loops).
       if (peek("lbrace")) {
-        // recuperación suave: consumimos un bloque-objeto y seguimos
-        // (esto no debería ocurrir en entradas válidas).
+        // soft recovery: consume an object block and continue
+        // (this should not happen in valid inputs).
         let depth = 0;
         do {
           if (eat("lbrace")) depth++;
           else if (eat("rbrace")) depth--;
-          else p++; // avanzamos token a token
+          else p++; // move token by token
         } while (depth > 0 && !atEnd());
-        // si después de esto viene una coma, la comemos
+        // if a comma follows, consume it
         eat("comma");
         continue;
       }
@@ -906,7 +906,7 @@ export function parse(input: string): Program {
 
     const cases: CaseClause[] = [];
     while (!peek("rbrace")) {
-      // activar inPattern SOLO para el patrón
+      // enable inPattern ONLY for the pattern
       const prev = inPattern;
       inPattern = true;
       const pat = parsePattern();

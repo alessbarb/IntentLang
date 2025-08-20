@@ -1,36 +1,36 @@
-# AGENTS.md — Guía del paquete **CLI** (`ilc`)
+# AGENTS.md — CLI Package (`ilc`)
 
-**Ámbito**: binario, parsing de flags, reporting humano/JSON, códigos de salida y UX.
+**Scope**: binary, flag parsing, human/JSON reporting, exit codes and UX.
 
-## Principios
+## Principles
 
-- **UX clara**: mensajes cortos, accionables y con rutas normalizadas.
-- **Salida dual**: humana por defecto y `--json` para máquinas.
-- **Códigos estables**: `0` ok, `1` fallos lógicos, `2` uso/flags/config.
+- **Clear UX**: short actionable messages with normalized paths.
+- **Dual output**: human by default and `--json` for machines.
+- **Stable codes**: `0` success, `1` logical failures, `2` usage/flags/config errors.
 
-## Subcomandos esperados
+## Expected subcommands
 
-- `check` `build` `test` `fmt` `inspect` `goldens (run|update)` `doctor` `init` `targets` `cache`.
+`check` `build` `test` `fmt` `inspect` `goldens (run|update)` `doctor` `init` `targets` `cache`
 
-## Reglas de implementación
+## Implementation rules
 
-- **Flags globales**: `--strict`, `--json`, `--watch`, `--seed-rng`, `--seed-clock`.
-- **Diagnósticos**: imprimidos con snippet y caret; en `--json` como array `diags[]` + `status`.
-- **Watch**: _debounce_ de 100–300 ms, limpieza de pantalla opcional.
-- **Globs**: expándelos de forma cross‑platform; soporta `-` para `stdin`.
-- **Help**: `ilc --help` y `<cmd> --help` con ejemplos.
-- **Sin telemetría**: nada de red por defecto.
+- **Global flags**: `--strict`, `--json`, `--watch`, `--seed-rng`, `--seed-clock`.
+- **Diagnostics**: printed with snippet and caret; in `--json` mode as `diags[]` + `status`.
+- **Watch mode**: 100–300 ms debounce, optional screen clearing.
+- **Globs**: cross-platform expansion; support `-` for `stdin`.
+- **Help**: `ilc --help` and `<cmd> --help` with examples.
+- **No telemetry**: no network usage by default.
 
-## Checklist de PR (CLI)
+## PR checklist (CLI)
 
-- [ ] Subcomando/flag documentado en `--help`.
-- [ ] Reporters humano/JSON coherentes y testeados.
-- [ ] `exitCode` correcto en escenarios de error.
-- [ ] E2E con fixtures `.il` y snapshots (incluye casos de `stdin`).
-- [ ] Cross‑platform (Windows paths) probado.
+- [ ] Subcommand/flag documented in `--help`.
+- [ ] Human/JSON reporters consistent and tested.
+- [ ] Correct `exitCode` for error scenarios.
+- [ ] E2E tests with `.il` fixtures and snapshots (include `stdin`).
+- [ ] Cross-platform paths (Windows) checked.
 
-## Errores CLI (ILC04xx)
+## CLI errors (ILC04xx)
 
-- **ILC0401**: flag desconocido / combinación inválida.
-- **ILC0402**: archivo no encontrado o patrón vacío.
-- **ILC0403**: config inválida.
+- **ILC0401**: unknown flag or invalid combination.
+- **ILC0402**: file not found or empty pattern.
+- **ILC0403**: invalid config.

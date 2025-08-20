@@ -133,7 +133,7 @@ function basicToTs(b: BasicType): string {
     case "Uuid":
       return "string";
     case "DateTime":
-      // Puedes cambiarlo a string si prefieres —en goldens lo usáis como Date o string indistintamente.
+      // You can change it to string if you prefer—in goldens it's used as Date or string interchangeably.
       return "Date";
   }
 }
@@ -146,7 +146,7 @@ function recordToTs(r: RecordType): string {
 }
 
 function unionToTs(u: TypeExpr & { kind: "UnionType" }): string {
-  // Convención de IL: unions discriminadas por `type: "<Ctor>"`
+  // IL convention: unions discriminated by `type: "<Ctor>"`
   // Literal unions: string|number|boolean literales
   const parts = u.ctors.map((c) => {
     if (c.kind === "LiteralCtor") {
@@ -161,7 +161,7 @@ function unionToTs(u: TypeExpr & { kind: "UnionType" }): string {
         : "";
     return `{ type: "${name}"${payload}}`;
   });
-  // Si hay mezcla de literales y nombrados, TS quedará como unión heterogénea.
+  // If literals and named constructors are mixed, TS becomes a heterogeneous union.
   return parts.join(" | ");
 }
 
@@ -308,7 +308,7 @@ function emitLiteral(e: LiteralExpr): string {
 }
 
 function emitCall(c: CallExpr, isEffect: boolean): string {
-  // Caso más útil: llamada a capacidad → deps.<cap>.<method>(...)
+  // Most useful case: capability call → deps.<cap>.<method>(...)
   if (c.callee.kind === "MemberExpr") {
     const obj = c.callee.object;
     const prop = c.callee.property.name;
@@ -420,7 +420,7 @@ function emitCasesAsIfs(
       `${idx === 0 ? "if" : "else if"} (${cond}) {\n${indent(body)}\n}`,
     );
   });
-  // Nota: el checker asegura exhaustividad; aquí no añadimos else.
+  // Note: the checker ensures exhaustiveness; we do not add an else here.
   return parts.join("\n");
 }
 

@@ -1,19 +1,19 @@
 (* ---------- Lexical ---------- *)
-UpperLetter     = ? una letra mayúscula de 'A' a 'Z' ? ;
-LowerLetter     = ? una letra minúscula de 'a' a 'z' ? ;
-DigitChar       = ? un dígito de '0' a '9' ? ;
+UpperLetter     = ? an uppercase letter from 'A' to 'Z' ? ;
+LowerLetter     = ? a lowercase letter from 'a' to 'z' ? ;
+DigitChar       = ? a digit from '0' to '9' ? ;
 
 letter          = UpperLetter | LowerLetter | "_" ;
 digit           = DigitChar ;
 ident           = letter , { letter | digit } ;
 
-string          = '"' , { ? cualquier carácter de string, incluyendo escapes ? } , '"' ;
+string          = '"' , { ? any string character, including escapes ? } , '"' ;
 int             = ["-"] , digit , { digit } ;
 float           = ["-"] , digit , { digit } , "." , digit , { digit } ;
 bool            = "true" | "false" ;
 
-comment         = "//" , { ? cualquier carácter hasta el final de la línea ? }
-                | "/*" , { ? cualquier carácter hasta encontrar "*/" ? } ;
+comment         = "//" , { ? any character until end of line ? }
+                | "/*" , { ? any character until "*/" ? } ;
 ws              = { " " | "\t" | "\r" | "\n" | comment } ;
 
 
