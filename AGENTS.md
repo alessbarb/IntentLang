@@ -9,6 +9,14 @@
 - Before opening a PR: update EBNF/lexer/parser together, run golden tests, add tests.
 - Never commit secrets or make unapproved network calls. Escalate to a human if unsure.
 
+## Package-specific guides
+
+This root guide is the primary source of truth. The following documents add rules for specific areas:
+
+- [Core package guide](packages/core/AGENTS.md)
+- [CLI package guide](packages/cli/AGENTS.md)
+- [Examples & goldens guide](packages/examples/AGENTS.md)
+
 ---
 
 ## 1) Repository context

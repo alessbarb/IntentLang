@@ -1,5 +1,7 @@
 # AGENTS.md — Examples & Goldens
 
+Refer first to the [repository-wide guide](../../AGENTS.md). This file describes rules for examples and goldens.
+
 **Scope**: canonical `.il` examples, `.ts` golden files, comparison runner and TS prelude.
 
 ## Principles
