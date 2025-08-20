@@ -71,7 +71,14 @@ UnionCtor       = ident , [ RecordType ] | LiteralType ;
 
 RecordType      = "{" , [ FieldList ] , "}" ;
 FieldList       = FieldDecl , { "," , FieldDecl } , [ "," ] ;
-FieldDecl       = ident , ":" , TypeExpr , [ "where" , {? ... ?} ] ;
+FieldDecl       = ident , ":" , TypeExpr , [ "where" , RefinementExpr ] ;
+
+RefinementExpr  = FunctionCall | Comparison ;
+FunctionCall    = ident , "(" , string , ")" ;
+Comparison      = Accessor , CompareOp , Literal ;
+Accessor        = "_" , [ "." , ident ] ;
+CompareOp       = "==" | "!=" | ">=" | "<=" | ">" | "<" ;
+Literal         = number | string ;
 
 GenericType     = ident , "<" , TypeExpr , { "," , TypeExpr } , ">" ;
 BrandType       = BasicType , "brand" , string ;

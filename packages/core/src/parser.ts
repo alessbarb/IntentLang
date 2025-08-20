@@ -210,7 +210,8 @@ export function parse(input: string): Program {
     expect("eq");
     const expr = parseTypeExpr();
     let refinement: string | undefined;
-    if (eat("kw_where")) refinement = captureUntil(["semi", "comma", "rbrace"]);
+    if (eat("kw_where"))
+      refinement = parseRefinement(["semi", "comma", "rbrace"]);
     eat("semi");
     eat("comma");
     return { kind: "TypeDecl", name, expr, refinement, span: s };
@@ -355,7 +356,8 @@ export function parse(input: string): Program {
       expect("colon");
       const ftype = parseTypeExpr();
       let refinement: string | undefined;
-      if (eat("kw_where")) refinement = captureUntil(["comma", "rbrace"]);
+      if (eat("kw_where"))
+        refinement = parseRefinement(["comma", "rbrace"]);
       eat("comma");
       fields.push({
         kind: "RecordField",
@@ -390,13 +392,44 @@ export function parse(input: string): Program {
     return { kind: "Identifier", name: t.value!, span: spanHere() };
   }
 
-  function captureUntil(stops: Token["type"][]): string {
+  function parseRefinement(stops: Token["type"][]): string {
     const parts: string[] = [];
-    while (!stops.includes(cur().type)) {
-      parts.push(cur().value ?? cur().type);
+    const add = (s: string) => parts.push(s);
+
+    if (peek("ident") && next().type === "lparen") {
+      add(expect("ident").value!);
+      expect("lparen");
+      add("(");
+      add(JSON.stringify(expect("string").value!));
+      expect("rparen");
+      add(")");
+    } else {
+      const base = expect("ident", "Expected '_' in refinement").value!;
+      if (base !== "_") error("Expected '_' in refinement");
+      add(base);
+      if (eat("dot")) {
+        add(".");
+        add(expect("ident").value!);
+      }
+      const ops: Record<string, string> = {
+        eqeq: "==",
+        neq: "!=",
+        gt: ">",
+        lt: "<",
+        gte: ">=",
+        lte: "<=",
+      };
+      const op = ops[cur().type];
+      if (!op) error("Expected comparison operator in refinement");
       p++;
+      add(op);
+      if (eat("minus")) add("-");
+      if (peek("number")) add(expect("number").value!);
+      else if (peek("string")) add(JSON.stringify(expect("string").value!));
+      else error("Expected literal in refinement");
     }
-    return parts.join(" ").trim();
+    if (!stops.includes(cur().type)) error("Invalid refinement clause");
+    return parts.join(" ").replace(/\s*([().])\s*/g, "$1");
   }
 
   /* ========= Decls ========= */
