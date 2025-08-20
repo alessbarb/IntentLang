@@ -125,7 +125,7 @@ export const DIAGNOSTICS = {
   ILC0301: {
     level: "error",
     message:
-      "Effect '{effect}' lists undeclared capability '{cap}'. Add it to 'uses {{ ... }}'.",
+      "Effect '{effect}' lists undeclared capability '{cap}'. Add it to 'uses { ... }'.",
   },
   ILC0302: {
     level: "error",

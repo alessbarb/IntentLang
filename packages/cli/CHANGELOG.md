@@ -38,6 +38,10 @@
 - **check:** accept `-` to read from stdin and label diagnostics as `(stdin)`.
 - **check:** cross-platform globbing; exit `2` when no files match.
 
+### Tests
+
+- cover diagnostic reporter with human and JSON snapshots.
+
 ## [1.3.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.2.0...@il/cli-v1.3.0) (2025-08-19)
 
 ### Features
