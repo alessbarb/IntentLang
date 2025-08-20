@@ -84,7 +84,11 @@ function parseCheck(rest: string[]): string[] {
   const files: string[] = [];
   const looksLikeGlob = (s: string) => /[*?\[]/.test(s);
   for (let i = 0; i < rest.length; i++) {
-    const a = rest[i];
+    let a = rest[i];
+    // strip surrounding quotes to support quoted globs on Windows
+    if ((a.startsWith("\"") && a.endsWith("\"")) || (a.startsWith("'") && a.endsWith("'"))) {
+      a = a.slice(1, -1);
+    }
     if (a === "-") files.push(a);
     else if (a.startsWith("-")) usage(); // 'check' has no specific flags
     else files.push(a);

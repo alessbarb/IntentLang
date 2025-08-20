@@ -47,28 +47,36 @@ function listIlRecursive(dir: string, out: string[]) {
 
 function expandInputs(inputs: string[]): string[] {
   const out = new Set<string>();
-  for (const inp of inputs) {
-    if (!looksLikeGlob(inp)) {
-      if (fs.existsSync(inp) && fs.statSync(inp).isDirectory()) {
-        listIlRecursive(inp, [...out]);
+  for (let raw of inputs) {
+    // support quotes around patterns (e.g. "src/**/*.il")
+    if ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))) {
+      raw = raw.slice(1, -1);
+    }
+    if (!looksLikeGlob(raw)) {
+      if (fs.existsSync(raw) && fs.statSync(raw).isDirectory()) {
+        const pool: string[] = [];
+        listIlRecursive(raw, pool);
+        for (const f of pool) out.add(f);
       } else if (
-        fs.existsSync(inp) &&
-        fs.statSync(inp).isFile() &&
-        /\.il$/i.test(inp)
+        fs.existsSync(raw) &&
+        fs.statSync(raw).isFile() &&
+        /\.il$/i.test(raw)
       ) {
-        out.add(inp);
+        out.add(raw);
       }
       continue;
     }
-    const firstStar = inp.search(GLOB_RE);
-    const base =
-      firstStar > 0 ? inp.slice(0, inp.lastIndexOf(SEP, firstStar) + 1) : ".";
-    const rx = globToRegExp(path.normalize(inp).split(path.sep).join("/"));
+    const norm = raw.split(/[\\/]/).join("/");
+    const firstStar = norm.search(GLOB_RE);
+    const baseNorm =
+      firstStar > 0 ? norm.slice(0, norm.lastIndexOf("/", firstStar) + 1) : ".";
+    const rx = globToRegExp(norm);
     const pool: string[] = [];
-    listIlRecursive(base || ".", pool);
+    const baseFs = baseNorm.split("/").join(path.sep) || ".";
+    listIlRecursive(baseFs, pool);
     for (const f of pool) {
-      const norm = f.split(path.sep).join("/");
-      if (rx.test(norm)) out.add(f);
+      const normFile = f.split(path.sep).join("/");
+      if (rx.test(normFile)) out.add(f);
     }
   }
   return Array.from(out).sort();
@@ -120,8 +128,7 @@ async function runOnce(filePatterns: string[], cache: Map<string, CacheEntry>) {
   const files = expandInputs(filePatterns);
   const diagnostics: Diagnostic[] = [];
   // purga entradas borradas
-  for (const k of Array.from(cache.keys()))
-    if (!files.includes(k)) cache.delete(k);
+  for (const k of Array.from(cache.keys())) if (!files.includes(k)) cache.delete(k);
   for (const f of files) {
     try {
       const st = fs.statSync(f);
@@ -138,12 +145,14 @@ async function runOnce(filePatterns: string[], cache: Map<string, CacheEntry>) {
       } else {
         diags = prev.diags;
       }
+      const normFile = f.split(path.sep).join("/");
+      for (const d of diags) (d as any).file = normFile;
       diagnostics.push(...diags);
     } catch {
       cache.delete(f);
     }
   }
-  return { diagnostics };
+  return { diagnostics, files };
 }
 
 async function readStdin(): Promise<string> {
@@ -190,7 +199,29 @@ export async function runCheck(files: string[], global: GlobalFlags) {
   const cache = new Map<string, CacheEntry>();
 
   const doPass = async () => {
-    const { diagnostics } = await runOnce(files, cache);
+    const { diagnostics, files: matched } = await runOnce(files, cache);
+    if (matched.length === 0) {
+      const msg = "No files matched.";
+      if (global.json) {
+        process.stdout.write(
+          JSON.stringify({
+            kind: "check",
+            meta: { strict: !!global.strict, watch: !!global.watch },
+            counts: { errors: 0, warnings: 0 },
+            diagnostics: [],
+            status: "error",
+            diags: [],
+            exitCode: 2,
+            message: msg,
+          }) + "\n",
+        );
+      } else {
+        console.error(msg);
+      }
+      if (!global.watch) process.exitCode = 2;
+      return;
+    }
+
     const { errors, warnings } = summarize(diagnostics);
     const code = exitCodeFrom(diagnostics, { strict: global.strict });
 
@@ -232,10 +263,12 @@ export async function runCheck(files: string[], global: GlobalFlags) {
   const roots = new Set<string>();
   for (const p of files) {
     if (looksLikeGlob(p)) {
-      const firstStar = p.search(GLOB_RE);
-      const base =
-        firstStar > 0 ? p.slice(0, p.lastIndexOf(SEP, firstStar) + 1) : ".";
-      roots.add(path.resolve(base || "."));
+      const norm = p.split(/[\\/]/).join("/");
+      const firstStar = norm.search(GLOB_RE);
+      const baseNorm =
+        firstStar > 0 ? norm.slice(0, norm.lastIndexOf("/", firstStar) + 1) : ".";
+      const baseFs = baseNorm.split("/").join(path.sep) || ".";
+      roots.add(path.resolve(baseFs));
     } else {
       const st = fs.existsSync(p) ? fs.statSync(p) : null;
       if (st?.isDirectory()) roots.add(path.resolve(p));
