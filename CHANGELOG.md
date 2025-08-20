@@ -1,3 +1,9 @@
+## [1.8.0](https://github.com/alessbarb/IntentLang/compare/v1.7.0...v1.8.0) (2025-08-20)
+
+### Features
+
+* implement example function bodies ([2932687](https://github.com/alessbarb/IntentLang/commit/2932687214e209c5987e94c2489295007f2675ba))
+
 ## [1.7.0](https://github.com/alessbarb/IntentLang/compare/v1.6.0...v1.7.0) (2025-08-20)
 
 ### Features
