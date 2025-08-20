@@ -14,5 +14,5 @@ types {
 }
 
 effect processPayment(p: Payment): Result<Bool, PaymentError> uses http {
-  // v0.2: implement
+  return http.post("/payments", p);
 }

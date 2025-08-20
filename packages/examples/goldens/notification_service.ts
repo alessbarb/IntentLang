@@ -13,5 +13,5 @@ export async function sendNotification(
   deps: { http: Http },
   input: { userId: string; message: string },
 ): Promise<Result<Notification, NotificationError>> {
-  // v0.2: implement
+  return deps.http.post<Notification>("/notifications", input);
 }

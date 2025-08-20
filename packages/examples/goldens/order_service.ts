@@ -13,5 +13,10 @@ export async function createOrder(
   deps: { http: Http; random: Random },
   input: { userId: string; total: number },
 ): Promise<Result<Order, OrderError>> {
-  // v0.2: implement
+  const id = deps.random.next().toString() as OrderId;
+  return deps.http.post<Order>("/orders", {
+    id,
+    userId: input.userId,
+    total: input.total,
+  });
 }
