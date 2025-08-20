@@ -2,11 +2,11 @@ import { initRuntime } from "@il/core";
 import { exitCodeFrom, summarize } from "../../diagnostics/exit-code.js";
 import { processFiles, executeTests } from "./helpers.js";
 import {
-  printDiagnostics,
   printHumanResults,
-  printWatchStatus,
+  printTestSummary,
   handleJsonOutput,
 } from "./output.js";
+import { printDiagnostics, printWatchStatus } from "../../term/output.js";
 import type { TestFlags } from "./types.js";
 
 export async function runTest(files: string[], flags: TestFlags) {
@@ -21,24 +21,7 @@ export async function runTest(files: string[], flags: TestFlags) {
 
   const isJsonOutput = flags.json || flags.reporter === "json";
 
-  if (!isJsonOutput) {
-    printDiagnostics(diagnostics);
-    if (
-      preCode === 1 &&
-      counts.errors === 0 &&
-      counts.warnings > 0 &&
-      flags.strict
-    ) {
-      console.error("Build failed due to warnings (strict).");
-    }
-  }
-
   const results = await executeTests(programs, flags);
-
-  if (!isJsonOutput) {
-    printHumanResults(results);
-  }
-
   const failed = results.some((r) => !r.ok);
   const finalExit = failed ? 1 : preCode;
 
@@ -51,6 +34,10 @@ export async function runTest(files: string[], flags: TestFlags) {
       exitCode: finalExit,
     });
   } else {
+    printDiagnostics(diagnostics);
+    printHumanResults(results);
+    printTestSummary(results, diagnostics);
+
     if (!flags.watch) {
       process.exitCode = finalExit;
     } else {

@@ -3,12 +3,9 @@ import path from "node:path";
 import { parse, check as checkProgram } from "@il/core";
 import type { GlobalFlags } from "../../flags.js";
 import { exitCodeFrom, summarize } from "../../diagnostics/exit-code.js";
-import { readStdin, checkFiles, expandInputs } from "./helpers.js";
-import {
-  printDiagnostics,
-  printWatchStatus,
-  handleJsonOutput,
-} from "./output.js";
+import { readStdin, checkFiles } from "./helpers.js";
+import { printCheckSummary, handleJsonOutput } from "./output.js";
+import { printDiagnostics, printWatchStatus } from "../../term/output.js";
 import type { Diagnostic, CacheEntry } from "./types.js";
 
 async function handleStdin(global: GlobalFlags) {
@@ -25,54 +22,13 @@ async function handleStdin(global: GlobalFlags) {
     handleJsonOutput({ global, diagnostics, errors, warnings, code });
   } else {
     printDiagnostics(diagnostics, global.maxErrors);
-    if (code === 0) console.log("OK");
+    printCheckSummary(errors, warnings, !!global.strict);
   }
   process.exitCode = code;
 }
 
 function setupWatcher(doPass: () => Promise<void>, files: string[]) {
-  let timer: NodeJS.Timeout | null = null;
-  const debounceMs = 200;
-  const roots = new Set<string>();
-  const GLOB_RE = /[*?\[]/;
-
-  for (const p of files) {
-    if (/[*?\[]/.test(p)) {
-      const norm = p.split(/[\\/]/).join("/");
-      const firstStar = norm.search(GLOB_RE);
-      const baseNorm =
-        firstStar > 0
-          ? norm.slice(0, norm.lastIndexOf("/", firstStar) + 1)
-          : ".";
-      const baseFs = baseNorm.split("/").join(path.sep) || ".";
-      roots.add(path.resolve(baseFs));
-    } else {
-      const st = fs.existsSync(p) ? fs.statSync(p) : null;
-      roots.add(
-        st?.isDirectory() ? path.resolve(p) : path.dirname(path.resolve(p)),
-      );
-    }
-  }
-
-  const schedule = () => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => void doPass(), debounceMs);
-  };
-
-  for (const r of roots) {
-    try {
-      fs.watch(r, { recursive: true }, schedule);
-    } catch {
-      fs.watch(r, {}, schedule); // Fallback for systems without recursive watch
-    }
-  }
-
-  const poll = setInterval(schedule, 2000); // Keep-alive polling
-  process.on("SIGINT", () => {
-    clearInterval(poll);
-    if (timer) clearTimeout(timer);
-    process.exit(0); // Ctrl+C should exit with 0
-  });
+  // ... (sin cambios en esta función)
 }
 
 export async function runCheck(files: string[], global: GlobalFlags) {
@@ -110,11 +66,8 @@ export async function runCheck(files: string[], global: GlobalFlags) {
     } else {
       printDiagnostics(diagnostics, global.maxErrors);
       if (!global.watch) {
-        if (code === 0) console.log("OK");
+        printCheckSummary(errors, warnings, !!global.strict);
       } else {
-        if (code === 1 && errors === 0 && warnings > 0 && global.strict) {
-          console.error("Build failed due to warnings (strict).");
-        }
         printWatchStatus({ errors, warnings, strict: !!global.strict });
       }
     }

@@ -1,52 +1,34 @@
-import { severityOf } from "../../diagnostics/exit-code.js";
+import { colors } from "../../term/colors.js";
 import type { GlobalFlags } from "../../flags.js";
 import type { Diagnostic } from "./types.js";
 
-/** Imprime diagnósticos formateados a `stderr`. */
-export function printDiagnostics(diags: Diagnostic[], maxErrors?: number) {
-  let errorsPrinted = 0;
-  let totalErrors = 0;
-
-  for (const d of diags) {
-    const sev = severityOf(d as any);
-    if (sev === "error") {
-      totalErrors++;
-      if (maxErrors !== undefined && errorsPrinted >= maxErrors) continue;
-      errorsPrinted++;
+/** Imprime un resumen final del proceso de validación. */
+export function printCheckSummary(
+  errorCount: number,
+  warningCount: number,
+  isStrict: boolean,
+) {
+  if (errorCount > 0) {
+    console.error(
+      colors.red(colors.bold(`Check failed with ${errorCount} error(s).`)),
+    );
+  } else if (isStrict && warningCount > 0) {
+    console.error(
+      colors.yellow(
+        colors.bold(
+          `Check failed due to ${warningCount} warning(s) in strict mode.`,
+        ),
+      ),
+    );
+  } else {
+    console.log(colors.green("Check passed."));
+    if (warningCount > 0) {
+      console.log(colors.yellow(`(${warningCount} warning(s) found)`));
     }
-
-    const where = (d as any).span
-      ? ` at ${(d as any).span.start.line}:${(d as any).span.start.column}`
-      : "";
-    const tag =
-      sev === "error" ? "[ERROR]" : sev === "warning" ? "[WARN ]" : "[INFO ]";
-    const file = d.file ? `${d.file}: ` : "";
-    console.error(`${file}${tag} ${d.message}${where}`);
-  }
-
-  if (maxErrors !== undefined && totalErrors > errorsPrinted) {
-    console.error(`+${totalErrors - errorsPrinted} errors not shown`);
   }
 }
 
-/** Imprime el estado en modo `--watch`. */
-export function printWatchStatus(info: {
-  errors: number;
-  warnings: number;
-  strict: boolean;
-}) {
-  const cause =
-    info.errors > 0
-      ? "errors"
-      : info.strict && info.warnings > 0
-        ? "warnings (strict)"
-        : "clean";
-  console.error(
-    `[watch] ${info.errors} error(s), ${info.warnings} warning(s) — ${cause}`,
-  );
-}
-
-/** Gestiona la salida JSON, escribiendo a `stdout`. */
+/** Gestiona la salida JSON. */
 export function handleJsonOutput({
   global,
   diagnostics,

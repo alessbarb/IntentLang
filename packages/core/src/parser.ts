@@ -148,16 +148,14 @@ export function parse(input: string): Program {
     const s = spanHere();
     expect("kw_intent");
     const description = expect("string").value!;
-    let tags: string[] | undefined;
-    if (eat("kw_tags")) {
-      expect("lbrack");
-      tags = [];
-      if (!peek("rbrack")) {
-        tags.push(expect("string").value!);
-        while (eat("comma")) tags.push(expect("string").value!);
-      }
-      expect("rbrack");
+    expect("kw_tags");
+    expect("lbrack");
+    const tags: string[] = [];
+    if (!peek("rbrack")) {
+      tags.push(expect("string").value!);
+      while (eat("comma")) tags.push(expect("string").value!);
     }
+    expect("rbrack");
     return { kind: "IntentSection", description, tags, span: s };
   }
 
@@ -222,7 +220,6 @@ export function parse(input: string): Program {
   /* ========= TypeExpr ========= */
 
   function parseTypeExpr(): TypeExpr {
-    const save = p;
     const union = tryParseUnionType();
     if (union) return union;
 
@@ -261,84 +258,54 @@ export function parse(input: string): Program {
       }
       return { kind: "NamedType", name: id, span: id.span };
     }
-    p = save;
     error("Invalid type expression");
     throw new Error("Unexpected token in type expression");
   }
 
   function tryParseUnionType(): UnionType | null {
     const save = p;
+    const s = spanHere();
+    const ctors: UnionCtor[] = [];
 
-    // Is there a leading pipe?
-    const leading = !!eat("pipe");
-
-    // --- Uniones de literales ---
-    if (peek("string")) {
-      const ctors: UnionCtor[] = [];
-
-      if (leading) {
-        // | "A" | "B"
-        const first = parseLiteralType();
-        ctors.push({ kind: "LiteralCtor", literal: first, span: spanHere() });
-        while (eat("pipe")) {
-          const lit = parseLiteralType();
-          ctors.push({ kind: "LiteralCtor", literal: lit, span: spanHere() });
-        }
-        return { kind: "UnionType", ctors, span: spanHere() };
-      } else {
-        // "A" | "B"
-        const first = parseLiteralType();
-        if (!eat("pipe")) {
-          p = save;
-          return null;
-        }
-        ctors.push({ kind: "LiteralCtor", literal: first, span: spanHere() });
-        do {
-          const lit = parseLiteralType();
-          ctors.push({ kind: "LiteralCtor", literal: lit, span: spanHere() });
-        } while (eat("pipe"));
-        return { kind: "UnionType", ctors, span: spanHere() };
+    const parseOneCtor = (): UnionCtor | null => {
+      if (peek("string")) {
+        return {
+          kind: "LiteralCtor",
+          literal: parseLiteralType(),
+          span: spanHere(),
+        };
       }
+      if (peek("ident")) {
+        return parseNamedCtorMaybe();
+      }
+      return null;
+    };
+
+    eat("pipe"); // Permite una barra vertical inicial opcional.
+
+    const first = parseOneCtor();
+    if (!first) {
+      p = save;
+      return null;
+    }
+    ctors.push(first);
+
+    // Solo se considera una unión si hay al menos una barra vertical.
+    if (!eat("pipe")) {
+      p = save;
+      return null;
     }
 
-    // --- Uniones con constructores nombrados ---
-    if (peek("ident") || leading) {
-      const ctors: UnionCtor[] = [];
-
-      if (leading) {
-        // | Card {...} | Cash {...}
-        const first = parseNamedCtorMaybe();
-        if (!first) error("Expected union constructor after '|'");
-        ctors.push(first);
-        while (eat("pipe")) {
-          const c = parseNamedCtorMaybe();
-          if (!c) error("Expected union constructor after '|'");
-          ctors.push(c);
-        }
-        return { kind: "UnionType", ctors, span: spanHere() };
-      } else {
-        // Card {...} | Cash {...}
-        const first = parseNamedCtorMaybe();
-        if (!first) {
-          p = save;
-          return null;
-        }
-        if (!eat("pipe")) {
-          p = save;
-          return null;
-        }
-        ctors.push(first);
-        do {
-          const c = parseNamedCtorMaybe();
-          if (!c) error("Expected union constructor after '|'");
-          ctors.push(c);
-        } while (eat("pipe"));
-        return { kind: "UnionType", ctors, span: spanHere() };
+    // Como encontramos una barra, parseamos el resto de los constructores.
+    do {
+      const next = parseOneCtor();
+      if (!next) {
+        error("Expected union constructor after '|'");
       }
-    }
+      ctors.push(next);
+    } while (eat("pipe"));
 
-    p = save;
-    return null;
+    return { kind: "UnionType", ctors, span: s };
   }
 
   function parseNamedCtorMaybe(): UnionCtor | null {
@@ -358,8 +325,7 @@ export function parse(input: string): Program {
       expect("colon");
       const ftype = parseTypeExpr();
       let refinement: string | undefined;
-      if (eat("kw_where"))
-        refinement = parseRefinement(["comma", "rbrace"]);
+      if (eat("kw_where")) refinement = parseRefinement(["comma", "rbrace"]);
       eat("comma");
       fields.push({
         kind: "RecordField",
@@ -400,10 +366,8 @@ export function parse(input: string): Program {
 
     if (peek("ident") && next().type === "lparen") {
       add(expect("ident").value!);
-      expect("lparen");
       add("(");
       add(JSON.stringify(expect("string").value!));
-      expect("rparen");
       add(")");
     } else {
       const base = expect("ident", "Expected '_' in refinement").value!;
@@ -566,8 +530,8 @@ export function parse(input: string): Program {
   function parseReturnStmt(): ReturnStmt {
     const s = spanHere();
     expect("kw_return");
-    if (peek("semi")) {
-      eat("semi");
+    if (peek("semi") || peek("rbrace")) {
+      eat("semi"); // Consume el punto y coma opcional.
       return { kind: "ReturnStmt", argument: undefined, span: s };
     }
     const arg = parseExpr();
@@ -738,7 +702,6 @@ export function parse(input: string): Program {
 
   function parsePrimary(): Expr {
     if (peek("kw_match")) return parseMatchExpr();
-
     if (peek("string") || peek("number") || peek("kw_true") || peek("kw_false"))
       return parseLiteralExpr();
 
@@ -791,7 +754,10 @@ export function parse(input: string): Program {
     }
 
     if (peek("ident")) {
-      if (!inPattern && next().type === "lbrace") {
+      // CORRECCIÓN: Un VariantExpr solo debe ser parseado si el contexto
+      // lo permite (ej. dentro de un `match`). La bandera `inPattern` ayuda
+      // a prevenir la detección errónea del cuerpo de una función.
+      if (inPattern && next().type === "lbrace") {
         const ctor = parseIdent();
         const fields = parseObjectFields();
         return { kind: "VariantExpr", ctor, fields, span: spanHere() };
@@ -846,10 +812,8 @@ export function parse(input: string): Program {
       const key = parseIdent();
       let value: Expr;
       if (eat("colon")) {
-        // clave: valor
         value = parseExpr();
       } else {
-        // abreviado: { a }  ≡  { a: a }
         value = {
           kind: "IdentifierExpr",
           id: key,
@@ -877,22 +841,14 @@ export function parse(input: string): Program {
       span: Span;
     }[] = [];
 
-    // Fields (possibly empty)
     while (!peek("rbrace")) {
-      // If we somehow see another '{' here, treat it as the start of an inner object
-      // inside the value, but that can only appear after "key:".
-      // For robustness, if a '{' appears before a key we do a small
-      // "sync" consuming up to the next '}' and continue (avoids loops).
       if (peek("lbrace")) {
-        // soft recovery: consume an object block and continue
-        // (this should not happen in valid inputs).
         let depth = 0;
         do {
           if (eat("lbrace")) depth++;
           else if (eat("rbrace")) depth--;
-          else p++; // move token by token
+          else p++;
         } while (depth > 0 && !atEnd());
-        // if a comma follows, consume it
         eat("comma");
         continue;
       }
@@ -903,7 +859,6 @@ export function parse(input: string): Program {
       if (eat("colon")) {
         value = parseExpr();
       } else {
-        // abreviado { a }  =>  { a: a }
         value = {
           kind: "IdentifierExpr",
           id: key,
@@ -913,14 +868,9 @@ export function parse(input: string): Program {
 
       items.push({ kind: "VariantFieldInit", key, value, span: spanHere() });
 
-      // coma opcional; acepta trailing comma
       if (peek("comma")) {
         eat("comma");
-        // si inmediatamente viene '}', permitimos trailing comma y salimos del bucle
         if (peek("rbrace")) break;
-      } else if (!peek("rbrace")) {
-        // si no hay coma ni '}', dejamos que el expect("rbrace") al final
-        // dispare un error claro si es necesario
       }
     }
 
@@ -932,7 +882,6 @@ export function parse(input: string): Program {
   function parseMatchExpr(): MatchExpr {
     const s = spanHere();
     expect("kw_match");
-    // Avoid interpreting the scrutinee as a VariantExpr when followed by '{'
     const prev = inPattern;
     inPattern = true;
     const e = parseExpr();
@@ -941,7 +890,6 @@ export function parse(input: string): Program {
 
     const cases: CaseClause[] = [];
     while (!peek("rbrace")) {
-      // enable inPattern ONLY for the pattern
       const prev = inPattern;
       inPattern = true;
       const pat = parsePattern();
@@ -949,12 +897,12 @@ export function parse(input: string): Program {
 
       expect("fat_arrow");
 
-      // cuerpos se parsean con inPattern desactivado → permite VariantExpr
       let body: Block | Expr;
       if (peek("lbrace")) body = parseBlock();
       else body = parseExpr();
 
       eat("semi");
+      eat("comma"); // Permite la coma como separador también.
       cases.push({ kind: "CaseClause", pattern: pat, body, span: s });
     }
 

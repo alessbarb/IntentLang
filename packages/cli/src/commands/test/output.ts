@@ -1,48 +1,43 @@
-import { severityOf } from "../../diagnostics/exit-code.js";
+import { colors } from "../../term/colors.js";
 import type { TestFlags, TestResult, Diagnostic } from "./types.js";
+import { summarize } from "../../diagnostics/exit-code.js";
 
-/** Imprime diagnósticos a `stderr`. */
-export function printDiagnostics(diags: Diagnostic[]): void {
-  for (const d of diags) {
-    const where = (d as any).span
-      ? ` at ${(d as any).span.start.line}:${(d as any).span.start.column}`
-      : "";
-    const sev = severityOf(d as any);
-    const tag =
-      sev === "error" ? "[ERROR]" : sev === "warning" ? "[WARN ]" : "[INFO ]";
-    console.error(`${tag} ${(d as any).message}${where}`);
-  }
-}
-
-/** Imprime los resultados de los tests en formato legible para humanos. */
+/** Imprime los resultados de los tests en formato legible. */
 export function printHumanResults(results: TestResult[]): void {
   for (const result of results) {
     if (result.ok) {
-      console.log(`✓ ${result.name}`);
+      console.log(`${colors.green("✓")} ${result.name}`);
     } else {
-      console.error(`✗ ${result.name}:`, result.error);
+      console.error(`\n${colors.red("✗")} ${colors.bold(result.name)}`);
+      console.error(colors.gray(result.error || "Unknown error"));
     }
   }
 }
 
-/** Imprime el estado en modo `--watch`. */
-export function printWatchStatus(info: {
-  errors: number;
-  warnings: number;
-  strict: boolean;
-}): void {
-  const cause =
-    info.errors > 0
-      ? "errors"
-      : info.strict && info.warnings > 0
-        ? "warnings (strict)"
-        : "clean";
-  console.error(
-    `[watch] ${info.errors} error(s), ${info.warnings} warning(s) — ${cause}`,
+/** Imprime un resumen final de la ejecución de tests. */
+export function printTestSummary(
+  results: TestResult[],
+  diagnostics: Diagnostic[],
+) {
+  const passed = results.filter((r) => r.ok).length;
+  const failed = results.length - passed;
+  const { errors, warnings } = summarize(diagnostics);
+
+  console.log("\n" + colors.bold("Test Summary"));
+  console.log(
+    `  Tests: ${
+      failed > 0 ? colors.red(`${failed} failed, `) : ""
+    }${colors.green(`${passed} passed, `)}${results.length} total`,
   );
+
+  if (errors > 0 || warnings > 0) {
+    console.log(
+      `  Diagnostics: ${(colors.red(`${errors} error(s)`), colors.yellow(`${warnings} warning(s)`))}`,
+    );
+  }
 }
 
-/** Gestiona la salida JSON, escribiendo a `stdout`. */
+/** Gestiona la salida JSON. */
 export function handleJsonOutput({
   flags,
   counts,
@@ -62,7 +57,7 @@ export function handleJsonOutput({
     counts,
     diagnostics,
     status: exitCode === 0 ? "ok" : "error",
-    diags: diagnostics, // For legacy compatibility
+    diags: diagnostics,
     tests: results,
     exitCode,
   };

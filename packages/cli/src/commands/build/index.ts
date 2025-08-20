@@ -1,11 +1,8 @@
-import { initRuntime, type Diagnostic } from "@il/core";
+import { initRuntime } from "@il/core";
 import { exitCodeFrom, summarize } from "../../diagnostics/exit-code.js";
 import { processFiles, emitFiles } from "./helpers.js";
-import {
-  printDiagnostics,
-  printWatchStatus,
-  handleJsonOutput,
-} from "./output.js";
+import { printBuildSummary, handleJsonOutput } from "./output.js";
+import { printDiagnostics, printWatchStatus } from "../../term/output.js";
 import type { BuildFlags } from "./types.js";
 
 export async function runBuild(
@@ -29,23 +26,11 @@ export async function runBuild(
 
   printDiagnostics(diagnostics);
 
-  if (code !== 0) {
-    if (errors === 0 && warnings > 0 && flags.strict) {
-      console.error("Build failed due to warnings (strict).");
-    }
-    if (!flags.watch) {
-      process.exitCode = code;
-    } else {
-      printWatchStatus({ errors, warnings, strict: !!flags.strict });
-    }
-    return;
-  }
-
-  const built = emitFiles(programs, flags);
+  const built = code === 0 ? emitFiles(programs, flags) : [];
+  printBuildSummary(errors, warnings, !!flags.strict, built.length);
 
   if (!flags.watch) {
-    for (const f of built) console.log(`Built: ${f}`);
-    process.exitCode = 0;
+    process.exitCode = code;
   } else {
     printWatchStatus({ errors, warnings, strict: !!flags.strict });
   }
