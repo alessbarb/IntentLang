@@ -1,3 +1,10 @@
+## [1.8.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.7.0...@il/cli-v1.8.0) (2025-08-20)
+
+### Features
+
+* **core:** add Python transpiler and export from core index ([b3d00c6](https://github.com/alessbarb/IntentLang/commit/b3d00c654d2f99b0dad487a91cb90d28292ed389))
+* implement example function bodies ([2932687](https://github.com/alessbarb/IntentLang/commit/2932687214e209c5987e94c2489295007f2675ba))
+
 ## [1.7.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.6.0...@il/cli-v1.7.0) (2025-08-20)
 
 ### Features
