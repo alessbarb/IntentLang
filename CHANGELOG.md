@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/alessbarb/IntentLang/compare/v1.3.0...v1.4.0) (2025-08-20)
+
+### Features
+
+* **cli:** truncate error output ([7c21094](https://github.com/alessbarb/IntentLang/commit/7c2109497d5da77fd688c7bc880015aad5fa79a5))
+
 ## [Unreleased]
 
 ### Features
