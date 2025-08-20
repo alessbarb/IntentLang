@@ -9,7 +9,7 @@ cli:
 plugins:
   sources:
     - id: trunk
-      ref: v1.7.1
+      ref: v1.7.2
       uri: https://github.com/trunk-io/plugins
 
 # Many linters and tools depend on runtimes. (https://docs.trunk.io/runtimes)
@@ -28,6 +28,12 @@ lint:
     - prettier@3.6.2
     - trufflehog@3.90.5
     - yamllint@1.37.1
+    - actionlint@1.7.7
+  disabled:
+    - bandit
+    - black
+    - isort
+    - ruff
 
   # Ignore rules: agrupa paths y decide a qué linters afecta.
   ignore:
@@ -64,3 +70,10 @@ lint:
       linters:
         - prettier
         - yamllint
+
+actions:
+  enabled:
+    - trunk-announce
+    - trunk-fmt-pre-commit
+    - trunk-check-pre-push
+    - trunk-upgrade-available
