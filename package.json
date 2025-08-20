@@ -9,7 +9,8 @@
     "test": "pnpm run test:core && pnpm run test:cli",
     "test:core": "pnpm --filter @il/core test",
     "test:cli": "pnpm --filter @il/cli test",
-    "typecheck": "pnpm -r run typecheck"
+    "typecheck": "pnpm -r run typecheck",
+    "ilc": "node packages/cli/dist/index.js"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
