@@ -1,3 +1,13 @@
+## [Unreleased]
+
+### Docs
+
+- document diagnostic codes and message templates.
+
+### Tests
+
+- add golden tests for human and JSON diagnostic output.
+
 ## [1.10.0](https://github.com/alessbarb/IntentLang/compare/v1.9.0...v1.10.0) (2025-08-20)
 
 ### Features

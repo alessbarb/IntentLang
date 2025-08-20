@@ -24,7 +24,7 @@ test("ilc check command", () => {
 
   let res = spawnSync("node", [cliPath, "check", valid], { encoding: "utf8" });
   expect(res.status).toBe(0);
-  expect(res.stdout).toMatch(/OK/);
+  expect(res.stdout).toMatch(/Check passed/);
 
   const bad = join(tmp, "bad.il");
   writeFileSync(
@@ -86,7 +86,7 @@ test("--max-errors truncates errors output", () => {
   const stderr = res.stderr;
   const errs = stderr.match(/undeclared capability 'http'/g) ?? [];
   expect(errs).toHaveLength(2);
-  expect(stderr).toMatch(/\+1 errors not shown/);
+  expect(stderr).toMatch(/\+1 more error\(s\) not shown\./);
   rmSync(tmp, { recursive: true, force: true });
 });
 
@@ -97,7 +97,7 @@ test("stdin support", () => {
     input: srcValid,
   });
   expect(res.status).toBe(0);
-  expect(res.stdout).toMatch(/OK/);
+  expect(res.stdout).toMatch(/Check passed/);
 
   const srcInvalid =
     `intent "X" tags []\nuses {}\ntypes {}\neffect boom(): Int uses http {}`;
@@ -143,7 +143,7 @@ test("globbing is cross-platform and reports missing matches", () => {
   expect(res.status).toBe(1);
   const normalized = `<tmp>/${res.stderr}`;
   expect(normalized).toMatchInlineSnapshot(
-    `"<tmp>/src/sub/bad.il: [ERROR] Effect 'boom' lists undeclared capability 'http'. Add it to 'uses { ... }'. at 4:7\n"`,
+    `"<tmp>/\n-- ERROR (ILC0301) --------------------------------------------------\n\nEffect 'boom' lists undeclared capability 'http'. Add it to 'uses { ... }'.\n\n  --> bad.il:4:7\n\n4 | effect boom(): Int uses http {}\n         ^\n\nCheck failed with 1 error(s).\n"`,
   );
 
   // quoted glob
