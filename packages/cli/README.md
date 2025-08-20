@@ -10,6 +10,8 @@ pnpm --filter @il/cli ilc check path/to/file.il
 pnpm --filter @il/cli ilc build path/to/file.il --target ts --out dist
 # Watch mode (revalidate on save)
 pnpm --filter @il/cli ilc check "src/**/*.il" --watch --max-errors 50
+# Read from stdin
+cat path/to/file.il | pnpm --filter @il/cli ilc check -
 ```
 
 `ilc check` prints `OK` when the file typechecks, exits with code `1` on
