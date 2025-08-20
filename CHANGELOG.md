@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/alessbarb/IntentLang/compare/v1.5.0...v1.6.0) (2025-08-20)
+
+### Features
+
+* **cli:** cross-platform globbing ([db48ba6](https://github.com/alessbarb/IntentLang/commit/db48ba68ec576e657f9da7f67e3530b36c56a1b4))
+
 ## [1.5.0](https://github.com/alessbarb/IntentLang/compare/v1.4.0...v1.5.0) (2025-08-20)
 
 ### Features
