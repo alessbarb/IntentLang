@@ -367,8 +367,10 @@ export function parse(input: string): Program {
 
     if (peek("ident") && next().type === "lparen") {
       add(expect("ident").value!);
+      expect("lparen");
       add("(");
       add(JSON.stringify(expect("string").value!));
+      expect("rparen");
       add(")");
     } else {
       const base = expect("ident", "Expected '_' in refinement").value!;
@@ -894,10 +896,7 @@ export function parse(input: string): Program {
   function parseMatchExpr(): MatchExpr {
     const s = spanHere();
     expect("kw_match");
-    const prev = inPattern;
-    inPattern = true;
     const e = parseExpr();
-    inPattern = prev;
     expect("lbrace");
 
     const cases: CaseClause[] = [];
