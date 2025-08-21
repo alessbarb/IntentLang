@@ -9,6 +9,7 @@ Welcome to the official documentation for **IntentLang**, a declarative language
 - [Language Reference](reference/syntax.md)
   - [Types](reference/types.md)
   - [Functions and effects](reference/functions.md)
+  - [`for` loops](reference/syntax.md#for-loops)
 - [Grammar EBNF](grammar/EBNF.md)
 
 Visit each section to understand the full workflow: from writing `.il` files to generating executable code.
