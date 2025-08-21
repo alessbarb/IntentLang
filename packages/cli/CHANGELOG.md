@@ -1,3 +1,9 @@
+## [1.10.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.9.0...@il/cli-v1.10.0) (2025-08-21)
+
+### Features
+
+* **core:** add for/in keywords to lexer ([c6ed6eb](https://github.com/alessbarb/IntentLang/commit/c6ed6eb8ea0c55c665ef9ce5f77598d4f22d76ca))
+
 ## [1.9.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.8.0...@il/cli-v1.9.0) (2025-08-21)
 
 ### Features
