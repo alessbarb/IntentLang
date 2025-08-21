@@ -7,11 +7,11 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-spawnSync("pnpm", ["--filter", "@il/core", "build"], {
+spawnSync("pnpm", ["--filter", "@intentlang/core", "build"], {
   cwd: repoRoot,
   stdio: "inherit",
 });
-spawnSync("pnpm", ["--filter", "@il/cli", "build"], {
+spawnSync("pnpm", ["--filter", "@intentlang/entlang/cli", "build"], {
   cwd: repoRoot,
   stdio: "inherit",
 });
@@ -34,7 +34,7 @@ func show(x: Letter): String {
 `;
 
 test.skip("check: warnings-only exits 1 with --strict", async () => {
-  const dir = await mkdtemp(path.join(tmpdir(), "ilc-src-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "intent-src-"));
   const src = path.join(dir, "warn.il");
   await writeFile(src, IL);
   const { status } = spawnSync(
@@ -56,7 +56,7 @@ test.skip("check: warnings-only exits 1 with --strict", async () => {
 });
 
 test.skip("check: warnings-only exits 0 without --strict", async () => {
-  const dir = await mkdtemp(path.join(tmpdir(), "ilc-src-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "intent-src-"));
   const src = path.join(dir, "warn.il");
   await writeFile(src, IL);
   const { status } = spawnSync("node", [CLI, "check", src], {

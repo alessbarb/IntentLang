@@ -6,19 +6,19 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
-spawnSync("pnpm", ["--filter", "@il/core", "build"], {
+spawnSync("pnpm", ["--filter", "@intentlang/core", "build"], {
   cwd: repoRoot,
   stdio: "inherit",
 });
-spawnSync("pnpm", ["--filter", "@il/cli", "build"], {
+spawnSync("pnpm", ["--filter", "@intentlang/entlang/cli", "build"], {
   cwd: repoRoot,
   stdio: "inherit",
 });
 
 const cliPath = fileURLToPath(new URL("../dist/index.js", import.meta.url));
 
-test("ilc test command", () => {
-  const tmp = mkdtempSync(join(tmpdir(), "ilc-"));
+test("intent test command", () => {
+  const tmp = mkdtempSync(join(tmpdir(), "intent-"));
   const file = join(tmp, "sample.il");
 
   writeFileSync(

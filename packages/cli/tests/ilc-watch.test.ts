@@ -5,20 +5,20 @@ import { join } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-test.skip("ilc watch command", async () => {
+test.skip("intent watch command", async () => {
   const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
-  spawnSync("pnpm", ["--filter", "@il/core", "build"], {
+  spawnSync("pnpm", ["--filter", "@intentlang/core", "build"], {
     cwd: repoRoot,
     stdio: "inherit",
   });
-  spawnSync("pnpm", ["--filter", "@il/cli", "build"], {
+  spawnSync("pnpm", ["--filter", "@intentlang/entlang/cli", "build"], {
     cwd: repoRoot,
     stdio: "inherit",
   });
 
   process.env.FORCE_COLOR = "0";
   const cliPath = fileURLToPath(new URL("../dist/index.js", import.meta.url));
-  const tmp = mkdtempSync(join(tmpdir(), "ilc-watch-"));
+  const tmp = mkdtempSync(join(tmpdir(), "intent-watch-"));
   const file = join(tmp, "a.il");
   writeFileSync(file, `intent "T" tags []\nuses {}\ntypes {}\n`);
 

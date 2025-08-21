@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
-spawnSync("pnpm", ["--filter", "@il/core", "build"], {
+spawnSync("pnpm", ["--filter", "@intentlang/core", "build"], {
   cwd: repoRoot,
   stdio: "inherit",
 });

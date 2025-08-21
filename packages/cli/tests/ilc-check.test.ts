@@ -6,19 +6,19 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
-spawnSync("pnpm", ["--filter", "@il/core", "build"], {
+spawnSync("pnpm", ["--filter", "@intentlang/core", "build"], {
   cwd: repoRoot,
   stdio: "inherit",
 });
-spawnSync("pnpm", ["--filter", "@il/cli", "build"], {
+spawnSync("pnpm", ["--filter", "@intentlang/entlang/cli", "build"], {
   cwd: repoRoot,
   stdio: "inherit",
 });
 
 const cliPath = fileURLToPath(new URL("../dist/index.js", import.meta.url));
 
-test("ilc check command", () => {
-  const tmp = mkdtempSync(join(tmpdir(), "ilc-check-"));
+test("intent check command", () => {
+  const tmp = mkdtempSync(join(tmpdir(), "intent-check-"));
   const valid = join(tmp, "valid.il");
   writeFileSync(valid, `intent "Test" tags []\nuses {}\ntypes {}`);
 
@@ -59,19 +59,19 @@ test("ilc check command", () => {
     encoding: "utf8",
   });
   expect(res.status).toBe(2);
-  expect(res.stderr).toMatch(/Usage: ilc/);
+  expect(res.stderr).toMatch(/Usage: intent/);
 
   res = spawnSync("node", [cliPath, "check", valid, "--wat"], {
     encoding: "utf8",
   });
   expect(res.status).toBe(2);
-  expect(res.stderr).toMatch(/Usage: ilc/);
+  expect(res.stderr).toMatch(/Usage: intent/);
 
   rmSync(tmp, { recursive: true, force: true });
 });
 
 test("--max-errors truncates errors output", () => {
-  const tmp = mkdtempSync(join(tmpdir(), "ilc-maxerr-"));
+  const tmp = mkdtempSync(join(tmpdir(), "intent-maxerr-"));
   const file = join(tmp, "sample.il");
   writeFileSync(
     file,
@@ -118,7 +118,7 @@ test("stdin support", () => {
 });
 
 test("globbing is cross-platform and reports missing matches", () => {
-  const tmp = mkdtempSync(join(tmpdir(), "ilc-glob-"));
+  const tmp = mkdtempSync(join(tmpdir(), "intent-glob-"));
   const ok = join(tmp, "src", "good.il");
   const bad = join(tmp, "src", "sub", "bad.il");
   mkdirSync(join(tmp, "src", "sub"), { recursive: true });

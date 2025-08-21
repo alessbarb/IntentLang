@@ -7,11 +7,11 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-spawnSync("pnpm", ["--filter", "@il/core", "build"], {
+spawnSync("pnpm", ["--filter", "@intentlang/core", "build"], {
   cwd: repoRoot,
   stdio: "inherit",
 });
-spawnSync("pnpm", ["--filter", "@il/cli", "build"], {
+spawnSync("pnpm", ["--filter", "@intentlang/entlang/cli", "build"], {
   cwd: repoRoot,
   stdio: "inherit",
 });
@@ -34,10 +34,10 @@ func show(x: Letter): String {
 `;
 
 test.skip("build: warnings-only exits 1 with --strict", async () => {
-  const srcDir = await mkdtemp(path.join(tmpdir(), "ilc-src-"));
+  const srcDir = await mkdtemp(path.join(tmpdir(), "intent-src-"));
   const src = path.join(srcDir, "warn.il");
   await writeFile(src, IL);
-  const out = await mkdtemp(path.join(tmpdir(), "ilc-out-"));
+  const out = await mkdtemp(path.join(tmpdir(), "intent-out-"));
   const { status } = spawnSync(
     "node",
     [CLI, "build", src, "--target", "ts", "--out", out, "--strict"],
@@ -47,10 +47,10 @@ test.skip("build: warnings-only exits 1 with --strict", async () => {
 });
 
 test.skip("build: warnings-only exits 0 without --strict", async () => {
-  const srcDir = await mkdtemp(path.join(tmpdir(), "ilc-src-"));
+  const srcDir = await mkdtemp(path.join(tmpdir(), "intent-src-"));
   const src = path.join(srcDir, "warn.il");
   await writeFile(src, IL);
-  const out = await mkdtemp(path.join(tmpdir(), "ilc-out-"));
+  const out = await mkdtemp(path.join(tmpdir(), "intent-out-"));
   const { status } = spawnSync(
     "node",
     [CLI, "build", src, "--target", "ts", "--out", out],
