@@ -351,6 +351,7 @@ export type MatchExpr = {
 export type CaseClause = {
   kind: "CaseClause";
   pattern: Pattern;
+  guard?: Expr;
   body: Block | Expr;
   span: Span;
 };

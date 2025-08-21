@@ -23,6 +23,10 @@
 
 ## [Unreleased]
 
+### Features
+
+- **core:** add match guards to `match` expressions.
+
 ### Docs
 
 - document diagnostic codes and message templates.

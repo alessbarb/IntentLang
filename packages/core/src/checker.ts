@@ -721,6 +721,11 @@ function checkMatch(
           }
         }
         const sub: FlowCtx = { ...f, scope: caseScope };
+        if (c.guard) {
+          const g = inferExpr(ctx, sub, c.guard);
+          if (!isBoolLike(g))
+            report(ctx.diags, "ILC0229", c.guard.span, { type: showType(g) });
+        }
         if (asExpr && (c.body as any).kind === "Block") {
           report(ctx.diags, "ILC0223", (c.body as any).span ?? c.span, {});
         } else {
@@ -756,6 +761,11 @@ function checkMatch(
         } else {
           covered.add(lit);
         }
+        if (c.guard) {
+          const g = inferExpr(ctx, f, c.guard);
+          if (!isBoolLike(g))
+            report(ctx.diags, "ILC0229", c.guard.span, { type: showType(g) });
+        }
         if (asExpr && (c.body as any).kind === "Block") {
           report(ctx.diags, "ILC0223", (c.body as any).span ?? c.span, {});
         } else {
@@ -771,6 +781,11 @@ function checkMatch(
 
   report(ctx.diags, "ILC0228", span, { type: showType(t) });
   for (const c of cases) {
+    if (c.guard) {
+      const g = inferExpr(ctx, f, c.guard);
+      if (!isBoolLike(g))
+        report(ctx.diags, "ILC0229", c.guard.span, { type: showType(g) });
+    }
     if (asExpr && (c.body as any).kind === "Block") {
       report(ctx.diags, "ILC0223", (c.body as any).span ?? c.span, {});
     } else {

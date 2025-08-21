@@ -1046,6 +1046,9 @@ export function parse(input: string): Program {
       const pat = parsePattern();
       inPattern = prev;
 
+      let guard: Expr | undefined;
+      if (eat("kw_if")) guard = parseExpr();
+
       expect("fat_arrow");
 
       let body: Block | Expr;
@@ -1054,7 +1057,7 @@ export function parse(input: string): Program {
 
       eat("semi");
       eat("comma"); // Permite la coma como separador también.
-      cases.push({ kind: "CaseClause", pattern: pat, body, span: s });
+      cases.push({ kind: "CaseClause", pattern: pat, guard, body, span: s });
     }
 
     expect("rbrace");

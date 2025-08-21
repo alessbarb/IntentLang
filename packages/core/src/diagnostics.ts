@@ -121,6 +121,11 @@ export const DIAGNOSTICS = {
     message: "'match' on non-union type {type} — exhaustiveness not enforced.",
   },
 
+  ILC0229: {
+    level: "error",
+    message: "Match guard must be Bool. Got {type}.",
+  },
+
   // ILC03xx: Capabilities & Effects
   ILC0301: {
     level: "error",

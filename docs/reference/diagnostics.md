@@ -32,6 +32,7 @@ IntentLang uses stable codes `ILC000x` for all diagnostics. The table below maps
 | ILC0226 | Unknown literal case '{literal}'. Did you mean '{suggestion}'?                            |
 | ILC0227 | Unreachable duplicate case for literal '{literal}'.                                       |
 | ILC0228 | 'match' on non-union type {type} — exhaustiveness not enforced.                           |
+| ILC0229 | Match guard must be Bool. Got {type}.                                                     |
 | ILC0301 | Effect '{effect}' lists undeclared capability '{cap}'. Add it to 'uses { ... }'.          |
 | ILC0302 | Pure function '{func}' cannot use capability '{cap}'.                                     |
 | ILC0303 | Effect '{effect}' uses capability '{cap}' but it is not listed in 'uses' for this effect. |

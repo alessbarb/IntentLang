@@ -172,7 +172,7 @@ OptionSomeExpr  = "Some" , "(" , Expr , ")" ;
 OptionNoneExpr  = "None" ;
 BrandCastExpr   = "brand" , "<" , ident , ">" , "(" , Expr , ")" ;
 
-CaseClause      = Pattern , "=>" , ( Expr | Block ) , [";" | ","] ;
+CaseClause      = Pattern , [ "if" , Expr ] , "=>" , ( Expr | Block ) , [";" | ","] ;
 Literal         = string | float | int | bool ;
 ```
 
