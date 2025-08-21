@@ -27,6 +27,7 @@ import type {
   VariantPattern,
   LiteralPattern,
   MatchStmt,
+  ForStmt,
 } from "./ast.js";
 import { DIAGNOSTICS } from "./diagnostics.js";
 

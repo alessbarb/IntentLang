@@ -22,6 +22,7 @@ import type {
   ReturnStmt,
   IfStmt,
   MatchStmt,
+  ForStmt,
   ExprStmt,
   Expr,
   IdentifierExpr,
