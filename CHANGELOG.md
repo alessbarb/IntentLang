@@ -1,3 +1,26 @@
+## [1.11.0](https://github.com/alessbarb/IntentLang/compare/v1.10.0...v1.11.0) (2025-08-21)
+
+### ⚠ BREAKING CHANGES
+
+* **cli:** Introduces ilconfig.json and a new stdlib package for intrinsic functions. The CLI now reads configuration from files.
+
+### Features
+
+* **cli:** add config loading and stdlib package ([eafee5b](https://github.com/alessbarb/IntentLang/commit/eafee5bcae6c0eaccfaf59014a5641b1aaefddc1))
+* **core:** add for/in keywords to lexer ([c6ed6eb](https://github.com/alessbarb/IntentLang/commit/c6ed6eb8ea0c55c665ef9ce5f77598d4f22d76ca))
+* **core:** emit for loops in python transpiler ([2344032](https://github.com/alessbarb/IntentLang/commit/23440329be47dfc6b5cdc11b56c05b1b4130fe92))
+* **core:** transpile for-of statements ([8fad488](https://github.com/alessbarb/IntentLang/commit/8fad48879038caa154d377c50ab7b89ac90a786d))
+* extend python transpiler for new operators ([359e5a4](https://github.com/alessbarb/IntentLang/commit/359e5a43d36bf05a76c45d005af9051ceb336d35))
+
+### Bug Fixes
+
+* formats and error in package name ([132729c](https://github.com/alessbarb/IntentLang/commit/132729c3b57f3a45800d1ab0ef68bb934cf64091))
+* handle refinements and for loop tests ([a51007a](https://github.com/alessbarb/IntentLang/commit/a51007a33fcb00cd762d290ffae4a7234bdc31b9))
+
+### Refactors
+
+* **core:** align transpilers and simplify AST handling ([6674bca](https://github.com/alessbarb/IntentLang/commit/6674bca6a4594f1e3e51c4b6471e36386102ecd4))
+
 ## [Unreleased]
 
 ### Docs
