@@ -1,9 +1,9 @@
 {
-  "name": "@il/cli",
+  "name": "@intentlang/cli",
   "version": "1.10.0",
   "type": "module",
   "bin": {
-    "ilc": "dist/index.js"
+    "intent": "dist/index.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -25,9 +25,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@il/core": "workspace:^",
+    "@intentlang/core": "workspace:^",
     "lodash": "^4.17.21",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "jsonc-parser": "^3.3.1"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.20",

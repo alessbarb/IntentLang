@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-import fs from "node:fs";
-import path from "node:path";
 import {
   parseGlobalFlags,
   GLOBAL_FLAGS_HELP,
@@ -12,129 +10,139 @@ import { runBuild } from "./commands/build/index.js";
 import type { TestFlags } from "./commands/test/types.js";
 import { runTest } from "./commands/test/index.js";
 import { setColors } from "./term/colors.js";
+import { loadConfig } from "./config/index.js";
+import { expandInputsFromConfig } from "./config/expand.js";
+import { expandInputs } from "./commands/check/helpers.js";
 
 function usage(): never {
   console.error(
-    `Usage: ilc <check|build|test> <files...> [flags]
+    `Usage: ilc <check|build|test> [files...] [flags]
+
+If no files are provided, 'ilc' will use 'include'/'exclude' from ilconfig.json.
 
 Global flags:
 ${GLOBAL_FLAGS_HELP}
 
 Build flags:
-  --target ts|js    Output target (default: ts)
-  --out DIR         Output directory (default: dist)
-  --sourcemap       Emit source maps when --target js
+  --target ts|js|py   Output target (default: ts)
+  --out DIR           Output directory (default: dist)
+  --sourcemap         Emit source maps when --target js
 
 Test flags:
-  --only PATTERN    Run tests matching PATTERN
-  --bail            Stop on first failure
-  --reporter json|human  (human by default; --json implies json)
+  --only PATTERN      Run tests matching PATTERN
+  --bail              Stop on first failure
+  --reporter json|human (human by default; --json implies json)
 `,
   );
   process.exit(2);
 }
 
-const argv = process.argv.slice(2);
-const [cmd, ...args] = argv;
-if (!cmd) usage();
-
-const { flags: global, rest } = parseGlobalFlags(args);
-
-if (global.noColor) {
-  setColors(false);
-}
-
-function parseBuild(
-  rest: string[],
-  base: GlobalFlags,
-): { files: string[]; flags: BuildFlags } {
-  let target: "ts" | "js" = "ts";
-  let outDir = "dist";
-  let sourcemap = false;
-  const files: string[] = [];
+function parseBuildFlags(rest: string[], base: GlobalFlags): BuildFlags {
+  const buildFlags: Partial<BuildFlags> = {};
   for (let i = 0; i < rest.length; i++) {
     const a = rest[i];
-    if (a === "--target") target = (rest[++i] as any) ?? "ts";
-    else if (a === "--out") outDir = rest[++i] ?? "dist";
-    else if (a === "--sourcemap") sourcemap = true;
-    else if (a.startsWith("-"))
-      usage(); // flag desconocida ⇒ uso
-    else files.push(a);
+    if (a === "--target") buildFlags.target = rest[++i] as any;
+    else if (a === "--out") buildFlags.outDir = rest[++i];
+    else if (a === "--sourcemap") buildFlags.sourcemap = true;
   }
-  if (files.length === 0 && !files.some((f) => fs.existsSync(f))) usage();
-  return { files, flags: { ...base, target, outDir, sourcemap } };
+
+  // Fusiona y aplica valores por defecto para satisfacer el tipo BuildFlags.
+  const merged = { ...base, ...buildFlags };
+  if (!merged.target) merged.target = "ts";
+  if (!merged.outDir) merged.outDir = "dist";
+
+  return merged as BuildFlags;
 }
 
-function parseTest(
-  rest: string[],
-  base: GlobalFlags,
-): { files: string[]; flags: TestFlags } {
-  let only: string | undefined;
-  let bail = false;
-  let reporter: "json" | "human" | undefined;
-  const files: string[] = [];
+function parseTestFlags(rest: string[], base: GlobalFlags): TestFlags {
+  const testFlags: Partial<TestFlags> = {};
   for (let i = 0; i < rest.length; i++) {
     const a = rest[i];
-    if (a === "--only") only = rest[++i];
-    else if (a === "--bail") bail = true;
-    else if (a === "--reporter") reporter = rest[++i] as any;
-    else if (a.startsWith("-"))
-      usage(); // flag desconocida
-    else files.push(a);
+    if (a === "--only") testFlags.only = rest[++i];
+    else if (a === "--bail") testFlags.bail = true;
+    else if (a === "--reporter") testFlags.reporter = rest[++i] as any;
   }
-  if (files.length === 0 && !files.some((f) => fs.existsSync(f))) usage();
-  const effReporter = base.json ? "json" : (reporter ?? "human");
-  return { files, flags: { ...base, only, bail, reporter: effReporter } };
+
+  const merged = { ...base, ...testFlags };
+  const effReporter = merged.json ? "json" : (merged.reporter ?? "human");
+  return { ...merged, reporter: effReporter };
 }
 
-function parseCheck(rest: string[]): string[] {
-  const files: string[] = [];
-  const looksLikeGlob = (s: string) => /[*?\[]/.test(s);
-  for (let i = 0; i < rest.length; i++) {
-    let a = rest[i];
-    // strip surrounding quotes to support quoted globs on Windows
-    if (
-      (a.startsWith('"') && a.endsWith('"')) ||
-      (a.startsWith("'") && a.endsWith("'"))
-    ) {
-      a = a.slice(1, -1);
-    }
-    if (a === "-") files.push(a);
-    else if (a.startsWith("-"))
-      usage(); // 'check' has no specific flags
-    else files.push(a);
-  }
-  if (files.length === 0) usage();
-  if (files.includes("-")) {
-    if (files.length > 1) usage();
-    return ["-"];
-  }
-  // Permite globs/directorios; solo exige existencia cuando no parece glob
-  if (files.some((f) => !looksLikeGlob(f) && !fs.existsSync(f))) usage();
-  return files;
-}
+async function main() {
+  const argv = process.argv.slice(2);
+  const [cmd, ...args] = argv;
+  if (!cmd) usage();
 
-(async () => {
+  // 1. Cargar configuración desde ilconfig.json
+  const { config, configPath } = loadConfig(process.cwd());
+
+  // 2. Parsear flags de la línea de comandos
+  const { flags: cliFlags, rest: cliRest } = parseGlobalFlags(args);
+
+  // 3. Convertir seeds numéricos a string antes de fusionar para evitar errores de tipo.
+  const configOptions = { ...config.compilerOptions };
+  if (typeof configOptions.seedRng === "number") {
+    configOptions.seedRng = String(configOptions.seedRng);
+  }
+  if (typeof configOptions.seedClock === "number") {
+    configOptions.seedClock = String(configOptions.seedClock);
+  }
+
+  // 4. Fusionar configuraciones (los flags de CLI tienen prioridad)
+  const finalFlags: GlobalFlags = { ...configOptions, ...cliFlags };
+
+  // 5. Determinar los archivos a procesar
+  const fileArgs = cliRest.filter((arg) => !arg.startsWith("-"));
+  let filesToProcess: string[];
+
+  if (fileArgs.length > 0) {
+    filesToProcess = expandInputs(fileArgs);
+  } else if (config.include) {
+    filesToProcess = expandInputsFromConfig(
+      config.include,
+      config.exclude,
+      configPath,
+    );
+  } else {
+    usage();
+  }
+
+  if (finalFlags.noColor) {
+    setColors(false);
+  }
+
+  if (
+    filesToProcess.length === 0 &&
+    !(fileArgs.length === 1 && fileArgs[0] === "-")
+  ) {
+    console.error(
+      "Error: No input files found matching the specified patterns.",
+    );
+    process.exit(2);
+  }
+
+  // 6. Ejecutar el comando
   switch (cmd) {
     case "check": {
-      const files = parseCheck(rest);
-      await runCheck(files, global);
+      await runCheck(filesToProcess, finalFlags);
       break;
     }
     case "build": {
-      const { files, flags } = parseBuild(rest, global);
-      await runBuild(files, flags);
+      const flags = parseBuildFlags(cliRest, finalFlags);
+      await runBuild(filesToProcess, flags);
       break;
     }
     case "test": {
-      const { files, flags } = parseTest(rest, global);
-      await runTest(files, flags);
+      const flags = parseTestFlags(cliRest, finalFlags);
+      await runTest(filesToProcess, flags);
       break;
     }
     default:
       usage();
   }
-})().catch((err) => {
+}
+
+main().catch((err) => {
   console.error(err?.stack ?? String(err));
-  process.exit(2);
+  process.exit(1);
 });

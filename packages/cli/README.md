@@ -1,26 +1,26 @@
-# @il/cli
+# @intentlang/cli
 
-Command-line interface for IntentLang. The `ilc` binary can typecheck and transpile
+Command-line interface for IntentLang. The `intent` binary can typecheck and transpile
 `.il` files to TypeScript.
 
 ## Usage
 
 ```bash
-pnpm --filter @il/cli ilc check path/to/file.il
-pnpm --filter @il/cli ilc build path/to/file.il --target ts --out dist
+pnpm --filter @intentlang/clilang/cli intent check path/to/file.il
+pnpm --filter @intentlang/clilang/cli intent build path/to/file.il --target ts --out dist
 # Watch mode (revalidate on save)
-pnpm --filter @il/cli ilc check "src/**/*.il" --watch --max-errors 50
+pnpm --filter @intentlang/clilang/cli intent check "src/**/*.il" --watch --max-errors 50
 # Read from stdin
-cat path/to/file.il | pnpm --filter @il/cli ilc check -
+cat path/to/file.il | pnpm --filter @intentlang/clilang/cli intent check -
 ```
 
-`ilc check` prints `OK` when the file typechecks, exits with code `1` on
+`intent check` prints `OK` when the file typechecks, exits with code `1` on
 diagnostics, and `2` for usage errors (missing file or unknown flag).
 Use `--strict` to treat warnings as errors. Pass `--json` to emit machine-
 readable diagnostics:
 
 ```bash
-ilc check path/to/file.il --json
+intent check path/to/file.il --json
 # New shape (preferred):
 # {
 #   "kind": "check",
@@ -39,6 +39,6 @@ Use `--watch` to keep the process running and revalidate on file changes. Press 
 ## Development
 
 ```bash
-pnpm --filter @il/cli build    # compile TypeScript
-pnpm --filter @il/cli test     # run unit tests
+pnpm --filter @intentlang/clilang/cli build    # compile TypeScript
+pnpm --filter @intentlang/clilang/cli test     # run unit tests
 ```

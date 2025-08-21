@@ -1,22 +1,36 @@
+# CHANGELOG
+
+## [Unreleased]
+
+### Features
+
+- **check:** limit printed errors with `--max-errors` and show truncation summary.
+- **check:** accept `-` to read from stdin and label diagnostics as `(stdin)`.
+- **check:** cross-platform globbing; exit `2` when no files match.
+
+### Tests
+
+- cover diagnostic reporter with human and JSON snapshots.
+
 ## [1.10.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.9.0...@il/cli-v1.10.0) (2025-08-21)
 
 ### Features
 
-* **core:** add for/in keywords to lexer ([c6ed6eb](https://github.com/alessbarb/IntentLang/commit/c6ed6eb8ea0c55c665ef9ce5f77598d4f22d76ca))
+- **core:** add for/in keywords to lexer ([c6ed6eb](https://github.com/alessbarb/IntentLang/commit/c6ed6eb8ea0c55c665ef9ce5f77598d4f22d76ca))
 
 ## [1.9.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.8.0...@il/cli-v1.9.0) (2025-08-21)
 
 ### Features
 
-* **cli:** implement rich diagnostic reporter ([6af8b39](https://github.com/alessbarb/IntentLang/commit/6af8b39dfb07a966ca9a61681c858e95427893ae)), closes [#21](https://github.com/alessbarb/IntentLang/issues/21)
-* **core:** introduce centralized diagnostics system ([b1117ea](https://github.com/alessbarb/IntentLang/commit/b1117eadcdd5a56fabf08bfe698f10f4614e0803))
+- **cli:** implement rich diagnostic reporter ([6af8b39](https://github.com/alessbarb/IntentLang/commit/6af8b39dfb07a966ca9a61681c858e95427893ae)), closes [#21](https://github.com/alessbarb/IntentLang/issues/21)
+- **core:** introduce centralized diagnostics system ([b1117ea](https://github.com/alessbarb/IntentLang/commit/b1117eadcdd5a56fabf08bfe698f10f4614e0803))
 
 ## [1.8.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.7.0...@il/cli-v1.8.0) (2025-08-20)
 
 ### Features
 
-* **core:** add Python transpiler and export from core index ([b3d00c6](https://github.com/alessbarb/IntentLang/commit/b3d00c654d2f99b0dad487a91cb90d28292ed389))
-* implement example function bodies ([2932687](https://github.com/alessbarb/IntentLang/commit/2932687214e209c5987e94c2489295007f2675ba))
+- **core:** add Python transpiler and export from core index ([b3d00c6](https://github.com/alessbarb/IntentLang/commit/b3d00c654d2f99b0dad487a91cb90d28292ed389))
+- implement example function bodies ([2932687](https://github.com/alessbarb/IntentLang/commit/2932687214e209c5987e94c2489295007f2675ba))
 
 ## [1.7.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.6.0...@il/cli-v1.7.0) (2025-08-20)
 
@@ -43,25 +57,13 @@
 
 - **cli:** truncate error output ([7c21094](https://github.com/alessbarb/IntentLang/commit/7c2109497d5da77fd688c7bc880015aad5fa79a5))
 
-## [Unreleased]
-
-### Features
-
-- **check:** limit printed errors with `--max-errors` and show truncation summary.
-- **check:** accept `-` to read from stdin and label diagnostics as `(stdin)`.
-- **check:** cross-platform globbing; exit `2` when no files match.
-
-### Tests
-
-- cover diagnostic reporter with human and JSON snapshots.
-
 ## [1.3.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.2.0...@il/cli-v1.3.0) (2025-08-19)
 
 ### Features
 
 - **cli:** add --max-errors and align global help ([52fda6b](https://github.com/alessbarb/IntentLang/commit/52fda6b3d11e619503d4610c39bd5d12850ab403))
 - **cli:** allow globs and directories in 'check' inputs; validate existence only for non-globs ([fbf9965](https://github.com/alessbarb/IntentLang/commit/fbf996590bca02571b53c241e89155162901773e))
-- **cli:** implement 'ilc check --watch' with 200ms debounce, globbing and cached parse; Ctrl+C exits 0 ([1402705](https://github.com/alessbarb/IntentLang/commit/1402705e94ab3ec4ba094b4fbd8aa2825e46e5f8))
+- **cli:** implement 'intent check --watch' with 200ms debounce, globbing and cached parse; Ctrl+C exits 0 ([1402705](https://github.com/alessbarb/IntentLang/commit/1402705e94ab3ec4ba094b4fbd8aa2825e46e5f8))
 - **cli:** split into commands (check|build|test), add --strict/--json and strict-aware exit codes; migrate to NodeNext ESM with .js specifiers ([eacd38b](https://github.com/alessbarb/IntentLang/commit/eacd38bf3726dbda189a09aac754b9af0a82cedd))
 
 ### Bug Fixes
@@ -74,11 +76,7 @@
 
 - **cli:** add json output for check ([de56051](https://github.com/alessbarb/IntentLang/commit/de5605127862966c76b6e13cc802e9c47ec40960))
 
-* **cli:** `ilc check --watch` with debounce (200ms), globbing, cached parse; support `--max-errors`; Ctrl+C exits 0.
-
-# CHANGELOG
-
-## [1.1.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.0.0...@il/cli-v1.1.0) (2025-08-19)
+## [1.1.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.0.2...@il/cli-v1.1.0) (2025-08-19)
 
 ### Features
 
@@ -92,9 +90,9 @@
 
 ## 1.0.1 (2025-08-19)
 
-### Fixes
+### Bug Fixes
 
-- **cli:** return exit code `2` for missing files or unknown flags in `ilc check`
+- **cli:** return exit code `2` for missing files or unknown flags in `intent check`
 
 ## 1.0.0 (2025-08-19)
 

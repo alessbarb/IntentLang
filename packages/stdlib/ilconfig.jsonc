@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    // --- Comportamiento del Checker ---
+    "strict": true,
+    // --- Configuración del Transpilador ---
+    "target": "ts",
+    "outDir": "dist",
+    "sourcemap": false,
+  },
+  // --- Archivos del Proyecto ---
+  "include": ["src/**/*.il"],
+  "exclude": ["node_modules", "dist"],
+}
