@@ -1,6 +1,6 @@
 export default {
   branches: ["main"],
-  tagFormat: "@intentlang/core-v${version}",
+  tagFormat: "@intentlang/stdlib-v${version}",
   plugins: [
     ["@semantic-release/commit-analyzer", { preset: "conventionalcommits" }],
     [
@@ -14,7 +14,7 @@ export default {
       {
         assets: ["CHANGELOG.md", "package.json"],
         message:
-          "chore(@intentlang/core): release ${nextRelease.version}\n\n${nextRelease.notes}",
+          "chore(@intentlang/stdlib): release ${nextRelease.version}\n\n${nextRelease.notes}",
       },
     ],
     ["@semantic-release/github", { assets: [] }],

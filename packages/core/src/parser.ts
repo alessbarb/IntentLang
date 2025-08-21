@@ -620,7 +620,13 @@ export function parse(input: string): Program {
       const consequent = parseExpr();
       expect("colon");
       const alternate = parseExpr();
-      return { kind: "ConditionalExpr", test, consequent, alternate, span: spanHere() };
+      return {
+        kind: "ConditionalExpr",
+        test,
+        consequent,
+        alternate,
+        span: spanHere(),
+      };
     }
     return test;
   }
@@ -780,11 +786,23 @@ export function parse(input: string): Program {
     }
     if (eat("plusplus")) {
       const arg = parseUnary();
-      return { kind: "UpdateExpr", op: "++", argument: arg, prefix: true, span: spanHere() };
+      return {
+        kind: "UpdateExpr",
+        op: "++",
+        argument: arg,
+        prefix: true,
+        span: spanHere(),
+      };
     }
     if (eat("minusminus")) {
       const arg = parseUnary();
-      return { kind: "UpdateExpr", op: "--", argument: arg, prefix: true, span: spanHere() };
+      return {
+        kind: "UpdateExpr",
+        op: "--",
+        argument: arg,
+        prefix: true,
+        span: spanHere(),
+      };
     }
     return parsePostfix();
   }
@@ -812,11 +830,23 @@ export function parse(input: string): Program {
         continue;
       }
       if (eat("plusplus")) {
-        expr = { kind: "UpdateExpr", op: "++", argument: expr, prefix: false, span: spanHere() };
+        expr = {
+          kind: "UpdateExpr",
+          op: "++",
+          argument: expr,
+          prefix: false,
+          span: spanHere(),
+        };
         continue;
       }
       if (eat("minusminus")) {
-        expr = { kind: "UpdateExpr", op: "--", argument: expr, prefix: false, span: spanHere() };
+        expr = {
+          kind: "UpdateExpr",
+          op: "--",
+          argument: expr,
+          prefix: false,
+          span: spanHere(),
+        };
         continue;
       }
       break;

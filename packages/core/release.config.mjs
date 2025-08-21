@@ -14,7 +14,7 @@ export default {
       {
         assets: ["CHANGELOG.md", "package.json"],
         message:
-          "chore(@intentlang/coreang/core): release ${nextRelease.version}\n\n${nextRelease.notes}",
+          "chore(@intentlang/core): release ${nextRelease.version}\n\n${nextRelease.notes}",
       },
     ],
     ["@semantic-release/github", { assets: [] }],
