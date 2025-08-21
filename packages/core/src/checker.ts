@@ -346,6 +346,10 @@ function checkTest(ctx: Ctx, t: TestDecl) {
           else visitExpr(c.body as Expr);
         }
         break;
+      case "ForStmt":
+        visitExpr(s.iterable);
+        visitBlock(s.body);
+        break;
       case "ExprStmt":
         visitExpr(s.expression);
         break;
@@ -452,7 +456,7 @@ function checkStmt(ctx: Ctx, f: FlowCtx, s: Stmt) {
     case "ForStmt": {
       inferExpr(ctx, f, s.iterable);
       const scope = new Map(f.scope);
-      scope.set(s.id.name, TUnknown);
+      scope.set(s.iterator.name, TUnknown);
       checkBlock(ctx, { ...f, scope }, s.body);
       return;
     }

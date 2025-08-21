@@ -1,3 +1,16 @@
+## [1.10.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.9.0...@il/cli-v1.10.0) (2025-08-21)
+
+### Features
+
+* **core:** add for/in keywords to lexer ([c6ed6eb](https://github.com/alessbarb/IntentLang/commit/c6ed6eb8ea0c55c665ef9ce5f77598d4f22d76ca))
+
+## [1.9.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.8.0...@il/cli-v1.9.0) (2025-08-21)
+
+### Features
+
+* **cli:** implement rich diagnostic reporter ([6af8b39](https://github.com/alessbarb/IntentLang/commit/6af8b39dfb07a966ca9a61681c858e95427893ae)), closes [#21](https://github.com/alessbarb/IntentLang/issues/21)
+* **core:** introduce centralized diagnostics system ([b1117ea](https://github.com/alessbarb/IntentLang/commit/b1117eadcdd5a56fabf08bfe698f10f4614e0803))
+
 ## [1.8.0](https://github.com/alessbarb/IntentLang/compare/@il/cli-v1.7.0...@il/cli-v1.8.0) (2025-08-20)
 
 ### Features

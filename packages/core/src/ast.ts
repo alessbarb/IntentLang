@@ -198,7 +198,7 @@ export type MatchStmt = {
 };
 export type ForStmt = {
   kind: "ForStmt";
-  id: Identifier;
+  iterator: Identifier;
   iterable: Expr;
   body: Block;
   span: Span;
