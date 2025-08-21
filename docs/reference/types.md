@@ -34,3 +34,16 @@ type Payment =
   | Card { last4: String where _.length == 4 }
   | Cash { received: Int where _ >= 0 };
 ```
+
+### Match guards
+
+Add an `if` condition after a pattern to further filter a case:
+
+```intentlang
+match payment {
+  Card { last4 } if last4 == "0000" => /* ... */
+  Cash { received } => /* ... */
+}
+```
+
+The guard runs only after the pattern matches and must return `Bool`.

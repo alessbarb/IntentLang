@@ -391,7 +391,14 @@ function emitCasesAsIfs(
 ): string {
   const parts: string[] = [];
   cases.forEach((c, idx) => {
-    const cond = patternCondition(subject, c.pattern);
+    const baseCond = patternCondition(subject, c.pattern);
+    let cond = baseCond;
+    if (c.guard) {
+      const guardBindings = emitBindings(subject, c.pattern).join("\n");
+      const guardExpr = emitExpr(c.guard, isEffect);
+      const pre = guardBindings ? `${guardBindings}\n` : "";
+      cond = `${baseCond} && (() => { ${pre}return ${guardExpr}; })()`;
+    }
     const bindings = emitBindings(subject, c.pattern).join("\n");
     let body: string;
     if ("kind" in c.body && (c.body as any).kind === "Block") {
