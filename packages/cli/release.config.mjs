@@ -1,6 +1,6 @@
 export default {
   branches: ["main"],
-  tagFormat: "@il/cli-v${version}",
+  tagFormat: "@intentlang/cli-v${version}",
   plugins: [
     ["@semantic-release/commit-analyzer", { preset: "conventionalcommits" }],
     [
@@ -14,7 +14,7 @@ export default {
       {
         assets: ["CHANGELOG.md", "package.json"],
         message:
-          "chore(@il/cli): release ${nextRelease.version}\n\n${nextRelease.notes}",
+          "chore(@intentlang/clilang/cli): release ${nextRelease.version}\n\n${nextRelease.notes}",
       },
     ],
     ["@semantic-release/github", { assets: [] }],

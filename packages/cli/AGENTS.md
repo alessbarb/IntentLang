@@ -1,4 +1,4 @@
-# AGENTS.md — CLI Package (`ilc`)
+# AGENTS.md — CLI Package (`intent`)
 
 Refer first to the [repository-wide guide](../../AGENTS.md). This file covers CLI-specific rules.
 
@@ -20,7 +20,7 @@ Refer first to the [repository-wide guide](../../AGENTS.md). This file covers CL
 - **Diagnostics**: printed with snippet and caret; in `--json` mode as `diags[]` + `status`.
 - **Watch mode**: 100–300 ms debounce, optional screen clearing.
 - **Globs**: cross-platform expansion; support `-` for `stdin`.
-- **Help**: `ilc --help` and `<cmd> --help` with examples.
+- **Help**: `intent --help` and `<cmd> --help` with examples.
 - **No telemetry**: no network usage by default.
 
 ## PR checklist (CLI)

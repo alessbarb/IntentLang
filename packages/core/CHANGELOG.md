@@ -1,4 +1,4 @@
-## [1.2.0](https://github.com/alessbarb/IntentLang/compare/@il/core-v1.1.0...@il/core-v1.2.0) (2025-08-20)
+## [1.2.0](https://github.com/alessbarb/IntentLang/compare/@intentlang/core-v1.1.0...@intentlang/core-v1.2.0) (2025-08-20)
 
 ### Features
 
@@ -16,7 +16,7 @@
 
 - **runtime:** add `Fixed2` brand type and `fixed2Mul` helper.
 
-## [1.1.0](https://github.com/alessbarb/IntentLang/compare/@il/core-v1.0.0...@il/core-v1.1.0) (2025-08-19)
+## [1.1.0](https://github.com/alessbarb/IntentLang/compare/@intentlang/coreang/core-v@intentlang/core@intentlang/core-v1.1.0) (2025-08-19)
 
 ### Features
 
@@ -24,7 +24,7 @@
 - **cli:** add json output for check ([de56051](https://github.com/alessbarb/IntentLang/commit/de5605127862966c76b6e13cc802e9c47ec40960))
 - **cli:** add robust check command ([5418a7d](https://github.com/alessbarb/IntentLang/commit/5418a7d55646f3db75905ce4fa69933ba4bb7a53))
 - **cli:** allow globs and directories in 'check' inputs; validate existence only for non-globs ([fbf9965](https://github.com/alessbarb/IntentLang/commit/fbf996590bca02571b53c241e89155162901773e))
-- **cli:** implement 'ilc check --watch' with 200ms debounce, globbing and cached parse; Ctrl+C exits 0 ([1402705](https://github.com/alessbarb/IntentLang/commit/1402705e94ab3ec4ba094b4fbd8aa2825e46e5f8))
+- **cli:** implement 'intent check --watch' with 200ms debounce, globbing and cached parse; Ctrl+C exits 0 ([1402705](https://github.com/alessbarb/IntentLang/commit/1402705e94ab3ec4ba094b4fbd8aa2825e46e5f8))
 - **cli:** split into commands (check|build|test), add --strict/--json and strict-aware exit codes; migrate to NodeNext ESM with .js specifiers ([eacd38b](https://github.com/alessbarb/IntentLang/commit/eacd38bf3726dbda189a09aac754b9af0a82cedd))
 
 ### Bug Fixes

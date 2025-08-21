@@ -1,5 +1,5 @@
 {
-  "name": "@il/examples",
+  "name": "@intentlang/examples",
   "version": "0.4.0",
   "private": true,
   "scripts": {
@@ -8,7 +8,7 @@
     "test:goldens:update": "UPDATE=1 node ./scripts/goldens.mjs"
   },
   "dependencies": {
-    "@il/core": "workspace:^"
+    "@intentlang/core": "workspace:^"
   },
   "devDependencies": {
     "picocolors": "^1.1.1"

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { parse, emitTypeScript, emitPython } from "@il/core";
+import { parse, emitTypeScript, emitPython } from "@intentlang/core";
 
 // --- Configuración de Transpiladores ---
 // Define aquí cada lenguaje de destino.
@@ -9,14 +9,12 @@ const TRANSPILER_TARGETS = [
   {
     name: "ts",
     fileExtension: ".ts",
-    // Los goldens de TS están en el subdirectorio 'ts'.
     goldensSubDir: "ts",
     transpiler: (program) => emitTypeScript(program),
   },
   {
     name: "py",
     fileExtension: ".py",
-    // Los goldens de Py están en el subdirectorio 'py'.
     goldensSubDir: "py",
     transpiler: (program) => emitPython(program),
   },
@@ -24,7 +22,6 @@ const TRANSPILER_TARGETS = [
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const examplesRoot = path.resolve(__dirname, "..");
-// CORRECCIÓN: Los ficheros .il están dentro de 'intentlang'
 const sourceIlDir = path.join(examplesRoot, "intentlang");
 const goldensRoot = path.join(examplesRoot, "goldens");
 const datasetsDir = path.join(examplesRoot, "datasets");

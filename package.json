@@ -7,10 +7,13 @@
     "dev": "pnpm -r run dev",
     "lint": "pnpm -r run lint",
     "test": "pnpm run test:core && pnpm run test:cli",
-    "test:core": "pnpm --filter @il/core test",
-    "test:cli": "pnpm --filter @il/cli test",
+    "test:core": "pnpm --filter @intentlang/core test",
+    "test:cli": "pnpm --filter @intentlang/cli test",
     "typecheck": "pnpm -r run typecheck",
-    "ilc": "node packages/cli/dist/index.js"
+    "intent": "node packages/cli/dist/index.js"
+  },
+  "bin": {
+    "intent": "packages/cli/dist/index.js"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
