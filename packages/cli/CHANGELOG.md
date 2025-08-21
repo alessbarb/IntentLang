@@ -1,3 +1,13 @@
+## [1.1.0](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.0.1...@intentlang/cli-v1.1.0) (2025-08-21)
+
+### Features
+
+* extend python transpiler for new operators ([359e5a4](https://github.com/alessbarb/IntentLang/commit/359e5a43d36bf05a76c45d005af9051ceb336d35))
+
+### Bug Fixes
+
+* formats and error in package name ([132729c](https://github.com/alessbarb/IntentLang/commit/132729c3b57f3a45800d1ab0ef68bb934cf64091))
+
 ## [1.0.1](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.0.0...@intentlang/cli-v1.0.1) (2025-08-21)
 
 ### Bug Fixes
