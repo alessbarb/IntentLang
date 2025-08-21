@@ -33,7 +33,10 @@ import type {
   CallExpr,
   MemberExpr,
   UnaryExpr,
+  UpdateExpr,
   BinaryExpr,
+  AssignExpr,
+  ConditionalExpr,
   ResultOkExpr,
   ResultErrExpr,
   OptionSomeExpr,
@@ -278,8 +281,16 @@ function emitExpr(e: Expr, isEffect: boolean): string {
       return `${emitExpr(e.object, isEffect)}.${e.property.name}`;
     case "UnaryExpr":
       return `${e.op}${paren(emitExpr(e.argument, isEffect))}`;
+    case "UpdateExpr":
+      return e.prefix
+        ? `${e.op}${paren(emitExpr(e.argument, isEffect))}`
+        : `${paren(emitExpr(e.argument, isEffect))}${e.op}`;
     case "BinaryExpr":
       return `${paren(emitExpr(e.left, isEffect))} ${e.op} ${paren(emitExpr(e.right, isEffect))}`;
+    case "AssignExpr":
+      return `${emitExpr(e.left, isEffect)} ${e.op} ${emitExpr(e.right, isEffect)}`;
+    case "ConditionalExpr":
+      return `${emitExpr(e.test, isEffect)} ? ${emitExpr(e.consequent, isEffect)} : ${emitExpr(e.alternate, isEffect)}`;
     case "ResultOkExpr":
       return `{ type: "Ok", value: ${emitExpr(e.value, isEffect)} }`;
     case "ResultErrExpr":

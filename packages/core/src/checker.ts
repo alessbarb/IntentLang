@@ -549,7 +549,17 @@ function inferExpr(ctx: Ctx, f: FlowCtx, e: Expr): T {
           report(ctx.diags, "ILC0212", e.span, { type: showType(v) });
         return { kind: "Number" };
       }
+      if (e.op === "~") {
+        if (!isNumberLike(v))
+          report(ctx.diags, "ILC0212", e.span, { type: showType(v) });
+        return { kind: "Number" };
+      }
       return TUnknown;
+    }
+    case "UpdateExpr": {
+      const v = inferExpr(ctx, f, e.argument);
+      if (!isNumberLike(v)) report(ctx.diags, "ILC0216", e.span, { op: e.op });
+      return { kind: "Number" };
     }
     case "BinaryExpr": {
       const l = inferExpr(ctx, f, e.left),
@@ -581,10 +591,29 @@ function inferExpr(ctx: Ctx, f: FlowCtx, e: Expr): T {
         case "*":
         case "/":
         case "%":
+        case "&":
+        case "|":
+        case "^":
+        case "<<":
+        case ">>":
           if (!isNumberLike(l) || !isNumberLike(r))
             report(ctx.diags, "ILC0216", e.span, { op: e.op });
           return { kind: "Number" };
       }
+      return TUnknown;
+    }
+    case "AssignExpr": {
+      const t = inferExpr(ctx, f, e.right);
+      inferExpr(ctx, f, e.left);
+      return t;
+    }
+    case "ConditionalExpr": {
+      const t = inferExpr(ctx, f, e.test);
+      if (!isBoolLike(t))
+        report(ctx.diags, "ILC0211", e.test.span, { type: showType(t) });
+      const c = inferExpr(ctx, f, e.consequent);
+      const a = inferExpr(ctx, f, e.alternate);
+      if (isAssignableTo(ctx, c, a) && isAssignableTo(ctx, a, c)) return c;
       return TUnknown;
     }
     case "ResultOkExpr": {

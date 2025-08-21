@@ -573,7 +573,56 @@ export function parse(input: string): Program {
   /* ========= Expressions ========= */
 
   function parseExpr(): Expr {
-    return parseOr();
+    return parseAssign();
+  }
+
+  function parseAssign(): Expr {
+    let left = parseConditional();
+    while (true) {
+      if (eat("eq")) {
+        const right = parseAssign();
+        left = { kind: "AssignExpr", op: "=", left, right, span: spanHere() };
+        continue;
+      }
+      if (eat("pluseq")) {
+        const right = parseAssign();
+        left = { kind: "AssignExpr", op: "+=", left, right, span: spanHere() };
+        continue;
+      }
+      if (eat("minuseq")) {
+        const right = parseAssign();
+        left = { kind: "AssignExpr", op: "-=", left, right, span: spanHere() };
+        continue;
+      }
+      if (eat("stareq")) {
+        const right = parseAssign();
+        left = { kind: "AssignExpr", op: "*=", left, right, span: spanHere() };
+        continue;
+      }
+      if (eat("slasheq")) {
+        const right = parseAssign();
+        left = { kind: "AssignExpr", op: "/=", left, right, span: spanHere() };
+        continue;
+      }
+      if (eat("percenteq")) {
+        const right = parseAssign();
+        left = { kind: "AssignExpr", op: "%=", left, right, span: spanHere() };
+        continue;
+      }
+      break;
+    }
+    return left;
+  }
+
+  function parseConditional(): Expr {
+    const test = parseOr();
+    if (eat("question")) {
+      const consequent = parseExpr();
+      expect("colon");
+      const alternate = parseExpr();
+      return { kind: "ConditionalExpr", test, consequent, alternate, span: spanHere() };
+    }
+    return test;
   }
 
   function parseOr(): Expr {
@@ -585,10 +634,34 @@ export function parse(input: string): Program {
     return left;
   }
   function parseAnd(): Expr {
-    let left = parseEquality();
+    let left = parseBitOr();
     while (eat("andand")) {
-      const right = parseEquality();
+      const right = parseBitOr();
       left = { kind: "BinaryExpr", op: "&&", left, right, span: spanHere() };
+    }
+    return left;
+  }
+  function parseBitOr(): Expr {
+    let left = parseBitXor();
+    while (eat("pipe")) {
+      const right = parseBitXor();
+      left = { kind: "BinaryExpr", op: "|", left, right, span: spanHere() };
+    }
+    return left;
+  }
+  function parseBitXor(): Expr {
+    let left = parseBitAnd();
+    while (eat("caret")) {
+      const right = parseBitAnd();
+      left = { kind: "BinaryExpr", op: "^", left, right, span: spanHere() };
+    }
+    return left;
+  }
+  function parseBitAnd(): Expr {
+    let left = parseEquality();
+    while (eat("amp")) {
+      const right = parseEquality();
+      left = { kind: "BinaryExpr", op: "&", left, right, span: spanHere() };
     }
     return left;
   }
@@ -610,26 +683,43 @@ export function parse(input: string): Program {
     return left;
   }
   function parseRel(): Expr {
-    let left = parseAdd();
+    let left = parseShift();
     while (true) {
       if (eat("lt")) {
-        const right = parseAdd();
+        const right = parseShift();
         left = { kind: "BinaryExpr", op: "<", left, right, span: spanHere() };
         continue;
       }
       if (eat("lte")) {
-        const right = parseAdd();
+        const right = parseShift();
         left = { kind: "BinaryExpr", op: "<=", left, right, span: spanHere() };
         continue;
       }
       if (eat("gt")) {
-        const right = parseAdd();
+        const right = parseShift();
         left = { kind: "BinaryExpr", op: ">", left, right, span: spanHere() };
         continue;
       }
       if (eat("gte")) {
-        const right = parseAdd();
+        const right = parseShift();
         left = { kind: "BinaryExpr", op: ">=", left, right, span: spanHere() };
+        continue;
+      }
+      break;
+    }
+    return left;
+  }
+  function parseShift(): Expr {
+    let left = parseAdd();
+    while (true) {
+      if (eat("lshift")) {
+        const right = parseAdd();
+        left = { kind: "BinaryExpr", op: "<<", left, right, span: spanHere() };
+        continue;
+      }
+      if (eat("rshift")) {
+        const right = parseAdd();
+        left = { kind: "BinaryExpr", op: ">>", left, right, span: spanHere() };
         continue;
       }
       break;
@@ -684,6 +774,18 @@ export function parse(input: string): Program {
       const arg = parseUnary();
       return { kind: "UnaryExpr", op: "-", argument: arg, span: spanHere() };
     }
+    if (eat("tilde")) {
+      const arg = parseUnary();
+      return { kind: "UnaryExpr", op: "~", argument: arg, span: spanHere() };
+    }
+    if (eat("plusplus")) {
+      const arg = parseUnary();
+      return { kind: "UpdateExpr", op: "++", argument: arg, prefix: true, span: spanHere() };
+    }
+    if (eat("minusminus")) {
+      const arg = parseUnary();
+      return { kind: "UpdateExpr", op: "--", argument: arg, prefix: true, span: spanHere() };
+    }
     return parsePostfix();
   }
   function parsePostfix(): Expr {
@@ -707,6 +809,14 @@ export function parse(input: string): Program {
         }
         expect("rparen");
         expr = { kind: "CallExpr", callee: expr, args, span: spanHere() };
+        continue;
+      }
+      if (eat("plusplus")) {
+        expr = { kind: "UpdateExpr", op: "++", argument: expr, prefix: false, span: spanHere() };
+        continue;
+      }
+      if (eat("minusminus")) {
+        expr = { kind: "UpdateExpr", op: "--", argument: expr, prefix: false, span: spanHere() };
         continue;
       }
       break;

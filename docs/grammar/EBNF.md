@@ -126,16 +126,23 @@ ExprStmt        = Expr , [";"] ;
 ## Expressions (lowest → highest precedence)
 
 ```ebnf
-Expr            = OrExpr ;
+Expr            = AssignExpr ;
+AssignExpr      = CondExpr , { AssignOp , CondExpr } ;
+AssignOp        = "=" | "+=" | "-=" | "*=" | "/=" | "%=" ;
+CondExpr        = OrExpr , [ "?" , Expr , ":" , Expr ] ;
 OrExpr          = AndExpr , { "||" , AndExpr } ;
-AndExpr         = EqualityExpr , { "&&" , EqualityExpr } ;
+AndExpr         = BitOrExpr , { "&&" , BitOrExpr } ;
+BitOrExpr       = BitXorExpr , { "|" , BitXorExpr } ;
+BitXorExpr      = BitAndExpr , { "^" , BitAndExpr } ;
+BitAndExpr      = EqualityExpr , { "&" , EqualityExpr } ;
 EqualityExpr    = RelExpr , { ("==" | "!=") , RelExpr } ;
-RelExpr         = AddExpr , { ("<" | "<=" | ">" | ">=") , AddExpr } ;
+RelExpr         = ShiftExpr , { ("<" | "<=" | ">" | ">=") , ShiftExpr } ;
+ShiftExpr       = AddExpr , { ("<<" | ">>") , AddExpr } ;
 AddExpr         = MulExpr , { ("+" | "-") , MulExpr } ;
 MulExpr         = UnaryExpr , { ("*" | "/" | "%") , UnaryExpr } ;
-UnaryExpr       = ("!" | "-") , UnaryExpr | PostfixExpr ;
+UnaryExpr       = ("!" | "-" | "~" | "++" | "--") , UnaryExpr | PostfixExpr ;
 
-PostfixExpr     = Primary , { "(" , [ ArgList ] , ")" | "." , ident } ;
+PostfixExpr     = Primary , { "++" | "--" | "(" , [ ArgList ] , ")" | "." , ident } ;
 ArgList         = Expr , { "," , Expr } ;
 
 Primary         = Literal
