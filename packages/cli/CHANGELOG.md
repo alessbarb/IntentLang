@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.0.0...@intentlang/cli-v1.0.1) (2025-08-21)
+
+### Bug Fixes
+
+* handle refinements and for loop tests ([a51007a](https://github.com/alessbarb/IntentLang/commit/a51007a33fcb00cd762d290ffae4a7234bdc31b9))
+
 ## 1.0.0 (2025-08-21)
 
 ### ⚠ BREAKING CHANGES
