@@ -10,7 +10,7 @@ This directory is intrinsically linked to the `/goldens` folder **inside this pa
 `packages/examples/goldens/`.
 
 - For every `<feature>.il` file here, there is a corresponding `<feature>.ts` file in `packages/examples/goldens/`.
-- This `.ts` file is the **"golden" reference output** — the exact, expected TypeScript code that the `ilc` transpiler should generate.
+- This `.ts` file is the **"golden" reference output** — the exact, expected TypeScript code that the `intent` transpiler should generate.
 
 These examples and their golden outputs act as a **snapshot test suite** for the transpiler. They form a contract that ensures any changes to the compiler do not introduce unintended regressions.
 

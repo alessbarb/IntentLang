@@ -51,8 +51,8 @@ Please follow these rules when writing `.il` files:
 
 ### CLI
 
-- `ilc check file.il` → parses & checks capabilities/types.
-- `ilc build file.il --target ts -o dist` → transpiles IL → TypeScript.
+- `intent check file.il` → parses & checks capabilities/types.
+- `intent build file.il --target ts -o dist` → transpiles IL → TypeScript.
 
 ### Goldens test suite
 

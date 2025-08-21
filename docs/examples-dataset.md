@@ -7,7 +7,7 @@ This document describes how to gather IntentLang (`.il`) examples and their Type
 Run the CLI for any example lacking a `goldens/<name>.ts` file:
 
 ```bash
-pnpm --filter @il/cli ilc build packages/examples/<name>.il --target ts
+pnpm --filter @intentlang/cli intent build packages/examples/<name>.il --target ts
 ```
 
 If the file transpiles successfully, copy the output to `packages/examples/goldens/<name>.ts`.
@@ -25,7 +25,7 @@ This writes `{source_il, transpiled_ts, ast}` triples to `packages/examples/data
 To regenerate just the dataset after other packages are built, run:
 
 ```bash
-pnpm --filter @il/examples build
+pnpm --filter @intentlang/entlang/examples build
 ```
 
 ## 3. Next steps

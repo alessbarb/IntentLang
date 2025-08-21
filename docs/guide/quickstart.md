@@ -50,13 +50,13 @@ test create_user { let now = clock.now(); }
 ## Validate the file
 
 ```bash
-pnpm --filter @il/cli ilc check user_service.il
+pnpm --filter @intentlang/cli intent check user_service.il
 ```
 
 ## Generate TypeScript
 
 ```bash
-pnpm --filter @il/cli ilc build user_service.il --target ts --out dist
+pnpm --filter @intentlang/clilang/cli intent build user_service.il --target ts --out dist
 ```
 
 `dist/user_service.ts` will contain equivalent types and stubs ready for business logic.
@@ -64,7 +64,7 @@ pnpm --filter @il/cli ilc build user_service.il --target ts --out dist
 For reproducible results you can fix the pseudo-random generator and clock seeds:
 
 ```bash
-pnpm --filter @il/cli ilc build user_service.il --seed-rng 1 --seed-clock 0
+pnpm --filter @intentlang/clilang/cli intent build user_service.il --seed-rng 1 --seed-clock 0
 ```
 
 ## Run tests
@@ -72,11 +72,11 @@ pnpm --filter @il/cli ilc build user_service.il --seed-rng 1 --seed-clock 0
 For files with `test` blocks, compile and run them with:
 
 ```bash
-pnpm --filter @il/cli ilc test user_service.il
+pnpm --filter @intentlang/clilang/cli intent test user_service.il
 ```
 
 As with `build`, you may seed the RNG and clock to replay behavior exactly:
 
 ```bash
-pnpm --filter @il/cli ilc test user_service.il --seed-rng 1 --seed-clock 0
+pnpm --filter @intentlang/clilang/cli intent test user_service.il --seed-rng 1 --seed-clock 0
 ```

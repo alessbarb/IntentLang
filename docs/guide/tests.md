@@ -23,11 +23,11 @@ test deterministic {
 Run tests with:
 
 ```bash
-pnpm --filter @il/cli ilc test file.il
+pnpm --filter @intentlang/cli intent test file.il
 ```
 
 For reproducible results, fix RNG and clock seeds:
 
 ```bash
-pnpm --filter @il/cli ilc test file.il --seed-rng 1 --seed-clock 0
+pnpm --filter @intentlang/clilang/cli intent test file.il --seed-rng 1 --seed-clock 0
 ```

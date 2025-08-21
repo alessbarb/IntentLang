@@ -5,8 +5,8 @@ TypeScript transpiler.
 
 ## Packages
 
-- **`@il/core`** – parser, AST, checker and runtime helpers.
-- **`@il/cli`** – command‑line interface `ilc` for checking and building IL
+- **`@intentlang/core`** – parser, AST, checker and runtime helpers.
+- **`@intentlang/cli`** – command‑line interface `intent` for checking and building IL
   files.
 - **`@intentlang/examples`** – canonical examples and golden tests.
 
@@ -42,11 +42,11 @@ test add_works { let r = random.int(); }
 
 ## Deterministic runs
 
-`ilc` can produce reproducible outputs by seeding its runtime:
+`intent` can produce reproducible outputs by seeding its runtime:
 
 ```bash
-pnpm --filter @il/cli ilc test file.il --seed-rng 1 --seed-clock 0
-pnpm --filter @il/cli ilc build file.il --seed-rng 1 --seed-clock 0
+pnpm --filter @intentlang/cli intent test file.il --seed-rng 1 --seed-clock 0
+pnpm --filter @intentlang/cli intent build file.il --seed-rng 1 --seed-clock 0
 ```
 
 `--seed-rng` fixes the pseudo‑random generator; `--seed-clock` sets the initial

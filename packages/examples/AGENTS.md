@@ -33,10 +33,10 @@ packages/examples/
 ## Flow to add/update an example
 
 1. Create a minimal, readable `<feature>.il`.
-2. Run `ilc build <feature>.il --target ts` to see the output.
+2. Run `intent build <feature>.il --target ts` to see the output.
 3. Copy the output plus `_prelude.ts` to the matching golden file.
-4. Run `ilc goldens run`.
-5. If intentional, accept changes with `ilc goldens update --only <feature>` and open a PR.
+4. Run `intent goldens run`.
+5. If intentional, accept changes with `intent goldens update --only <feature>` and open a PR.
 
 ## PR checklist (Examples)
 

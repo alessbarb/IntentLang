@@ -32,10 +32,10 @@ Refer first to the [repository-wide guide](../../AGENTS.md). This file adds rule
 ## PR checklist (Core)
 
 - [ ] `pnpm -w build` passes.
-- [ ] `ilc check` on examples (if touched) passes.
+- [ ] `intent check` on examples (if touched) passes.
 - [ ] Tests for lexer/parser/checker/transpiler added.
-- [ ] `ilc goldens run` passes (or justified `update`).
-- [ ] New ILC codes documented and `--explain` updated.
+- [ ] `intent goldens run` passes (or justified `update`).
+- [ ] New intent codes documented and `--explain` updated.
 - [ ] No `console.*` or new dependencies without justification.
 
 ## Suggested diagnostic codes

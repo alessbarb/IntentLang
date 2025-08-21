@@ -5,7 +5,7 @@
 ## TL;DR
 
 - Work deterministically, safely, and with minimal changes.
-- Use `ilc` for everything: `check | build | test | fmt | inspect | goldens`.
+- Use `intent` for everything: `check | build | test | fmt | inspect | goldens`.
 - Before opening a PR: update EBNF/lexer/parser together, run golden tests, add tests.
 - Never commit secrets or make unapproved network calls. Escalate to a human if unsure.
 
@@ -24,7 +24,7 @@ This root guide is the primary source of truth. The following documents add rule
 **Main packages:**
 
 - `packages/core` — AST, lexer, parser, checker, transpiler, runtime.
-- `packages/cli` — `ilc` command-line tool.
+- `packages/cli` — `intent` command-line tool.
 - `packages/examples` — canonical examples and golden outputs (expected TS code).
 
 **Language architecture (summary):**
@@ -66,16 +66,16 @@ If a change affects **language semantics** (e.g., new syntax, AST breakage, exha
 
 ## 4) Project tools
 
-Expected `ilc` commands:
+Expected `intent` commands:
 
 ```bash
-ilc check <files/globs> [--strict] [--json] [--watch] [--max-errors N]
-ilc build <files/globs> --target ts|js --out <dir> [--sourcemap] [--watch]
-ilc test [--only PATTERN] [--bail] [--reporter json|junit]
-ilc fmt <files/globs> [--check]
-ilc inspect <tokens|ast|types|diags> <file.il> [--json]
-ilc goldens run|update [--only NAME] [--yes]
-ilc doctor
+intent check <files/globs> [--strict] [--json] [--watch] [--max-errors N]
+intent build <files/globs> --target ts|js --out <dir> [--sourcemap] [--watch]
+intent test [--only PATTERN] [--bail] [--reporter json|junit]
+intent fmt <files/globs> [--check]
+intent inspect <tokens|ast|types|diags> <file.il> [--json]
+intent goldens run|update [--only NAME] [--yes]
+intent doctor
 ```
 
 Node/pnpm helpers:
@@ -97,7 +97,7 @@ Runtime determinism flags: `--seed-rng`, `--seed-clock`.
 1. Update the **EBNF** in documentation or README.
 2. Modify **lexer** and **parser** together — avoid inconsistent intermediate states.
 3. Add **parsing tests** and include `.il` examples.
-4. Run `ilc inspect tokens|ast` to validate trees.
+4. Run `intent inspect tokens|ast` to validate trees.
 5. If it affects the checker/transpiler, follow 5.2/5.3.
 
 ### 5.2 Checker changes
@@ -110,7 +110,7 @@ Runtime determinism flags: `--seed-rng`, `--seed-clock`.
 
 1. Ensure **stable, deterministic output** (order of fields/cases).
 2. Add/update relevant goldens in `packages/examples/goldens`.
-3. Run `ilc goldens run` and verify diffs.
+3. Run `intent goldens run` and verify diffs.
 
 ### 5.4 CLI changes
 
@@ -129,10 +129,10 @@ Runtime determinism flags: `--seed-rng`, `--seed-clock`.
 
 Tick what applies before requesting review:
 
-- [ ] `ilc fmt` has no pending changes or passes with `--check`.
-- [ ] `ilc check` reports no errors (and no warnings with `--strict` in CI).
+- [ ] `intent fmt` has no pending changes or passes with `--check`.
+- [ ] `intent check` reports no errors (and no warnings with `--strict` in CI).
 - [ ] Unit and E2E tests pass.
-- [ ] `ilc goldens run` shows no diffs — or `goldens update` is justified in the description.
+- [ ] `intent goldens run` shows no diffs — or `goldens update` is justified in the description.
 - [ ] Documentation updated (README/EBNF/AGENTS if applicable).
 - [ ] No unjustified new dependencies.
 - [ ] No external calls or secret leakage.
@@ -186,7 +186,7 @@ Example categories:
 
 - Each `.il` example must have a matching `.ts` **golden**.
 - The TS **prelude** for goldens lives in `packages/examples/goldens/_prelude.ts`.
-- Use `ilc goldens update --only <name>` to accept deliberate changes.
+- Use `intent goldens update --only <name>` to accept deliberate changes.
 
 Suggested example structure:
 
@@ -221,14 +221,14 @@ Mandatory escalation:
 
 ## 11) Performance and tracing
 
-- Use `ilc --trace` to time `lex|parse|check|emit|write`.
+- Use `intent --trace` to time `lex|parse|check|emit|write`.
 - If a change worsens timings >10% on medium goldens, mention it in the PR and offer alternatives.
 
 ---
 
 ## 12) AST stability and versioning
 
-- Breaking AST changes → **minor** bump in `@il/core` and migration notes.
+- Breaking AST changes → **minor** bump in `@intentlang/core` and migration notes.
 - Prefer adding optional nodes/fields over breaking existing ones.
 - Document in `CHANGELOG.md` and adjust goldens.
 
@@ -238,7 +238,7 @@ Mandatory escalation:
 
 - TypeScript ESM, Node ≥20.
 - No debug `console.*` in production code.
-- `ilc fmt` is the source of truth for `.il` files.
+- `intent fmt` is the source of truth for `.il` files.
 
 ---
 
@@ -250,7 +250,7 @@ Mandatory escalation:
 - [ ] Changed tokens in `lexer.ts`.
 - [ ] Adjusted `parser.ts` and added printer case if needed.
 - [ ] Added `.il` example and test.
-- [ ] `ilc inspect ast` OK.
+- [ ] `intent inspect ast` OK.
 
 ### 14.2 New checker rule
 
@@ -262,7 +262,7 @@ Mandatory escalation:
 
 - [ ] Deterministic output and ordering.
 - [ ] Goldens updated consciously.
-- [ ] `ilc goldens run` passes.
+- [ ] `intent goldens run` passes.
 
 ---
 
