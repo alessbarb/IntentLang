@@ -42,6 +42,12 @@ export type Token = {
     | "dot"
     | "eq"
     | "pipe"
+    | "amp"
+    | "caret"
+    | "tilde"
+    | "lshift"
+    | "rshift"
+    | "question"
     | "lt"
     | "gt"
     | "lte"
@@ -54,6 +60,13 @@ export type Token = {
     | "star"
     | "slash"
     | "percent"
+    | "pluseq"
+    | "minuseq"
+    | "stareq"
+    | "slasheq"
+    | "percenteq"
+    | "plusplus"
+    | "minusminus"
     | "andand"
     | "oror"
     | "fat_arrow"
@@ -152,6 +165,51 @@ export function lex(input: string): Token[] {
       adv(2);
       continue;
     }
+    if (c === "+" && peek(1) === "+") {
+      push("plusplus");
+      adv(2);
+      continue;
+    }
+    if (c === "-" && peek(1) === "-") {
+      push("minusminus");
+      adv(2);
+      continue;
+    }
+    if (c === "+" && peek(1) === "=") {
+      push("pluseq");
+      adv(2);
+      continue;
+    }
+    if (c === "-" && peek(1) === "=") {
+      push("minuseq");
+      adv(2);
+      continue;
+    }
+    if (c === "*" && peek(1) === "=") {
+      push("stareq");
+      adv(2);
+      continue;
+    }
+    if (c === "/" && peek(1) === "=") {
+      push("slasheq");
+      adv(2);
+      continue;
+    }
+    if (c === "%" && peek(1) === "=") {
+      push("percenteq");
+      adv(2);
+      continue;
+    }
+    if (c === "<" && peek(1) === "<") {
+      push("lshift");
+      adv(2);
+      continue;
+    }
+    if (c === ">" && peek(1) === ">") {
+      push("rshift");
+      adv(2);
+      continue;
+    }
     if (c === "=" && peek(1) === "=") {
       push("eqeq");
       adv(2);
@@ -226,6 +284,26 @@ export function lex(input: string): Token[] {
     }
     if (c === "|") {
       push("pipe");
+      adv();
+      continue;
+    }
+    if (c === "&") {
+      push("amp");
+      adv();
+      continue;
+    }
+    if (c === "^") {
+      push("caret");
+      adv();
+      continue;
+    }
+    if (c === "~") {
+      push("tilde");
+      adv();
+      continue;
+    }
+    if (c === "?") {
+      push("question");
       adv();
       continue;
     }

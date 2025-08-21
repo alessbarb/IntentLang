@@ -55,3 +55,12 @@ for x in [1, 2, 3] { }
 ```
 
 This transpiles to a `for...of` loop in TypeScript and a `for` loop in Python.
+
+## Operators
+
+IntentLang incluye operadores aritméticos y adicionales:
+
+- Asignación compuesta: `+=`, `-=`, `*=`, `/=`, `%=`
+- Incremento y decremento: `++`, `--`
+- A nivel de bits: `&`, `|`, `^`, `~`, `<<`, `>>`
+- Ternario condicional: `cond ? expr1 : expr2`

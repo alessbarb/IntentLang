@@ -215,7 +215,10 @@ export type Expr =
   | CallExpr
   | MemberExpr
   | UnaryExpr
+  | UpdateExpr
   | BinaryExpr
+  | AssignExpr
+  | ConditionalExpr
   | ResultOkExpr
   | ResultErrExpr
   | OptionSomeExpr
@@ -254,22 +257,35 @@ export type MemberExpr = {
   property: Identifier;
   span: Span;
 };
-export type UnaryOp = "!" | "-";
+export type UnaryOp = "!" | "-" | "~";
 export type UnaryExpr = {
   kind: "UnaryExpr";
   op: UnaryOp;
   argument: Expr;
   span: Span;
 };
+export type UpdateOp = "++" | "--";
+export type UpdateExpr = {
+  kind: "UpdateExpr";
+  op: UpdateOp;
+  argument: Expr;
+  prefix: boolean;
+  span: Span;
+};
 export type BinaryOp =
   | "||"
   | "&&"
+  | "|"
+  | "^"
+  | "&"
   | "=="
   | "!="
   | "<"
   | "<="
   | ">"
   | ">="
+  | "<<"
+  | ">>"
   | "+"
   | "-"
   | "*"
@@ -280,6 +296,21 @@ export type BinaryExpr = {
   op: BinaryOp;
   left: Expr;
   right: Expr;
+  span: Span;
+};
+export type AssignOp = "=" | "+=" | "-=" | "*=" | "/=" | "%=";
+export type AssignExpr = {
+  kind: "AssignExpr";
+  op: AssignOp;
+  left: Expr;
+  right: Expr;
+  span: Span;
+};
+export type ConditionalExpr = {
+  kind: "ConditionalExpr";
+  test: Expr;
+  consequent: Expr;
+  alternate: Expr;
   span: Span;
 };
 

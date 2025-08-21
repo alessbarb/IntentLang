@@ -24,6 +24,10 @@ import type {
   BinaryExpr,
   CallExpr,
   IdentifierExpr,
+  UnaryExpr,
+  UpdateExpr,
+  AssignExpr,
+  ConditionalExpr,
 } from "../ast.js";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -264,8 +268,23 @@ function emitExpr(e: Expr): string {
       const callee = emitExpr(e.callee);
       const args = e.args.map(emitExpr).join(", ");
       return `${callee}(${args})`;
+    case "UnaryExpr":
+      return `${e.op}${emitExpr(e.argument)}`;
+    case "UpdateExpr": {
+      // Limitación: solo soportamos actualizaciones sobre identificadores simples.
+      if (e.argument.kind !== "IdentifierExpr") {
+        return `# UpdateExpr sobre expresión no soportada`;
+      }
+      const name = e.argument.id.name;
+      const delta = e.op === "++" ? "+= 1" : "-= 1";
+      return `${name} ${delta}`;
+    }
+    case "AssignExpr":
+      return `${emitExpr(e.left)} ${e.op} ${emitExpr(e.right)}`;
+    case "ConditionalExpr":
+      return `${emitExpr(e.consequent)} if ${emitExpr(e.test)} else ${emitExpr(e.alternate)}`;
     // TODO: Implementar el resto de los tipos de expresiones:
-    // ObjectExpr, ArrayExpr, MemberExpr, UnaryExpr, ResultOkExpr, ResultErrExpr,
+    // ObjectExpr, ArrayExpr, MemberExpr, ResultOkExpr, ResultErrExpr,
     // OptionSomeExpr, OptionNoneExpr, BrandCastExpr, VariantExpr, MatchExpr.
     default:
       return `# Expr type '${(e as any).kind}' not implemented`;

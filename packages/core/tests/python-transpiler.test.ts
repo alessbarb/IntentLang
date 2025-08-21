@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { emitPython } from "../src/transpilers/python.js";
+import { emitPython, parse } from "../src/index.js";
 import type {
   Program,
   Identifier,
@@ -61,4 +61,13 @@ test("emits for loops", () => {
 
   const py = emitPython(program);
   expect(py).toMatch(/for x in xs:\n\s+pass/);
+});
+
+test("emits operators", () => {
+  const src = `test operators {\n  let n = 5;\n  n += 3;\n  n--;\n  let label = n > 0 ? "pos" : "neg";\n}`;
+  const program = parse(src);
+  const py = emitPython(program);
+  expect(py).toMatch(/n \+= 3/);
+  expect(py).toMatch(/n -= 1/);
+  expect(py).toMatch(/label = "pos" if \(n > 0\) else "neg"/);
 });
