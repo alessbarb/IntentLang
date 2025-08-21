@@ -231,6 +231,15 @@ function emitStmt(s: Stmt): string {
       return `return ${s.argument ? emitExpr(s.argument) : "None"}`;
     case "ExprStmt":
       return emitExpr(s.expression);
+    // @ts-expect-error -- ForStmt aún no está declarado en el tipo `Stmt`.
+    case "ForStmt": {
+      // TODO: sustituir `any` cuando ForStmt esté tipada en `ast.ts`.
+      const fs = s as any;
+      const it = fs.iterator.name;
+      const expr = emitExpr(fs.expr);
+      const body = emitBlock(fs.body, 2);
+      return `for ${it} in ${expr}:\n${body}`;
+    }
     // TODO: Implementar la transpilación para 'IfStmt'.
     // TODO: Implementar la transpilación para 'MatchStmt' usando 'match/case' de Python.
     default:
