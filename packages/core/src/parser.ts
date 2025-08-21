@@ -27,6 +27,7 @@ import {
   type ReturnStmt,
   type IfStmt,
   type MatchStmt,
+  type ForStmt,
   type ExprStmt,
   type Expr,
   type Literal,
@@ -512,6 +513,7 @@ export function parse(input: string): Program {
     if (peek("kw_return")) return parseReturnStmt();
     if (peek("kw_if")) return parseIfStmt();
     if (peek("kw_match")) return parseMatchStmt();
+    if (peek("kw_for")) return parseForStmt();
     const expr = parseExpr();
     eat("semi");
     return { kind: "ExprStmt", expression: expr, span: spanHere() };
@@ -554,6 +556,16 @@ export function parse(input: string): Program {
     const m = parseMatchExpr();
     eat("semi");
     return { kind: "MatchStmt", expr: m.expr, cases: m.cases, span: s };
+  }
+
+  function parseForStmt(): ForStmt {
+    const s = spanHere();
+    expect("kw_for");
+    const id = parseIdent();
+    expect("kw_in");
+    const iterable = parseExpr();
+    const body = parseBlock();
+    return { kind: "ForStmt", id, iterable, body, span: s };
   }
 
   /* ========= Expressions ========= */

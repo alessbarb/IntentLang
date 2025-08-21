@@ -17,6 +17,8 @@ export type Token = {
     | "kw_if"
     | "kw_else"
     | "kw_match"
+    | "kw_for"
+    | "kw_in"
     | "kw_true"
     | "kw_false"
     | "kw_Ok"
@@ -78,6 +80,8 @@ const KEYWORDS = new Map<string, Token["type"]>([
   ["if", "kw_if"],
   ["else", "kw_else"],
   ["match", "kw_match"],
+  ["for", "kw_for"],
+  ["in", "kw_in"],
   ["true", "kw_true"],
   ["false", "kw_false"],
   ["Ok", "kw_Ok"],

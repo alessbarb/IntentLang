@@ -27,6 +27,7 @@ import type {
   VariantPattern,
   LiteralPattern,
   MatchStmt,
+  ForStmt,
 } from "./ast.js";
 import { DIAGNOSTICS } from "./diagnostics.js";
 
@@ -446,6 +447,13 @@ function checkStmt(ctx: Ctx, f: FlowCtx, s: Stmt) {
     }
     case "MatchStmt": {
       checkMatchFromStmt(ctx, f, s);
+      return;
+    }
+    case "ForStmt": {
+      inferExpr(ctx, f, s.iterable);
+      const scope = new Map(f.scope);
+      scope.set(s.id.name, TUnknown);
+      checkBlock(ctx, { ...f, scope }, s.body);
       return;
     }
     case "ExprStmt": {

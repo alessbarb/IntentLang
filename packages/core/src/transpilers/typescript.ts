@@ -22,6 +22,7 @@ import type {
   ReturnStmt,
   IfStmt,
   MatchStmt,
+  ForStmt,
   ExprStmt,
   Expr,
   IdentifierExpr,
@@ -245,6 +246,11 @@ function emitStmt(s: Stmt, isEffect: boolean, ensures?: Expr): string {
     }
     case "MatchStmt": {
       return emitMatchStmt(s, isEffect, ensures);
+    }
+    case "ForStmt": {
+      const iter = emitExpr(s.iterable, isEffect);
+      const body = emitBlock(s.body, isEffect, ensures);
+      return `for (const ${s.id.name} of ${iter}) {\n${indent(body)}\n}`;
     }
     case "ExprStmt": {
       return `${emitExpr(s.expression, isEffect)};`;

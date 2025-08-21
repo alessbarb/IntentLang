@@ -113,12 +113,13 @@ ContractBlock   = [ "requires" , Expr ] , [ "ensures" , Expr ] ;
 
 ```ebnf
 Block           = "{" , ws , { Stmt } , "}" ;
-Stmt            = LetStmt | ReturnStmt | IfStmt | MatchStmt | ExprStmt ;
+Stmt            = LetStmt | ReturnStmt | IfStmt | MatchStmt | ForStmt | ExprStmt ;
 
 LetStmt         = "let" , ident , "=" , Expr , [";"] ;
 ReturnStmt      = "return" , [ Expr ] , [";"] ;
 IfStmt          = "if" , Expr , Block , [ "else" , Block ] ;
 MatchStmt       = MatchExpr , [";"] ;
+ForStmt         = "for" , ident , "in" , Expr , Block ;
 ExprStmt        = Expr , [";"] ;
 ```
 
