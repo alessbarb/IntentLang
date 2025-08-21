@@ -6,12 +6,12 @@ Command-line interface for IntentLang. The `intent` binary can typecheck and tra
 ## Usage
 
 ```bash
-pnpm --filter @intentlang/clilang/cli intent check path/to/file.il
-pnpm --filter @intentlang/clilang/cli intent build path/to/file.il --target ts --out dist
+pnpm --filter @intentlang/cli intent check path/to/file.il
+pnpm --filter @intentlang/cli intent build path/to/file.il --target ts --out dist
 # Watch mode (revalidate on save)
-pnpm --filter @intentlang/clilang/cli intent check "src/**/*.il" --watch --max-errors 50
+pnpm --filter @intentlang/cli intent check "src/**/*.il" --watch --max-errors 50
 # Read from stdin
-cat path/to/file.il | pnpm --filter @intentlang/clilang/cli intent check -
+cat path/to/file.il | pnpm --filter @intentlang/cli intent check -
 ```
 
 `intent check` prints `OK` when the file typechecks, exits with code `1` on
@@ -39,6 +39,6 @@ Use `--watch` to keep the process running and revalidate on file changes. Press 
 ## Development
 
 ```bash
-pnpm --filter @intentlang/clilang/cli build    # compile TypeScript
-pnpm --filter @intentlang/clilang/cli test     # run unit tests
+pnpm --filter @intentlang/cli build    # compile TypeScript
+pnpm --filter @intentlang/cli test     # run unit tests
 ```
