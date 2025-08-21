@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.1.0...@intentlang/cli-v1.2.0) (2025-08-21)
+
+### Features
+
+* **core:** add match guards ([39cb16e](https://github.com/alessbarb/IntentLang/commit/39cb16e9b8c8c2ade3a8360dfff2539da2a797b0))
+
 ## [1.1.0](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.0.1...@intentlang/cli-v1.1.0) (2025-08-21)
 
 ### Features
