@@ -59,6 +59,12 @@ lint:
         - "**/*.d.ts"
         - "**/*.il"
         - "LICENSE"
+        - "CHANGELOG.md"
+        - "README.md"
+        - "CODE_OF_CONDUCT.md"
+        - "CONTRIBUTING.md"
+        - "STYLEGUIDE.md"
+
       linters:
         - ALL
 
