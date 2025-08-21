@@ -40,6 +40,14 @@ func add(a: Int, b: Int): Int
 test add_works { let r = random.int(); }
 ```
 
+### For loops
+
+Iterate over a list with a `for` statement:
+
+```intentlang
+for x in [1, 2, 3] { }
+```
+
 ## Deterministic runs
 
 `intent` can produce reproducible outputs by seeding its runtime:

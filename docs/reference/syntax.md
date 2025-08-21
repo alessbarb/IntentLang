@@ -45,3 +45,13 @@ If any fail, the execution throws an `Error` in the generated code.
 
 - `//` for single-line comments.
 - `/* ... */` for blocks.
+
+## For loops
+
+Iterate over any iterable with a `for` statement:
+
+```intentlang
+for x in [1, 2, 3] { }
+```
+
+This transpiles to a `for...of` loop in TypeScript and a `for` loop in Python.
