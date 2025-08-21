@@ -1,4 +1,4 @@
-import type { Diagnostic } from "@il/core";
+import type { Diagnostic } from "@intentlang/core";
 
 type AnyDiag = Diagnostic & { level?: string; severity?: string };
 

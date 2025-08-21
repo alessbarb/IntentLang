@@ -6,7 +6,7 @@ import {
   check as checkProgram,
   emitTypeScript,
   type Diagnostic,
-} from "@il/core";
+} from "@intentlang/core";
 import type { ProgramInfo, BuildFlags } from "./types.js";
 
 /** Comprueba si una ruta corresponde a un archivo `.il`. */
@@ -34,7 +34,7 @@ export function processFiles(files: string[]): {
       if (/^\s*$/.test(src)) return null;
       const program = parse(src);
       const diags = checkProgram(program);
-      diags.forEach((d) => ((d as any).file = file));
+      diags.forEach((d: any) => ((d as any).file = file));
       diagnostics.push(...diags);
       return { file, program };
     })

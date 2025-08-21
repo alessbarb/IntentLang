@@ -2,7 +2,7 @@ import fs from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 import _ from "lodash";
-import { parse, check as checkProgram, emitTypeScript } from "@il/core";
+import { parse, check as checkProgram, emitTypeScript } from "@intentlang/core";
 import type {
   TestFlags,
   TestResult,
@@ -32,7 +32,7 @@ export function processFiles(files: string[]): {
     sources.set(f, src);
     const program = parse(src);
     const diags = checkProgram(program);
-    diags.forEach((d) => ((d as any).file = f));
+    diags.forEach((d: any) => ((d as any).file = f));
     diagnostics.push(...diags);
     return { file: f, program };
   });

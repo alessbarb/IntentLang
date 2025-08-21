@@ -209,14 +209,6 @@ function emitTest(t: TestDecl): string {
 
 // ---------- Blocks & Statements ----------
 
-type ForStmt = {
-  kind: "ForStmt";
-  it: Identifier;
-  expr: Expr;
-  body: Block;
-  span: Span;
-};
-
 function emitBlock(
   b: Block | TestBlock,
   isEffect: boolean,
@@ -225,17 +217,8 @@ function emitBlock(
   return b.statements.map((s) => emitStmt(s, isEffect, ensures)).join("\n");
 }
 
-function emitStmt(
-  s: Stmt | ForStmt,
-  isEffect: boolean,
-  ensures?: Expr,
-): string {
+function emitStmt(s: Stmt, isEffect: boolean, ensures?: Expr): string {
   switch (s.kind) {
-    case "ForStmt": {
-      const expr = emitExpr(s.expr, isEffect);
-      const body = emitBlock(s.body, isEffect, ensures);
-      return `for (const ${s.it.name} of ${expr}) {\n${indent(body)}\n}`;
-    }
     case "LetStmt": {
       const init = emitExpr(s.init, isEffect);
       return `const ${s.id.name} = ${init};`;

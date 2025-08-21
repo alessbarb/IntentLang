@@ -2,7 +2,7 @@
 
 import path from "node:path";
 import fs from "node:fs";
-import type { Diagnostic } from "@il/core";
+import type { Diagnostic } from "@intentlang/core";
 import { severityOf } from "../diagnostics/exit-code.js";
 import { colors } from "./colors.js";
 

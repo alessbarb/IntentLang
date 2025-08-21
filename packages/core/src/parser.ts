@@ -561,11 +561,11 @@ export function parse(input: string): Program {
   function parseForStmt(): ForStmt {
     const s = spanHere();
     expect("kw_for");
-    const id = parseIdent();
+    const iterator = parseIdent();
     expect("kw_in");
     const iterable = parseExpr();
     const body = parseBlock();
-    return { kind: "ForStmt", id, iterable, body, span: s };
+    return { kind: "ForStmt", iterator, iterable, body, span: s };
   }
 
   /* ========= Expressions ========= */

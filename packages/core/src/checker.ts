@@ -132,11 +132,12 @@ export function check(program: Program): Diagnostic[] {
       };
       ctx.effects.set(item.name.name, sig);
       for (const u of sig.uses) {
-        if (!ctx.capsDeclared.has(u))
+        if (!ctx.capsDeclared.has(u)) {
           report(ctx.diags, "ILC0301", item.span, {
             effect: item.name.name,
             cap: u,
           });
+        }
       }
     }
   }

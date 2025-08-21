@@ -17,6 +17,7 @@ import type {
   TestDecl,
   TestBlock,
   Block,
+  ForStmt,
   Stmt,
   Expr,
   LiteralExpr,
@@ -220,26 +221,23 @@ function emitTest(t: TestDecl): string {
 function emitBlock(b: Block | TestBlock, indentLevel: number): string {
   const indent = "    ".repeat(indentLevel);
   if (b.statements.length === 0) return `${indent}pass`;
-  return b.statements.map((s) => indent + emitStmt(s)).join("\n");
+  return b.statements.map((s) => indent + emitStmt(s, indentLevel)).join("\n");
 }
 
-function emitStmt(s: Stmt): string {
+function emitStmt(s: Stmt, indentLevel: number): string {
   switch (s.kind) {
     case "LetStmt":
       return `${s.id.name} = ${emitExpr(s.init)}`;
     case "ReturnStmt":
       return `return ${s.argument ? emitExpr(s.argument) : "None"}`;
+    case "ForStmt": {
+      const it = s.iterator.name;
+      const iterable = emitExpr(s.iterable);
+      const body = emitBlock(s.body, indentLevel + 1);
+      return `for ${it} in ${iterable}:\n${body}`;
+    }
     case "ExprStmt":
       return emitExpr(s.expression);
-    // @ts-expect-error -- ForStmt aún no está declarado en el tipo `Stmt`.
-    case "ForStmt": {
-      // TODO: sustituir `any` cuando ForStmt esté tipada en `ast.ts`.
-      const fs = s as any;
-      const it = fs.iterator.name;
-      const expr = emitExpr(fs.expr);
-      const body = emitBlock(fs.body, 2);
-      return `for ${it} in ${expr}:\n${body}`;
-    }
     // TODO: Implementar la transpilación para 'IfStmt'.
     // TODO: Implementar la transpilación para 'MatchStmt' usando 'match/case' de Python.
     default:

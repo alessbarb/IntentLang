@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { parse, check as checkProgram } from "@il/core";
+import { parse, check as checkProgram } from "@intentlang/core";
 import type { Diagnostic, CacheEntry } from "./types.js";
 
 const GLOB_RE = /[*?\[]/;

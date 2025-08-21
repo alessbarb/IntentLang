@@ -1,5 +1,5 @@
 import type { GlobalFlags } from "../../flags.js";
-import type { Diagnostic as CoreDiagnostic } from "@il/core";
+import type { Diagnostic as CoreDiagnostic } from "@intentlang/core";
 
 export type Diagnostic = CoreDiagnostic;
 

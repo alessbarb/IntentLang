@@ -1,5 +1,5 @@
 import { colors } from "../../term/colors.js";
-import type { Diagnostic } from "@il/core";
+import type { Diagnostic } from "@intentlang/core";
 import type { BuildFlags } from "./types.js";
 
 /** Imprime un resumen final del proceso de construcción. */

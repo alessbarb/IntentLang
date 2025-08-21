@@ -1,4 +1,4 @@
-import { initRuntime } from "@il/core";
+import { initRuntime } from "@intentlang/core";
 import { exitCodeFrom, summarize } from "../../diagnostics/exit-code.js";
 import { processFiles, executeTests } from "./helpers.js";
 import {
