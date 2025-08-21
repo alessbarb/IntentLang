@@ -17,6 +17,8 @@ export type Token = {
     | "kw_if"
     | "kw_else"
     | "kw_match"
+    | "kw_for"
+    | "kw_in"
     | "kw_true"
     | "kw_false"
     | "kw_Ok"
@@ -25,6 +27,8 @@ export type Token = {
     | "kw_None"
     | "kw_brand"
     | "kw_test"
+    | "kw_for"
+    | "kw_in"
     | "ident"
     | "string"
     | "number"
@@ -78,6 +82,8 @@ const KEYWORDS = new Map<string, Token["type"]>([
   ["if", "kw_if"],
   ["else", "kw_else"],
   ["match", "kw_match"],
+  ["for", "kw_for"],
+  ["in", "kw_in"],
   ["true", "kw_true"],
   ["false", "kw_false"],
   ["Ok", "kw_Ok"],
@@ -86,6 +92,8 @@ const KEYWORDS = new Map<string, Token["type"]>([
   ["None", "kw_None"],
   ["brand", "kw_brand"],
   ["test", "kw_test"],
+  ["for", "kw_for"],
+  ["in", "kw_in"],
 ]);
 
 export function lex(input: string): Token[] {
