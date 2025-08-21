@@ -168,7 +168,13 @@ export type Block = { kind: "Block"; statements: Stmt[]; span: Span };
 
 export type TestBlock = { kind: "TestBlock"; statements: Stmt[]; span: Span };
 
-export type Stmt = LetStmt | ReturnStmt | IfStmt | MatchStmt | ExprStmt;
+export type Stmt =
+  | LetStmt
+  | ReturnStmt
+  | IfStmt
+  | MatchStmt
+  | ForStmt
+  | ExprStmt;
 
 export type LetStmt = {
   kind: "LetStmt";
@@ -188,6 +194,13 @@ export type MatchStmt = {
   kind: "MatchStmt";
   expr: Expr;
   cases: CaseClause[];
+  span: Span;
+};
+export type ForStmt = {
+  kind: "ForStmt";
+  iterator: Identifier;
+  iterable: Expr;
+  body: Block;
   span: Span;
 };
 export type ExprStmt = { kind: "ExprStmt"; expression: Expr; span: Span };
