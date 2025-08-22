@@ -17,7 +17,7 @@ export type ProgramInfo = {
  * Structured JSON shape emitted by CLI commands.
  */
 export type JsonOutput = {
-  kind: "build" | "check" | "test";
+  kind: "build" | "check" | "test" | "init";
   meta: {
     strict: boolean;
     watch: boolean;
@@ -30,5 +30,6 @@ export type JsonOutput = {
   exitCode: number;
   built?: string[];
   tests?: { name: string; ok: boolean; error?: string }[];
+  created?: string[];
   message?: string;
 };

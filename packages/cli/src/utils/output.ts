@@ -23,8 +23,9 @@ export function handleJsonOutput({
   built,
   tests,
   message,
+  created,
 }: {
-  kind: "build" | "check" | "test";
+  kind: "build" | "check" | "test" | "init";
   flags: CommandFlags;
   diagnostics: CliDiagnostic[];
   errors: number;
@@ -33,6 +34,7 @@ export function handleJsonOutput({
   built?: string[];
   tests?: TestResult[];
   message?: string;
+  created?: string[]; // NUEVO
 }): void {
   const output: JsonOutput = {
     kind,
@@ -47,6 +49,7 @@ export function handleJsonOutput({
     status: code === 0 ? "ok" : "error",
     ...(built && { built }),
     ...(tests && { tests }),
+    ...(created && { created }),
     ...(message && { message }),
     exitCode: code,
   };

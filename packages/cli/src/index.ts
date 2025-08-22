@@ -9,8 +9,9 @@ import { setColors } from "./term/colors.js";
 import { loadConfig } from "./config/index.js";
 import { expandInputsFromConfig } from "./config/expand.js";
 import { expandInputs } from "./utils/files.js";
-import { runCheck } from "./commands/check/index.js";
 import { runBuild } from "./commands/build/index.js";
+import { runCheck } from "./commands/check/index.js";
+import { runInit } from "./commands/init/index.js";
 import { runTest } from "./commands/test/index.js";
 import type { GlobalFlags } from "./flags.js";
 import { failUsage } from "./utils/cli-error.js";
@@ -109,6 +110,24 @@ program
     const filesToProcess = getFilesToProcess(files, finalFlags);
     setColors(!finalFlags.noColor);
     await runBuild(filesToProcess, finalFlags);
+  });
+
+program
+  .command("init")
+  .description(
+    "Initialize a new IntentLang project in the given directory (default: .).",
+  )
+  .argument("[dir]", "Target directory", ".")
+  .option("-y, --yes", "Overwrite existing files without prompt")
+  .option("--template <name>", "Project template (minimal, tests)", "minimal")
+  .action(async (dir: string, _options: unknown, command: Command) => {
+    const globals = command.optsWithGlobals?.() ?? {
+      ...program.opts(),
+      ...command.opts?.(),
+    };
+    const finalFlags = { ...globalDefaults, ...globals } as any;
+    setColors(!finalFlags.noColor);
+    await runInit(dir, finalFlags);
   });
 
 program
