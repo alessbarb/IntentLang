@@ -1,6 +1,3 @@
-// Refactorization Notes:
-// Integrated watch mode with chokidar and used the new unified JSON output.
-
 import fs from "node:fs";
 import path from "node:path";
 import { parse, check as checkProgram } from "@intentlang/core";
@@ -79,6 +76,9 @@ async function doCheckPass(
   if (!global.watch) process.exitCode = code;
 }
 
+/**
+ * Execute the check command on a set of files or standard input.
+ */
 export async function runCheck(files: string[], global: GlobalFlags) {
   if (files.length === 1 && files[0] === "-") {
     return handleStdin(global);

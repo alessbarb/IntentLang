@@ -4,7 +4,11 @@ import { parse } from "jsonc-parser";
 import type { ILConfig } from "./types.js";
 
 /**
- * Busca y parsea `ilconfig.json` desde un directorio inicial hacia arriba.
+ * Locate and parse an `ilconfig.json` file starting from a directory and
+ * walking upwards until the file system root.
+ *
+ * The function returns the parsed configuration and the path to the file when
+ * found. If no configuration exists, an empty config is returned.
  */
 export function loadConfig(startDir: string = process.cwd()): {
   config: ILConfig;
@@ -25,7 +29,7 @@ export function loadConfig(startDir: string = process.cwd()): {
     }
     const parentDir = path.dirname(currentDir);
     if (parentDir === currentDir) {
-      return { config: {}, configPath: undefined }; // Raíz del sistema de archivos alcanzada.
+      return { config: {}, configPath: undefined };
     }
     currentDir = parentDir;
   }

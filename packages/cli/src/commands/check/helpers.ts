@@ -1,6 +1,3 @@
-// Refactorization Notes:
-// Replaced custom expandInputs with shared utility function.
-
 import fs from "node:fs";
 import path from "node:path";
 import { parse, check as checkProgram } from "@intentlang/core";
@@ -9,7 +6,9 @@ import type { Diagnostic, CacheEntry } from "./types.js";
 
 export { expandInputs };
 
-/** Lee el contenido completo de la entrada estándar. */
+/**
+ * Read the entire standard input as a UTF-8 string.
+ */
 export async function readStdin(): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     let data = "";
@@ -20,7 +19,10 @@ export async function readStdin(): Promise<string> {
   });
 }
 
-/** Ejecuta una pasada de validación, utilizando un caché para evitar trabajo redundante. */
+/**
+ * Run a checking pass on a set of file patterns, using a cache to avoid
+ * redundant work.
+ */
 export function checkFiles(
   filePatterns: string[],
   cache: Map<string, CacheEntry>,
@@ -31,7 +33,7 @@ export function checkFiles(
 } {
   const files = expandInputs(filePatterns);
   const diagnostics: Diagnostic[] = [];
-  const sources = new Map<string, string>(); // Purga entradas del caché para ficheros eliminados
+  const sources = new Map<string, string>();
 
   for (const k of Array.from(cache.keys())) {
     if (!files.includes(k)) cache.delete(k);
@@ -49,7 +51,7 @@ export function checkFiles(
         diags = /^\s*$/.test(src) ? [] : checkProgram(parse(src));
         cache.set(f, { mtimeMs: st.mtimeMs, diags });
       } else {
-        diags = prev.diags; // Si está en caché, aún necesitamos el fuente para el reportero
+        diags = prev.diags;
         if (!sources.has(f)) {
           sources.set(f, fs.readFileSync(f, "utf8"));
         }
@@ -59,7 +61,7 @@ export function checkFiles(
       for (const d of diags) (d as any).file = normFile;
       diagnostics.push(...diags);
     } catch {
-      cache.delete(f); // Elimina del caché si hay un error al leer
+      cache.delete(f);
     }
   }
   return { diagnostics, files, sources };

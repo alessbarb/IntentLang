@@ -1,6 +1,8 @@
 import { colors } from "../../term/colors.js";
 
-/** Imprime un resumen final del proceso de validación. */
+/**
+ * Print a human summary after the check process.
+ */
 export function printCheckSummary(
   errorCount: number,
   warningCount: number,

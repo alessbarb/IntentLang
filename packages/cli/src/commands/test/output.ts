@@ -2,7 +2,9 @@ import { colors } from "../../term/colors.js";
 import type { TestResult, Diagnostic } from "./types.js";
 import { summarize } from "../../diagnostics/exit-code.js";
 
-/** Imprime los resultados de los tests en formato legible. */
+/**
+ * Print test results in a readable format.
+ */
 export function printHumanResults(results: TestResult[]): void {
   for (const result of results) {
     if (result.ok) {
@@ -14,7 +16,9 @@ export function printHumanResults(results: TestResult[]): void {
   }
 }
 
-/** Imprime un resumen final de la ejecución de tests. */
+/**
+ * Print a summary after running tests.
+ */
 export function printTestSummary(
   results: TestResult[],
   diagnostics: Diagnostic[],

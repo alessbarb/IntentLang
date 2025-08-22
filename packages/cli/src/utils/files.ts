@@ -1,8 +1,4 @@
-// Refactorization Notes:
-// Unifies file processing and globbing logic, replacing custom implementations.
-
 import fs from "node:fs";
-import path from "node:path";
 import fg from "fast-glob";
 import {
   parse,
@@ -11,7 +7,9 @@ import {
 } from "@intentlang/core";
 import type { ProgramInfo } from "./types.js";
 
-/** Comprueba si una ruta corresponde a un archivo `.il`. */
+/**
+ * Determine whether a path points to an `.il` file.
+ */
 export function isIlFile(p: string): boolean {
   try {
     return fs.statSync(p).isFile() && /\.il$/i.test(p);
@@ -20,7 +18,9 @@ export function isIlFile(p: string): boolean {
   }
 }
 
-/** Procesa los archivos de entrada, parseando y comprobando cada uno. */
+/**
+ * Parse and check a list of files, returning diagnostics and program info.
+ */
 export function processFiles(files: string[]): {
   programs: ProgramInfo[];
   diagnostics: Diagnostic[];
@@ -45,20 +45,22 @@ export function processFiles(files: string[]): {
   return { programs, diagnostics, sources };
 }
 
-/** Expande los patrones de entrada (ficheros, directorios, globs) a una lista de ficheros. */
+/**
+ * Expand a set of input patterns (files, directories or globs) to concrete
+ * file paths.
+ */
 export function expandInputs(
   inputs: string[],
   cwd: string = process.cwd(),
 ): string[] {
   const matches = fg.sync(
     inputs.filter(Boolean).map((i) => {
-      // Si es un directorio, añadimos un glob para buscar archivos .il
       if (fs.existsSync(i) && fs.statSync(i).isDirectory()) {
         return `${i.replace(/\\/g, "/")}/**/*.il`;
       }
       return i.replace(/\\/g, "/");
     }),
     { cwd, dot: true },
-  );
+  ) as string[];
   return Array.from(new Set(matches)).sort();
 }

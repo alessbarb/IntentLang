@@ -1,9 +1,9 @@
-// Refactorization Notes:
-// New module to encapsulate file watching logic using chokidar.
-
 import chokidar from "chokidar";
 import { colors } from "../term/colors.js";
 
+/**
+ * Watch a list of files and invoke a callback after debouncing changes.
+ */
 export function setupWatcher(files: string[], callback: () => Promise<void>) {
   const watcher = chokidar.watch(files, {
     ignoreInitial: true,
@@ -20,7 +20,7 @@ export function setupWatcher(files: string[], callback: () => Promise<void>) {
     console.error(colors.gray(`\n[Watching] Ready. Awaiting changes...`));
   });
 
-  watcher.on("all", (event, filePath) => {
+  watcher.on("all", (event: string, filePath: string) => {
     console.error(
       colors.gray(
         `\n[Watching] File changed: ${colors.cyan(filePath)}. Rerunning...`,

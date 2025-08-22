@@ -1,6 +1,6 @@
-// packages/core/src/ast.ts
-// AST v0.2 — adds Expr/Stmt/Pattern and real bodies in func/effect
-
+/**
+ * Abstract Syntax Tree node definitions for IntentLang.
+ */
 export type Position = { line: number; column: number; index: number };
 export type Span = { start: Position; end: Position };
 
@@ -30,8 +30,11 @@ export type UsesSection = {
 
 export type UseDecl = {
   kind: "UseDecl";
-  name: Identifier; // e.g., http
-  typeName: Identifier; // e.g., Http
+  /** Capability alias referenced within programs. */
+  name: Identifier;
+  /** Name of the capability type providing the implementation. */
+  typeName: Identifier;
+  /** Key-value parameters configuring the capability. */
   params: Record<string, Literal>;
   span: Span;
 };
@@ -100,7 +103,7 @@ export type RecordType = {
   span: Span;
 };
 
-// Unions: named constructors or literals (e.g. "EUR")
+
 export type UnionCtor =
   | { kind: "NamedCtor"; name: Identifier; fields?: RecordType; span: Span }
   | { kind: "LiteralCtor"; literal: LiteralType; span: Span };
@@ -113,7 +116,8 @@ export type UnionType = {
 
 export type GenericType = {
   kind: "GenericType";
-  name: Identifier; // List, Map, Option, Result...
+  /** Generic type name such as `List` or `Option`. */
+  name: Identifier;
   params: TypeExpr[];
   span: Span;
 };
@@ -125,7 +129,7 @@ export type Literal =
   | { kind: "Number"; value: number; span: Span }
   | { kind: "Bool"; value: boolean; span: Span };
 
-/* ========= Declarations ========= */
+
 
 export type FuncDecl = {
   kind: "FuncDecl";
@@ -133,7 +137,8 @@ export type FuncDecl = {
   params: ParamSig[];
   returnType: TypeExpr;
   contracts?: { requires?: Expr; ensures?: Expr };
-  body: Block; // v0.2: real body
+  /** Function body. */
+  body: Block;
   span: Span;
 };
 
@@ -143,8 +148,10 @@ export type EffectDecl = {
   params: ParamSig[];
   returnType: TypeExpr;
   contracts?: { requires?: Expr; ensures?: Expr };
-  uses: Identifier[]; // required capabilities
-  body: Block; // v0.2: real body
+  /** Capabilities required by this effect. */
+  uses: Identifier[];
+  /** Effect body. */
+  body: Block;
   span: Span;
 };
 
@@ -170,7 +177,7 @@ export type TopLevel =
   | UsesSection
   | IntentSection;
 
-/* ========= Statements ========= */
+
 
 export type Block = { kind: "Block"; statements: Stmt[]; span: Span };
 
@@ -213,7 +220,7 @@ export type ForStmt = {
 };
 export type ExprStmt = { kind: "ExprStmt"; expression: Expr; span: Span };
 
-/* ========= Expressions ========= */
+
 
 export type Expr =
   | LiteralExpr
@@ -364,7 +371,7 @@ export type CaseClause = {
   span: Span;
 };
 
-/* ========= Patterns ========= */
+
 
 export type PatternField = {
   kind: "PatternField";

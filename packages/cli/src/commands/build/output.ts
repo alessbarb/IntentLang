@@ -1,6 +1,8 @@
 import { colors } from "../../term/colors.js";
 
-/** Imprime un resumen final del proceso de construcción. */
+/**
+ * Print a human summary after the build process.
+ */
 export function printBuildSummary(
   errorCount: number,
   warningCount: number,

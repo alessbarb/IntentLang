@@ -1,5 +1,6 @@
-// Refactorization Notes:
-// Unifies JSON output logic to reduce redundancy across commands.
+/**
+ * Utilities to format JSON output consistently across CLI commands.
+ */
 
 import type { Diagnostic } from "@intentlang/core";
 import type { BuildFlags } from "../commands/build/types.js";
@@ -9,6 +10,9 @@ import type { CliDiagnostic, JsonOutput } from "./types.js";
 
 type CommandFlags = GlobalFlags & Partial<BuildFlags>;
 
+/**
+ * Print structured JSON output and set the appropriate exit code.
+ */
 export function handleJsonOutput({
   kind,
   flags,
