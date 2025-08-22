@@ -1,3 +1,13 @@
+## [1.4.0](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.3.1...@intentlang/cli-v1.4.0) (2025-08-22)
+
+### Features
+
+* **core/diagnostics:** extend diagnostic definitions and codes ([c26782b](https://github.com/alessbarb/IntentLang/commit/c26782b5f20a807b2d551cd15ebc6f28958a77b0))
+
+### Bug Fixes
+
+* **examples:** adjust golden script for updated parser behavior ([2f9c85f](https://github.com/alessbarb/IntentLang/commit/2f9c85f3a74990c046d492b9599ec80901b816ea))
+
 ## [1.3.1](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.3.0...@intentlang/cli-v1.3.1) (2025-08-22)
 
 ### Bug Fixes
