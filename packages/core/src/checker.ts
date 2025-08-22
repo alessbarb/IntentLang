@@ -823,6 +823,12 @@ function caseHeadKey(
 /* Builtins */
 function builtinSignatures(): Map<string, { params: T[]; ret: T }> {
   const m = new Map<string, { params: T[]; ret: T }>();
+  const brand = (name: string): T => ({
+    kind: "Brand",
+    base: "String",
+    brand: name,
+  });
+
   m.set("toString", { params: [TUnknown], ret: TString });
   m.set("matches", { params: [TString, TString], ret: TBool });
   m.set("parseUuid", {
@@ -833,6 +839,8 @@ function builtinSignatures(): Map<string, { params: T[]; ret: T }> {
     params: [TString],
     ret: { kind: "Result", ok: TDate, err: TString },
   });
+  const TFixed2: T = { kind: "Brand", base: "String", brand: "Fixed2" };
+  m.set("fixed2Mul", { params: [TFixed2, TFixed2], ret: TFixed2 });
   return m;
 }
 

@@ -264,46 +264,77 @@ export function parse(input: string): Program {
   }
 
   function tryParseUnionType(): UnionType | null {
-    const save = p;
+    const save0 = p;
     const s = spanHere();
     const ctors: UnionCtor[] = [];
 
-    const parseOneCtor = (): UnionCtor | null => {
+    // Parse only the ctor *head* (no `{ ... }` fields yet)
+    const parseCtorHead = (): {
+      kind: "Literal" | "Named";
+      name?: Identifier;
+      lit?: LiteralType;
+      span: Span;
+    } | null => {
       if (peek("string")) {
-        return {
-          kind: "LiteralCtor",
-          literal: parseLiteralType(),
-          span: spanHere(),
-        };
+        const lit = parseLiteralType();
+        return { kind: "Literal", lit, span: lit.span };
       }
       if (peek("ident")) {
-        return parseNamedCtorMaybe();
+        const name = parseIdent();
+        return { kind: "Named", name, span: name.span };
       }
       return null;
     };
 
-    eat("pipe"); // Permite una barra vertical inicial opcional.
+    // optional leading '|'
+    eat("pipe");
 
-    const first = parseOneCtor();
-    if (!first) {
-      p = save;
+    const saveHead = p;
+    const head = parseCtorHead();
+    if (!head) {
+      p = save0;
       return null;
     }
-    ctors.push(first);
 
-    // Solo se considera una unión si hay al menos una barra vertical.
+    // It’s a union only if a '|' follows (after optional fields *we will parse later*).
+    // Peek ahead without consuming fields: require a '|' right now.
     if (!eat("pipe")) {
-      p = save;
+      p = save0;
       return null;
     }
 
-    // Como encontramos una barra, parseamos el resto de los constructores.
-    do {
-      const next = parseOneCtor();
-      if (!next) {
-        error("Expected union constructor after '|'");
+    // Commit: rebuild first ctor fully (including optional fields if Named)
+    p = saveHead;
+    const firstCtor = (() => {
+      if (peek("string")) {
+        const lit = parseLiteralType();
+        return {
+          kind: "LiteralCtor",
+          literal: lit,
+          span: lit.span,
+        } as UnionCtor;
       }
-      ctors.push(next);
+      // Named + optional `{...}` fields
+      const name = parseIdent();
+      let fields: RecordType | undefined;
+      if (peek("lbrace")) fields = parseRecordType();
+      return { kind: "NamedCtor", name, fields, span: name.span } as UnionCtor;
+    })();
+    ctors.push(firstCtor);
+
+    // We already consumed the first '|'. Parse the rest.
+    do {
+      const ctor = peek("string")
+        ? ({
+            kind: "LiteralCtor",
+            literal: parseLiteralType(),
+            span: spanHere(),
+          } as UnionCtor)
+        : peek("ident")
+          ? (parseNamedCtorMaybe() as UnionCtor)
+          : null;
+      if (!ctor) error("Expected union constructor after '|'");
+      ctors.push(ctor);
     } while (eat("pipe"));
 
     return { kind: "UnionType", ctors, span: s };

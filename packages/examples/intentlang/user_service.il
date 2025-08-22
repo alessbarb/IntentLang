@@ -19,7 +19,7 @@ types {
 
 func toEmail(s: String): Result<Email, String> {
   if matches("^[^@]+@[^@]+\\.[^@]+$", s) {
-    return Ok(s as Email);
+    return Ok(brand<Email>(s));
   } else {
     return Err("Invalid email");
   }

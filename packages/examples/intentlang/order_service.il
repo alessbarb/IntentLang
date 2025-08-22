@@ -17,5 +17,5 @@ types {
 
 effect createOrder(input: { userId: Uuid, total: Float }): Result<Order, OrderError> uses http, random {
   let id = random.next().toString();
-  return http.post("/orders", { id: id as OrderId, userId: input.userId, total: input.total });
+  return http.post("/orders", { id: brand<OrderId>(id), userId: input.userId, total: input.total });
 }
