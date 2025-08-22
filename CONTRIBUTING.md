@@ -23,7 +23,7 @@ Please follow these rules when writing `.il` files:
 
 ### File order
 
-1. `intent` — purpose + tags
+1. `intent` — purpose, optional tags
 2. `uses` — declared external capabilities (http, clock, random, …)
 3. `types` — brands → records → unions
 4. `func` — pure helpers (no I/O)

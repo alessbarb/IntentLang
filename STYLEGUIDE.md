@@ -9,7 +9,7 @@ It is aimed at **developers and AIs generating IL code**.
 
 A `.il` file must follow this order:
 
-1. `intent` — short description + tags
+1. `intent` — short description, optional tags
 2. `uses` — declared external capabilities (http, clock, random, …)
 3. `types` — brand types → record types → union types
 4. `func` — pure helper functions (no I/O)
@@ -127,7 +127,8 @@ Examples of common errors:
 ### File skeleton
 
 ```intentlang
-intent "Service name" tags ["tag1","tag2"]
+intent "Service name"
+// or: intent "Service name" tags ["tag1","tag2"]
 
 uses {
   http: Http { baseUrl: "https://api.example.com", timeoutMs: 2000 },
