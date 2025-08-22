@@ -1,57 +1,131 @@
 /**
  * Abstract Syntax Tree node definitions for IntentLang.
+ * Unified model with a common Node<K> base carrying a source span.
  */
+
+/* ========== Source positions ========== */
+
 export type Position = { line: number; column: number; index: number };
 export type Span = { start: Position; end: Position };
 
-export type Identifier = { kind: "Identifier"; name: string; span: Span };
+/** Base node with a discriminant and source span. */
+export type Node<K extends string> = { kind: K; span: Span };
 
-export type Program = {
-  kind: "Program";
+/** Identifier node */
+export interface Identifier extends Node<"Identifier"> {
+  name: string;
+}
+
+/* =======================
+ * Program & Sections
+ * ======================= */
+
+export interface Program extends Node<"Program"> {
   intent?: IntentSection;
   uses?: UsesSection;
   types?: TypesSection;
   items: TopLevel[];
-  span: Span;
-};
+}
 
-export type IntentSection = {
-  kind: "IntentSection";
+export interface IntentSection extends Node<"IntentSection"> {
   description: string;
   tags?: string[];
-  span: Span;
-};
+}
 
-export type UsesSection = {
-  kind: "UsesSection";
+export interface UsesSection extends Node<"UsesSection"> {
   entries: UseDecl[];
-  span: Span;
-};
+}
 
-export type UseDecl = {
-  kind: "UseDecl";
+export interface UseDecl extends Node<"UseDecl"> {
   /** Capability alias referenced within programs. */
   name: Identifier;
   /** Name of the capability type providing the implementation. */
   typeName: Identifier;
   /** Key-value parameters configuring the capability. */
   params: Record<string, Literal>;
-  span: Span;
-};
+}
 
-export type TypesSection = {
-  kind: "TypesSection";
+export interface TypesSection extends Node<"TypesSection"> {
   declarations: TypeDecl[];
-  span: Span;
-};
+}
 
-export type TypeDecl = {
-  kind: "TypeDecl";
+export interface TypeDecl extends Node<"TypeDecl"> {
   name: Identifier;
   expr: TypeExpr;
+  /** Optional refinement predicate string form. */
   refinement?: string;
-  span: Span;
-};
+}
+
+export type TopLevel =
+  | FuncDecl
+  | EffectDecl
+  | TestDecl
+  | TypesSection
+  | UsesSection
+  | IntentSection;
+
+/* =======================
+ * Types
+ * ======================= */
+
+export type BasicName =
+  | "Unit"
+  | "Bool"
+  | "Int"
+  | "Float"
+  | "String"
+  | "Bytes"
+  | "Uuid"
+  | "DateTime";
+
+export interface BasicType extends Node<"BasicType"> {
+  name: BasicName;
+}
+
+export interface BrandType extends Node<"BrandType"> {
+  base: BasicType;
+  brand: string;
+}
+
+export interface NamedType extends Node<"NamedType"> {
+  name: Identifier;
+}
+
+export interface RecordField extends Node<"RecordField"> {
+  name: Identifier;
+  type: TypeExpr;
+  refinement?: string;
+}
+
+export interface RecordType extends Node<"RecordType"> {
+  fields: RecordField[];
+}
+
+export interface LiteralType extends Node<"LiteralType"> {
+  value: string;
+}
+
+/** Union constructors can be either named (with optional record fields) or literal. */
+export type UnionCtor =
+  | (Node<"NamedCtor"> & {
+      kind: "NamedCtor";
+      name: Identifier;
+      fields?: RecordType;
+    })
+  | (Node<"LiteralCtor"> & {
+      kind: "LiteralCtor";
+      literal: LiteralType;
+    });
+
+export interface UnionType extends Node<"UnionType"> {
+  ctors: UnionCtor[];
+}
+
+export interface GenericType extends Node<"GenericType"> {
+  /** Generic type name such as `List` or `Option`. */
+  name: Identifier;
+  params: TypeExpr[];
+}
 
 export type TypeExpr =
   | BasicType
@@ -62,88 +136,34 @@ export type TypeExpr =
   | GenericType
   | LiteralType;
 
-export type BasicType = {
-  kind: "BasicType";
-  name:
-    | "Unit"
-    | "Bool"
-    | "Int"
-    | "Float"
-    | "String"
-    | "Bytes"
-    | "Uuid"
-    | "DateTime";
-  span: Span;
-};
-
-export type BrandType = {
-  kind: "BrandType";
-  base: BasicType;
-  brand: string;
-  span: Span;
-};
-
-export type NamedType = {
-  kind: "NamedType";
-  name: Identifier;
-  span: Span;
-};
-
-export type RecordField = {
-  kind: "RecordField";
-  name: Identifier;
-  type: TypeExpr;
-  refinement?: string;
-  span: Span;
-};
-
-export type RecordType = {
-  kind: "RecordType";
-  fields: RecordField[];
-  span: Span;
-};
-
-
-export type UnionCtor =
-  | { kind: "NamedCtor"; name: Identifier; fields?: RecordType; span: Span }
-  | { kind: "LiteralCtor"; literal: LiteralType; span: Span };
-
-export type UnionType = {
-  kind: "UnionType";
-  ctors: UnionCtor[];
-  span: Span;
-};
-
-export type GenericType = {
-  kind: "GenericType";
-  /** Generic type name such as `List` or `Option`. */
-  name: Identifier;
-  params: TypeExpr[];
-  span: Span;
-};
-
-export type LiteralType = { kind: "LiteralType"; value: string; span: Span };
+/* =======================
+ * Literals
+ * ======================= */
 
 export type Literal =
-  | { kind: "String"; value: string; span: Span }
-  | { kind: "Number"; value: number; span: Span }
-  | { kind: "Bool"; value: boolean; span: Span };
+  | (Node<"String"> & { kind: "String"; value: string })
+  | (Node<"Number"> & { kind: "Number"; value: number })
+  | (Node<"Bool"> & { kind: "Bool"; value: boolean });
 
+/* =======================
+ * Signatures & Decls
+ * ======================= */
 
+export interface ParamSig extends Node<"ParamSig"> {
+  name: Identifier;
+  type: TypeExpr;
+}
 
-export type FuncDecl = {
-  kind: "FuncDecl";
+export interface FuncDecl extends Node<"FuncDecl"> {
   name: Identifier;
   params: ParamSig[];
   returnType: TypeExpr;
   contracts?: { requires?: Expr; ensures?: Expr };
   /** Function body. */
   body: Block;
-  span: Span;
-};
+}
 
-export type EffectDecl = {
-  kind: "EffectDecl";
+export interface EffectDecl extends Node<"EffectDecl"> {
   name: Identifier;
   params: ParamSig[];
   returnType: TypeExpr;
@@ -152,36 +172,24 @@ export type EffectDecl = {
   uses: Identifier[];
   /** Effect body. */
   body: Block;
-  span: Span;
-};
+}
 
-export type TestDecl = {
-  kind: "TestDecl";
+export interface TestDecl extends Node<"TestDecl"> {
   name: Identifier;
   body: TestBlock;
-  span: Span;
-};
+}
 
-export type ParamSig = {
-  kind: "ParamSig";
-  name: Identifier;
-  type: TypeExpr;
-  span: Span;
-};
+/* =======================
+ * Blocks & Statements
+ * ======================= */
 
-export type TopLevel =
-  | FuncDecl
-  | EffectDecl
-  | TestDecl
-  | TypesSection
-  | UsesSection
-  | IntentSection;
+export interface Block extends Node<"Block"> {
+  statements: Stmt[];
+}
 
-
-
-export type Block = { kind: "Block"; statements: Stmt[]; span: Span };
-
-export type TestBlock = { kind: "TestBlock"; statements: Stmt[]; span: Span };
+export interface TestBlock extends Node<"TestBlock"> {
+  statements: Stmt[];
+}
 
 export type Stmt =
   | LetStmt
@@ -191,36 +199,39 @@ export type Stmt =
   | ForStmt
   | ExprStmt;
 
-export type LetStmt = {
-  kind: "LetStmt";
+export interface LetStmt extends Node<"LetStmt"> {
   id: Identifier;
   init: Expr;
-  span: Span;
-};
-export type ReturnStmt = { kind: "ReturnStmt"; argument?: Expr; span: Span };
-export type IfStmt = {
-  kind: "IfStmt";
+}
+
+export interface ReturnStmt extends Node<"ReturnStmt"> {
+  argument?: Expr;
+}
+
+export interface IfStmt extends Node<"IfStmt"> {
   test: Expr;
   consequent: Block;
   alternate?: Block;
-  span: Span;
-};
-export type MatchStmt = {
-  kind: "MatchStmt";
+}
+
+export interface MatchStmt extends Node<"MatchStmt"> {
   expr: Expr;
   cases: CaseClause[];
-  span: Span;
-};
-export type ForStmt = {
-  kind: "ForStmt";
+}
+
+export interface ForStmt extends Node<"ForStmt"> {
   iterator: Identifier;
   iterable: Expr;
   body: Block;
-  span: Span;
-};
-export type ExprStmt = { kind: "ExprStmt"; expression: Expr; span: Span };
+}
 
+export interface ExprStmt extends Node<"ExprStmt"> {
+  expression: Expr;
+}
 
+/* =======================
+ * Expressions
+ * ======================= */
 
 export type Expr =
   | LiteralExpr
@@ -242,51 +253,51 @@ export type Expr =
   | VariantExpr
   | MatchExpr;
 
-export type LiteralExpr = { kind: "LiteralExpr"; value: Literal; span: Span };
-export type IdentifierExpr = {
-  kind: "IdentifierExpr";
+export interface LiteralExpr extends Node<"LiteralExpr"> {
+  value: Literal;
+}
+
+export interface IdentifierExpr extends Node<"IdentifierExpr"> {
   id: Identifier;
-  span: Span;
-};
-export type ObjectField = {
-  kind: "ObjectField";
+}
+
+export interface ObjectField extends Node<"ObjectField"> {
   key: Identifier;
   value: Expr;
-  span: Span;
-};
-export type ObjectExpr = {
-  kind: "ObjectExpr";
+}
+
+export interface ObjectExpr extends Node<"ObjectExpr"> {
   fields: ObjectField[];
-  span: Span;
-};
-export type ArrayExpr = { kind: "ArrayExpr"; elements: Expr[]; span: Span };
-export type CallExpr = {
-  kind: "CallExpr";
+}
+
+export interface ArrayExpr extends Node<"ArrayExpr"> {
+  elements: Expr[];
+}
+
+export interface CallExpr extends Node<"CallExpr"> {
   callee: Expr;
   args: Expr[];
-  span: Span;
-};
-export type MemberExpr = {
-  kind: "MemberExpr";
+}
+
+export interface MemberExpr extends Node<"MemberExpr"> {
   object: Expr;
   property: Identifier;
-  span: Span;
-};
+}
+
 export type UnaryOp = "!" | "-" | "~";
-export type UnaryExpr = {
-  kind: "UnaryExpr";
+export interface UnaryExpr extends Node<"UnaryExpr"> {
   op: UnaryOp;
   argument: Expr;
-  span: Span;
-};
+}
+
 export type UpdateOp = "++" | "--";
-export type UpdateExpr = {
-  kind: "UpdateExpr";
+export interface UpdateExpr extends Node<"UpdateExpr"> {
   op: UpdateOp;
   argument: Expr;
+  /** true for prefix (e.g., ++x), false for postfix (x++) */
   prefix: boolean;
-  span: Span;
-};
+}
+
 export type BinaryOp =
   | "||"
   | "&&"
@@ -306,91 +317,82 @@ export type BinaryOp =
   | "*"
   | "/"
   | "%";
-export type BinaryExpr = {
-  kind: "BinaryExpr";
+
+export interface BinaryExpr extends Node<"BinaryExpr"> {
   op: BinaryOp;
   left: Expr;
   right: Expr;
-  span: Span;
-};
+}
+
 export type AssignOp = "=" | "+=" | "-=" | "*=" | "/=" | "%=";
-export type AssignExpr = {
-  kind: "AssignExpr";
+export interface AssignExpr extends Node<"AssignExpr"> {
   op: AssignOp;
   left: Expr;
   right: Expr;
-  span: Span;
-};
-export type ConditionalExpr = {
-  kind: "ConditionalExpr";
+}
+
+export interface ConditionalExpr extends Node<"ConditionalExpr"> {
   test: Expr;
   consequent: Expr;
   alternate: Expr;
-  span: Span;
-};
+}
 
-export type ResultOkExpr = { kind: "ResultOkExpr"; value: Expr; span: Span };
-export type ResultErrExpr = { kind: "ResultErrExpr"; error: Expr; span: Span };
-export type OptionSomeExpr = {
-  kind: "OptionSomeExpr";
+export interface ResultOkExpr extends Node<"ResultOkExpr"> {
   value: Expr;
-  span: Span;
-};
-export type OptionNoneExpr = { kind: "OptionNoneExpr"; span: Span };
-export type BrandCastExpr = {
-  kind: "BrandCastExpr";
+}
+
+export interface ResultErrExpr extends Node<"ResultErrExpr"> {
+  error: Expr;
+}
+
+export interface OptionSomeExpr extends Node<"OptionSomeExpr"> {
+  value: Expr;
+}
+
+export type OptionNoneExpr = Node<"OptionNoneExpr">;
+
+export interface BrandCastExpr extends Node<"BrandCastExpr"> {
   target: TypeExpr | Identifier;
   value: Expr;
-  span: Span;
-};
+}
 
-export type VariantFieldInit = {
-  kind: "VariantFieldInit";
+export interface VariantFieldInit extends Node<"VariantFieldInit"> {
   key: Identifier;
   value: Expr;
-  span: Span;
-};
-export type VariantExpr = {
-  kind: "VariantExpr";
+}
+
+export interface VariantExpr extends Node<"VariantExpr"> {
   ctor: Identifier;
   fields?: VariantFieldInit[];
-  span: Span;
-};
+}
 
-export type MatchExpr = {
-  kind: "MatchExpr";
+export interface MatchExpr extends Node<"MatchExpr"> {
   expr: Expr;
   cases: CaseClause[];
-  span: Span;
-};
-export type CaseClause = {
-  kind: "CaseClause";
+}
+
+export interface CaseClause extends Node<"CaseClause"> {
   pattern: Pattern;
   guard?: Expr;
   body: Block | Expr;
-  span: Span;
-};
+}
 
+/* =======================
+ * Patterns
+ * ======================= */
 
-
-export type PatternField = {
-  kind: "PatternField";
+export interface PatternField extends Node<"PatternField"> {
   name: Identifier;
   alias?: Identifier;
-  span: Span;
-};
+}
 
 export type Pattern = VariantPattern | LiteralPattern;
 
-export type VariantPattern = {
-  kind: "VariantPattern";
+export interface VariantPattern extends Node<"VariantPattern"> {
   head: { tag: "Named"; name: Identifier } | { tag: "Literal"; value: Literal };
   fields?: PatternField[];
-  span: Span;
-};
+}
 
-export type LiteralPattern = {
-  kind: "LiteralPattern";
+export interface LiteralPattern extends Node<"LiteralPattern"> {
   value: Literal;
-  span: Span;
-};
+}
