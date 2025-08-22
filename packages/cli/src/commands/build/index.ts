@@ -1,6 +1,3 @@
-// Refactorization Notes:
-// Integrated watch mode with chokidar and used the new unified JSON output.
-
 import { initRuntime } from "@intentlang/core";
 import { exitCodeFrom, summarize } from "../../diagnostics/exit-code.js";
 import { processFiles } from "./helpers.js";
@@ -48,6 +45,9 @@ async function doBuildPass(files: string[], flags: BuildFlags) {
   }
 }
 
+/**
+ * Execute the build command on a set of files.
+ */
 export async function runBuild(
   files: string[],
   flags: BuildFlags,

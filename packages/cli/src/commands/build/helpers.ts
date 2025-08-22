@@ -1,6 +1,3 @@
-// Refactorization Notes:
-// Replaced duplicated file processing with shared utility functions.
-
 import fs from "node:fs";
 import path from "node:path";
 import ts from "typescript";
@@ -11,7 +8,9 @@ import type { ProgramInfo } from "../../utils/types.js";
 
 export { isIlFile, processFiles };
 
-/** Escribe los archivos de salida (TS o JS) en el directorio de destino. */
+/**
+ * Write TypeScript or JavaScript files for each compiled program.
+ */
 export function emitFiles(
   programs: ProgramInfo[],
   flags: BuildFlags,
@@ -22,8 +21,7 @@ export function emitFiles(
   for (const { file, program } of programs) {
     const tsCode = emitTypeScript(program);
     const baseName = path.basename(file).replace(/\.il$/i, "");
-    const destPath = (ext: string) =>
-      path.join(flags.outDir, `${baseName}${ext}`);
+    const destPath = (ext: string) => path.join(flags.outDir, `${baseName}${ext}`);
 
     if (flags.target === "ts") {
       const dest = destPath(".ts");
@@ -43,7 +41,6 @@ export function emitFiles(
         const mapFile = `${baseName}.js.map`;
         const mapPath = destPath(".js.map");
         fs.writeFileSync(mapPath, transpiled.sourceMapText, "utf8");
-        // Asegura comentario de referencia relativo
         if (!jsOut.includes("//# sourceMappingURL=")) {
           jsOut += `\n//# sourceMappingURL=${mapFile}\n`;
         }

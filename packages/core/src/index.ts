@@ -1,3 +1,6 @@
+/**
+ * Public API surface for the core IntentLang library.
+ */
 export * as AST from "./ast.js";
 export { parse } from "./parser.js";
 export { check } from "./checker.js";

@@ -1,4 +1,6 @@
-// add to global flags
+/**
+ * Flags that are shared across all CLI subcommands.
+ */
 export type GlobalFlags = {
   json?: boolean;
   watch?: boolean;
@@ -9,6 +11,9 @@ export type GlobalFlags = {
   noColor?: boolean;
 };
 
+/**
+ * Parse global flags from the given argument vector, returning unconsumed args.
+ */
 export function parseGlobalFlags(argv: string[]): {
   rest: string[];
   flags: GlobalFlags;
@@ -49,6 +54,9 @@ export function parseGlobalFlags(argv: string[]): {
   return { rest, flags };
 }
 
+/**
+ * Help text describing available global flags.
+ */
 export const GLOBAL_FLAGS_HELP = `
   --strict         Treat warnings as failures (exit code 1)
   --json           JSON output

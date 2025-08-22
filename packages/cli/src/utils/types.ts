@@ -1,13 +1,21 @@
-// utils/types.ts
 import type { Diagnostic as CoreDiagnostic } from "@intentlang/core";
 
+/**
+ * Extension of core diagnostics with optional file information for CLI outputs.
+ */
 export type CliDiagnostic = CoreDiagnostic & { file?: string };
 
+/**
+ * Program information loaded by the CLI.
+ */
 export type ProgramInfo = {
   file: string;
   program: any;
 };
 
+/**
+ * Structured JSON shape emitted by CLI commands.
+ */
 export type JsonOutput = {
   kind: "build" | "check" | "test";
   meta: {

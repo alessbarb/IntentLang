@@ -1,5 +1,3 @@
-// packages/cli/src/term/output.ts
-
 import path from "node:path";
 import fs from "node:fs";
 import type { Diagnostic } from "@intentlang/core";
@@ -7,10 +5,10 @@ import { severityOf } from "../diagnostics/exit-code.js";
 import { colors } from "./colors.js";
 
 /**
- * Imprime diagnósticos a `stderr` con un formato mejorado y colores.
- * @param diags - La lista de diagnósticos a imprimir.
- * @param sources - Un mapa del nombre de archivo a su contenido.
- * @param maxErrors - El número máximo de errores a mostrar.
+ * Print diagnostics to `stderr` with colors and code frames.
+ * @param diags - Diagnostics to print.
+ * @param sources - Map from filename to file contents.
+ * @param maxErrors - Maximum number of errors to display.
  */
 export function printDiagnostics(
   diags: Diagnostic[],
@@ -37,9 +35,9 @@ export function printDiagnostics(
         ? colors.red(colors.bold("ERROR"))
         : colors.yellow(colors.bold("WARNING"));
 
-    // Header
+    // Diagnostic header.
     console.error(`\n-- ${tag} (${colors.bold(code)}) ${"-".repeat(50)}`);
-    // Message
+    // Diagnostic message.
     console.error(`\n${colors.bold(d.message)}\n`);
 
     const file = (d as any).file;
@@ -49,7 +47,7 @@ export function printDiagnostics(
       );
       console.error(`  ${colors.gray("-->")} ${location}`);
 
-      // Code frame
+      // Code frame.
       const source = sources.get(file);
       if (source) {
         const lines = source.split("\n");
@@ -73,11 +71,12 @@ export function printDiagnostics(
       `\n${colors.yellow(`+${totalErrors - errorsPrinted} more error(s) not shown.`)}`,
     );
   }
-  console.error(); // Línea en blanco para separar
+  // Blank line for separation.
+  console.error();
 }
 
 /**
- * Imprime el estado en modo `--watch`.
+ * Print status information in watch mode.
  */
 export function printWatchStatus(info: {
   errors: number;

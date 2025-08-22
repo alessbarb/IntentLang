@@ -1,6 +1,3 @@
-// Refactorization Notes:
-// Replaced duplicated file processing with shared utility function.
-
 import fs from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
@@ -12,7 +9,9 @@ import type { ProgramInfo } from "../../utils/types.js";
 
 export { isIlFile, processFiles };
 
-/** Ejecuta los tests de los programas compilados en un sandbox. */
+/**
+ * Execute tests exported by compiled programs inside a sandboxed VM.
+ */
 export async function executeTests(
   programs: ProgramInfo[],
   flags: TestFlags,

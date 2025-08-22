@@ -1,6 +1,3 @@
-// Refactorization Notes:
-// Used the new unified JSON output.
-
 import { initRuntime } from "@intentlang/core";
 import { exitCodeFrom, summarize } from "../../diagnostics/exit-code.js";
 import { processFiles } from "./helpers.js";
@@ -10,6 +7,9 @@ import { printDiagnostics, printWatchStatus } from "../../term/output.js";
 import { handleJsonOutput } from "../../utils/output.js";
 import type { TestFlags } from "./types.js";
 
+/**
+ * Execute the test command for a set of files.
+ */
 export async function runTest(files: string[], flags: TestFlags) {
   initRuntime({
     seedRng: flags.seedRng !== undefined ? Number(flags.seedRng) : undefined,
@@ -18,7 +18,7 @@ export async function runTest(files: string[], flags: TestFlags) {
   });
 
   const { programs, diagnostics, sources } = processFiles(files);
-  const { errors, warnings } = summarize(diagnostics); // <-- Se desestructura el objeto aquí
+  const { errors, warnings } = summarize(diagnostics);
   const preCode = exitCodeFrom(diagnostics, { strict: flags.strict });
 
   const isJsonOutput = flags.json || flags.reporter === "json";
@@ -46,8 +46,8 @@ export async function runTest(files: string[], flags: TestFlags) {
       process.exitCode = finalExit;
     } else {
       printWatchStatus({
-        errors, // <-- Propiedad 'errors'
-        warnings, // <-- Propiedad 'warnings'
+        errors,
+        warnings,
         strict: !!flags.strict,
       });
     }

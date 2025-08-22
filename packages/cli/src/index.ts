@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// Refactorization Notes:
-// This file has been completely rewritten to use the commander.js CLI framework.
-// It provides a much more robust and scalable way to handle commands and flags.
+/**
+ * Command line entry point for IntentLang.
+ * Uses the commander.js framework to provide a robust command interface.
+ */
 
 import { Command } from "commander";
 import { setColors } from "./term/colors.js";
@@ -24,19 +25,27 @@ program
   .option("-j, --json", "Output results as JSON")
   .option("-w, --watch", "Watch files and re-run")
   .option("--no-color", "Disable colorized output")
-  .option("--max-errors <number>", "Limit printed errors (human)", (val) =>
-    parseInt(val, 10),
+  .option(
+    "--max-errors <number>",
+    "Limit printed errors (human)",
+    (val: string) => parseInt(val, 10),
   )
   .option("--seed-rng <seed>", "Seed the RNG for deterministic behavior")
   .option("--seed-clock <seed>", "Seed the clock for deterministic behavior");
 
-// Apply compilerOptions from ilconfig.json as defaults
+/**
+ * Convert an arbitrary value into a deterministic seed string.
+ * Returns `undefined` if the value cannot be interpreted as a finite number.
+ */
 const coerceSeed = (v: unknown): string | undefined => {
   if (v === undefined) return undefined;
   const n = Number(v);
   return Number.isFinite(n) ? String(n) : undefined;
 };
 
+/**
+ * Default flag values derived from the loaded configuration.
+ */
 const globalDefaults = {
   strict: config.compilerOptions?.strict,
   json: undefined,
@@ -51,7 +60,7 @@ program
   .command("check", { isDefault: true })
   .description("Validate files for syntax and semantic errors.")
   .argument("[files...]", "Files or glob patterns to process")
-  .action(async (files: string[], _options, command) => {
+  .action(async (files: string[], _options: unknown, command: Command) => {
     const merged = command.optsWithGlobals?.() ?? {
       ...program.opts(),
       ...command.opts?.(),
@@ -66,10 +75,10 @@ program
   .command("build")
   .description("Compile .il files to TypeScript or JavaScript.")
   .argument("[files...]", "Files or glob patterns to process")
-  .option("-t, --target <target>", "Output target (ts, js)") // sin default
-  .option("-o, --out <dir>", "Output directory") // sin default
+  .option("-t, --target <target>", "Output target (ts, js)")
+  .option("-o, --out <dir>", "Output directory")
   .option("--sourcemap", "Emit source maps when --target js")
-  .action(async (files: string[], _options, command) => {
+  .action(async (files: string[], _options: unknown, command: Command) => {
     const globals = command.optsWithGlobals?.() ?? {
       ...program.opts(),
       ...command.opts?.(),
@@ -78,15 +87,15 @@ program
     const finalFlags = {
       ...globalDefaults,
       ...merged,
-      // normalización nombres:
-      outDir: merged.out ?? merged.outDir ?? "dist",
+      // Normalize legacy flag names.
+      outDir: (merged as any).out ?? merged.outDir ?? "dist",
       target: merged.target ?? "ts",
     } as GlobalFlags & {
       target: "ts" | "js";
       outDir: string;
       sourcemap?: boolean;
     };
-    // Validación: solo 'ts' o 'js'
+    // Validate output target.
     if (!["ts", "js"].includes(finalFlags.target as any)) {
       try {
         failUsage(
@@ -109,7 +118,7 @@ program
   .option("--only <pattern>", "Run tests matching a pattern")
   .option("--bail", "Stop on the first test failure")
   .option("--reporter <reporter>", "Reporter to use (human, json)")
-  .action(async (files: string[], _options, command) => {
+  .action(async (files: string[], _options: unknown, command: Command) => {
     const globals = command.optsWithGlobals?.() ?? {
       ...program.opts(),
       ...command.opts?.(),
@@ -121,11 +130,14 @@ program
     await runTest(filesToProcess, finalFlags);
   });
 
+/**
+ * Resolve input files from command-line arguments or configuration.
+ * Exits with code 2 if no files can be resolved.
+ */
 function getFilesToProcess(fileArgs: string[], global: GlobalFlags): string[] {
   if (fileArgs && fileArgs.length > 0) return expandInputs(fileArgs);
   if (config.include)
     return expandInputsFromConfig(config.include, config.exclude, configPath);
-  // sin archivos y sin include -> error de uso coherente con exit 2
   if (global.json) {
     process.stdout.write(
       JSON.stringify({
