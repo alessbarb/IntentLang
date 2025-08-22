@@ -34,7 +34,7 @@ export type Option<T> = { kind: "some"; value: T } | { kind: "none" };
 export type Capabilities = {};
 
 export async function test_operators(): Promise<void> {
-  const n = 5;
+  let n = 5;
   n += 3;
   n -= 1;
   n *= 2;

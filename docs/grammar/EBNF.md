@@ -115,7 +115,7 @@ ContractBlock   = [ "requires" , Expr ] , [ "ensures" , Expr ] ;
 Block           = "{" , ws , { Stmt } , "}" ;
 Stmt            = LetStmt | ReturnStmt | IfStmt | MatchStmt | ForStmt | ExprStmt ;
 
-LetStmt         = "let" , ident , "=" , Expr , [";"] ;
+LetStmt         = ("let" | "const") , ident , "=" , Expr , [";"] ;
 ReturnStmt      = "return" , [ Expr ] , [";"] ;
 IfStmt          = "if" , Expr , Block , [ "else" , Block ] ;
 MatchStmt       = MatchExpr , [";"] ;

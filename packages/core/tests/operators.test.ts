@@ -1,6 +1,7 @@
 import { test, expect } from "vitest";
 import { lex } from "../src/lexer.js";
 import { parse } from "../src/parser.js";
+import { emitTypeScript } from "../src/transpilers/typescript.js";
 
 test("lexes extended operators", () => {
   const tokens = lex("a+=1; b--; c&d | e ^ ~f << 1 >> 2 ? g : h");
@@ -27,4 +28,16 @@ test("parses compound, update and ternary", () => {
   const ret = body[3];
   expect(ret.kind).toBe("ReturnStmt");
   expect((ret as any).argument.kind).toBe("ConditionalExpr");
+});
+
+test("transpiles let as mutable in TypeScript", () => {
+  const program = parse("test t { let n = 0; n += 1; }");
+  const ts = emitTypeScript(program);
+  expect(ts).toContain("let n = 0;");
+});
+
+test("transpiles const as immutable in TypeScript", () => {
+  const program = parse("test t { const n = 0; }");
+  const ts = emitTypeScript(program);
+  expect(ts).toContain("const n = 0;");
 });

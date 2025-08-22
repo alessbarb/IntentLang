@@ -180,6 +180,10 @@ export type LetStmt = {
   kind: "LetStmt";
   id: Identifier;
   init: Expr;
+  /**
+   * Whether this binding is mutable (`let`) or immutable (`const`).
+   */
+  mutable: boolean;
   span: Span;
 };
 export type ReturnStmt = { kind: "ReturnStmt"; argument?: Expr; span: Span };

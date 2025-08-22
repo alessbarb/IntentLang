@@ -511,7 +511,7 @@ export function parse(input: string): Program {
   }
 
   function parseStmt(): Stmt {
-    if (peek("kw_let")) return parseLetStmt();
+    if (peek("kw_let") || peek("kw_const")) return parseLetStmt();
     if (peek("kw_return")) return parseReturnStmt();
     if (peek("kw_if")) return parseIfStmt();
     if (peek("kw_match")) return parseMatchStmt();
@@ -523,12 +523,13 @@ export function parse(input: string): Program {
 
   function parseLetStmt(): LetStmt {
     const s = spanHere();
-    expect("kw_let");
+    const mutable = peek("kw_let");
+    expect(mutable ? "kw_let" : "kw_const");
     const id = parseIdent();
     expect("eq");
     const init = parseExpr();
     eat("semi");
-    return { kind: "LetStmt", id, init, span: s };
+    return { kind: "LetStmt", id, init, mutable, span: s };
   }
 
   function parseReturnStmt(): ReturnStmt {

@@ -22,6 +22,13 @@
 * **core:** align transpilers and simplify AST handling ([6674bca](https://github.com/alessbarb/IntentLang/commit/6674bca6a4594f1e3e51c4b6471e36386102ecd4))
 
 ## [Unreleased]
+### Features
+
+- **core:** support immutable `const` declarations.
+
+### Bug Fixes
+
+- **core:** emit mutable declarations for `let` in TypeScript transpiler.
 
 ### Docs
 

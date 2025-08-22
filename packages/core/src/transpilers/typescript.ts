@@ -224,7 +224,8 @@ function emitStmt(s: Stmt, isEffect: boolean, ensures?: Expr): string {
   switch (s.kind) {
     case "LetStmt": {
       const init = emitExpr(s.init, isEffect);
-      return `const ${s.id.name} = ${init};`;
+      const kw = s.mutable ? "let" : "const";
+      return `${kw} ${s.id.name} = ${init};`;
     }
     case "ReturnStmt": {
       if (!s.argument) {

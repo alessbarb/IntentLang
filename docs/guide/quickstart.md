@@ -44,7 +44,7 @@ effect createUser(input: CreateUserInput): ResultUser uses http, clock
   ensures _.id != ""
 { }
 
-test create_user { let now = clock.now(); }
+test create_user { const now = clock.now(); }
 ```
 
 ## Validate the file
