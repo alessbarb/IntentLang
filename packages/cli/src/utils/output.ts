@@ -5,6 +5,7 @@ import type { Diagnostic } from "@intentlang/core";
 import type { BuildFlags } from "../commands/build/types.js";
 import type { GlobalFlags } from "../flags.js";
 import type { TestResult } from "../commands/test/types.js";
+import type { CliDiagnostic, JsonOutput } from "./types.js";
 
 type CommandFlags = GlobalFlags & Partial<BuildFlags>;
 
@@ -21,7 +22,7 @@ export function handleJsonOutput({
 }: {
   kind: "build" | "check" | "test";
   flags: CommandFlags;
-  diagnostics: Diagnostic[];
+  diagnostics: CliDiagnostic[];
   errors: number;
   warnings: number;
   code: number;
@@ -29,7 +30,7 @@ export function handleJsonOutput({
   tests?: TestResult[];
   message?: string;
 }): void {
-  const output = {
+  const output: JsonOutput = {
     kind,
     meta: {
       strict: !!flags.strict,
@@ -40,7 +41,6 @@ export function handleJsonOutput({
     counts: { errors, warnings },
     diagnostics,
     status: code === 0 ? "ok" : "error",
-    diags: diagnostics,
     ...(built && { built }),
     ...(tests && { tests }),
     ...(message && { message }),

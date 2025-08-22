@@ -58,9 +58,8 @@ export function printDiagnostics(
           const lineNumStr = String(d.span.start.line);
           const gutter = `${colors.gray(`${lineNumStr} |`)}`;
           console.error(`\n${gutter} ${line}`);
-          const caret = colors.red(
-            "^".repeat(Math.max(1, d.span.end.column - d.span.start.column)),
-          );
+          const width = Math.max(1, d.span.end.column - d.span.start.column);
+          const caret = colors.red("^".repeat(width));
           console.error(
             `${colors.gray(" ".repeat(lineNumStr.length + 2))}${" ".repeat(d.span.start.column - 1)}${caret}`,
           );

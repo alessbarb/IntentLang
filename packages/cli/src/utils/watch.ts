@@ -10,6 +10,12 @@ export function setupWatcher(files: string[], callback: () => Promise<void>) {
     awaitWriteFinish: { stabilityThreshold: 50, pollInterval: 10 },
   });
 
+  let timer: NodeJS.Timeout | null = null;
+  const debounce = (fn: () => void, ms: number) => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(fn, ms);
+  };
+
   watcher.on("ready", () => {
     console.error(colors.gray(`\n[Watching] Ready. Awaiting changes...`));
   });
@@ -20,7 +26,7 @@ export function setupWatcher(files: string[], callback: () => Promise<void>) {
         `\n[Watching] File changed: ${colors.cyan(filePath)}. Rerunning...`,
       ),
     );
-    callback();
+    debounce(() => void callback(), 60);
   });
 
   process.on("SIGINT", () => {

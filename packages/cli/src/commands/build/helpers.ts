@@ -29,7 +29,7 @@ export function emitFiles(
       fs.writeFileSync(dest, tsCode, "utf8");
       built.push(dest);
     } else if (flags.target === "js") {
-      const js = ts.transpileModule(tsCode, {
+      const transpiled = ts.transpileModule(tsCode, {
         compilerOptions: {
           module: ts.ModuleKind.CommonJS,
           target: ts.ScriptTarget.ES2020,
@@ -37,12 +37,18 @@ export function emitFiles(
         },
       });
       const dest = destPath(".js");
-      fs.writeFileSync(dest, js.outputText, "utf8");
-      built.push(dest);
-
-      if (flags.sourcemap && js.sourceMapText) {
-        fs.writeFileSync(destPath(".js.map"), js.sourceMapText, "utf8");
+      let jsOut = transpiled.outputText;
+      if (flags.sourcemap && transpiled.sourceMapText) {
+        const mapFile = `${baseName}.js.map`;
+        const mapPath = destPath(".js.map");
+        fs.writeFileSync(mapPath, transpiled.sourceMapText, "utf8");
+        // Asegura comentario de referencia relativo
+        if (!jsOut.includes("//# sourceMappingURL=")) {
+          jsOut += `\n//# sourceMappingURL=${mapFile}\n`;
+        }
       }
+      fs.writeFileSync(dest, jsOut, "utf8");
+      built.push(dest);
     }
   }
   return built;

@@ -1,7 +1,7 @@
 export interface ILConfig {
   compilerOptions?: {
     strict?: boolean;
-    target?: "ts" | "js" | "py";
+    target?: "ts" | "js";
     outDir?: string;
     sourcemap?: boolean;
     seedRng?: string;

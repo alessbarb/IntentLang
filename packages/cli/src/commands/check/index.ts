@@ -12,6 +12,7 @@ import { printDiagnostics, printWatchStatus } from "../../term/output.js";
 import { handleJsonOutput } from "../../utils/output.js";
 import { setupWatcher } from "../../utils/watch.js";
 import type { Diagnostic, CacheEntry } from "./types.js";
+import { failUsage } from "../../utils/cli-error.js";
 
 async function handleStdin(global: GlobalFlags) {
   const src = await readStdin();
@@ -48,20 +49,9 @@ async function doCheckPass(
   const { diagnostics, files: matched, sources } = checkFiles(files, cache);
 
   if (matched.length === 0) {
-    if (global.json) {
-      handleJsonOutput({
-        kind: "check",
-        flags: global,
-        diagnostics: [],
-        errors: 0,
-        warnings: 0,
-        code: 2,
-        message: "No files matched.",
-      });
-    } else {
-      console.error("No files matched.");
-    }
-    if (!global.watch) process.exitCode = 2;
+    try {
+      failUsage(global, "ILC0402", "No files matched.");
+    } catch {}
     return;
   }
 

@@ -2,9 +2,9 @@
 // Removed py from target as it is not implemented.
 
 import type { GlobalFlags } from "../../flags.js";
-import type { Diagnostic as CoreDiagnostic } from "@intentlang/core";
+import type { CliDiagnostic, ProgramInfo } from "../../utils/types.js";
 
-export type Diagnostic = CoreDiagnostic;
+export type Diagnostic = CliDiagnostic;
 
 export type TestFlags = GlobalFlags & {
   only?: string;
@@ -18,7 +18,4 @@ export type TestResult = {
   error?: string;
 };
 
-export type ProgramInfo = {
-  file: string;
-  program: any;
-};
+export type { ProgramInfo };

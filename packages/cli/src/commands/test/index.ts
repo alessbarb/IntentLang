@@ -12,8 +12,9 @@ import type { TestFlags } from "./types.js";
 
 export async function runTest(files: string[], flags: TestFlags) {
   initRuntime({
-    seedRng: flags.seedRng ? Number(flags.seedRng) : undefined,
-    seedClock: flags.seedClock ? Number(flags.seedClock) : undefined,
+    seedRng: flags.seedRng !== undefined ? Number(flags.seedRng) : undefined,
+    seedClock:
+      flags.seedClock !== undefined ? Number(flags.seedClock) : undefined,
   });
 
   const { programs, diagnostics, sources } = processFiles(files);

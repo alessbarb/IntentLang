@@ -12,55 +12,52 @@ import { runCheck } from "./commands/check/index.js";
 import { runBuild } from "./commands/build/index.js";
 import { runTest } from "./commands/test/index.js";
 import type { GlobalFlags } from "./flags.js";
+import { failUsage } from "./utils/cli-error.js";
 
 const program = new Command();
 const { config, configPath } = loadConfig(process.cwd());
 
 program
-  .name("ilc")
+  .name("intent")
   .description("A CLI for the IntentLang compiler and test runner.")
-  .argument(
-    "[files...]",
-    "Files or glob patterns to process. Uses ilconfig.json if not specified.",
+  .option("-s, --strict", "Treat warnings as failures (exit code 1)")
+  .option("-j, --json", "Output results as JSON")
+  .option("-w, --watch", "Watch files and re-run")
+  .option("--no-color", "Disable colorized output")
+  .option("--max-errors <number>", "Limit printed errors (human)", (val) =>
+    parseInt(val, 10),
   )
-  .option("-s, --strict", "Treat warnings as failures (exit code 1)", false)
-  .option("-j, --json", "Output results as JSON", false)
-  .option("-w, --watch", "Watch files and re-run", false)
-  .option("--no-color", "Disable colorized output", false)
-  .option(
-    "--max-errors <number>",
-    "Limit printed errors (human)",
-    (val) => parseInt(val, 10),
-    undefined,
-  )
-  .option(
-    "--seed-rng <seed>",
-    "Seed the RNG for deterministic behavior",
-    undefined,
-  )
-  .option(
-    "--seed-clock <seed>",
-    "Seed the clock for deterministic behavior",
-    undefined,
-  );
+  .option("--seed-rng <seed>", "Seed the RNG for deterministic behavior")
+  .option("--seed-clock <seed>", "Seed the clock for deterministic behavior");
 
 // Apply compilerOptions from ilconfig.json as defaults
+const coerceSeed = (v: unknown): string | undefined => {
+  if (v === undefined) return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) ? String(n) : undefined;
+};
+
 const globalDefaults = {
   strict: config.compilerOptions?.strict,
-  json: false, // CLI flag should always be explicit for this
-  watch: false,
-  noColor: false,
+  json: undefined,
+  watch: undefined,
+  noColor: undefined,
   maxErrors: undefined,
-  seedRng: config.compilerOptions?.seedRng,
-  seedClock: config.compilerOptions?.seedClock,
-};
+  seedRng: coerceSeed(config.compilerOptions?.seedRng),
+  seedClock: coerceSeed(config.compilerOptions?.seedClock),
+} as GlobalFlags;
 
 program
   .command("check", { isDefault: true })
   .description("Validate files for syntax and semantic errors.")
-  .action(async (files, options) => {
-    const finalFlags = { ...globalDefaults, ...options } as GlobalFlags;
-    const filesToProcess = getFilesToProcess(files);
+  .argument("[files...]", "Files or glob patterns to process")
+  .action(async (files: string[], _options, command) => {
+    const merged = command.optsWithGlobals?.() ?? {
+      ...program.opts(),
+      ...command.opts?.(),
+    };
+    const finalFlags = { ...globalDefaults, ...merged } as GlobalFlags;
+    const filesToProcess = getFilesToProcess(files, finalFlags);
     setColors(!finalFlags.noColor);
     await runCheck(filesToProcess, finalFlags);
   });
@@ -68,16 +65,39 @@ program
 program
   .command("build")
   .description("Compile .il files to TypeScript or JavaScript.")
-  .option("-t, --target <target>", "Output target (ts, js)", "ts")
-  .option("-o, --out <dir>", "Output directory", "dist")
-  .option("--sourcemap", "Emit source maps when --target js", false)
-  .action(async (files, options) => {
+  .argument("[files...]", "Files or glob patterns to process")
+  .option("-t, --target <target>", "Output target (ts, js)") // sin default
+  .option("-o, --out <dir>", "Output directory") // sin default
+  .option("--sourcemap", "Emit source maps when --target js")
+  .action(async (files: string[], _options, command) => {
+    const globals = command.optsWithGlobals?.() ?? {
+      ...program.opts(),
+      ...command.opts?.(),
+    };
+    const merged = { ...config.compilerOptions, ...globals };
     const finalFlags = {
       ...globalDefaults,
-      ...options,
-      ...config.compilerOptions,
-    } as any;
-    const filesToProcess = getFilesToProcess(files);
+      ...merged,
+      // normalización nombres:
+      outDir: merged.out ?? merged.outDir ?? "dist",
+      target: merged.target ?? "ts",
+    } as GlobalFlags & {
+      target: "ts" | "js";
+      outDir: string;
+      sourcemap?: boolean;
+    };
+    // Validación: solo 'ts' o 'js'
+    if (!["ts", "js"].includes(finalFlags.target as any)) {
+      try {
+        failUsage(
+          finalFlags,
+          "ILC0401",
+          "Error: --target must be 'ts' or 'js'.",
+        );
+      } catch {}
+      return;
+    }
+    const filesToProcess = getFilesToProcess(files, finalFlags);
     setColors(!finalFlags.noColor);
     await runBuild(filesToProcess, finalFlags);
   });
@@ -85,30 +105,44 @@ program
 program
   .command("test")
   .description("Run tests defined in .il files.")
-  .option("--only <pattern>", "Run tests matching a pattern", undefined)
-  .option("--bail", "Stop on the first test failure", false)
-  .option("--reporter <reporter>", "Reporter to use (human, json)", "human")
-  .action(async (files, options) => {
-    const finalFlags = {
-      ...globalDefaults,
-      ...options,
-      ...config.compilerOptions,
-    } as any;
-    const filesToProcess = getFilesToProcess(files);
+  .argument("[files...]", "Files or glob patterns to process")
+  .option("--only <pattern>", "Run tests matching a pattern")
+  .option("--bail", "Stop on the first test failure")
+  .option("--reporter <reporter>", "Reporter to use (human, json)")
+  .action(async (files: string[], _options, command) => {
+    const globals = command.optsWithGlobals?.() ?? {
+      ...program.opts(),
+      ...command.opts?.(),
+    };
+    const merged = { reporter: "human", ...config.compilerOptions, ...globals };
+    const finalFlags = { ...globalDefaults, ...merged } as any;
+    const filesToProcess = getFilesToProcess(files, finalFlags);
     setColors(!finalFlags.noColor);
     await runTest(filesToProcess, finalFlags);
   });
 
-function getFilesToProcess(fileArgs: string[]): string[] {
-  if (fileArgs.length > 0) {
-    return expandInputs(fileArgs);
-  }
-  if (config.include) {
+function getFilesToProcess(fileArgs: string[], global: GlobalFlags): string[] {
+  if (fileArgs && fileArgs.length > 0) return expandInputs(fileArgs);
+  if (config.include)
     return expandInputsFromConfig(config.include, config.exclude, configPath);
+  // sin archivos y sin include -> error de uso coherente con exit 2
+  if (global.json) {
+    process.stdout.write(
+      JSON.stringify({
+        kind: "check",
+        meta: { strict: !!global.strict, watch: !!global.watch },
+        counts: { errors: 0, warnings: 0 },
+        diagnostics: [],
+        status: "error",
+        message: "No input files and no 'include' in ilconfig.json.",
+        exitCode: 2,
+      }) + "\n",
+    );
+  } else {
+    console.error(
+      "Error: No input files specified and no 'include' pattern found in ilconfig.json.",
+    );
   }
-  console.error(
-    "Error: No input files specified and no 'include' pattern found in ilconfig.json.",
-  );
   process.exit(2);
 }
 

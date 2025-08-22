@@ -1,5 +1,5 @@
 import { colors } from "../../term/colors.js";
-import type { TestFlags, TestResult, Diagnostic } from "./types.js";
+import type { TestResult, Diagnostic } from "./types.js";
 import { summarize } from "../../diagnostics/exit-code.js";
 
 /** Imprime los resultados de los tests en formato legible. */
@@ -31,36 +31,9 @@ export function printTestSummary(
   );
 
   if (errors > 0 || warnings > 0) {
-    console.log(
-      `  Diagnostics: ${(colors.red(`${errors} error(s)`), colors.yellow(`${warnings} warning(s)`))}`,
-    );
+    const parts = [];
+    if (errors > 0) parts.push(colors.red(`${errors} error(s)`));
+    if (warnings > 0) parts.push(colors.yellow(`${warnings} warning(s)`));
+    console.log(`  Diagnostics: ${parts.join(", ")}`);
   }
-}
-
-/** Gestiona la salida JSON. */
-export function handleJsonOutput({
-  flags,
-  counts,
-  diagnostics,
-  results,
-  exitCode,
-}: {
-  flags: TestFlags;
-  counts: { errors: number; warnings: number };
-  diagnostics: Diagnostic[];
-  results: TestResult[];
-  exitCode: number;
-}): void {
-  const output = {
-    kind: "test",
-    meta: { strict: !!flags.strict },
-    counts,
-    diagnostics,
-    status: exitCode === 0 ? "ok" : "error",
-    diags: diagnostics,
-    tests: results,
-    exitCode,
-  };
-  process.stdout.write(JSON.stringify(output) + "\n");
-  process.exitCode = exitCode;
 }

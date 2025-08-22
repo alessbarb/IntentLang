@@ -1,6 +1,4 @@
 import { colors } from "../../term/colors.js";
-import type { GlobalFlags } from "../../flags.js";
-import type { Diagnostic } from "./types.js";
 
 /** Imprime un resumen final del proceso de validación. */
 export function printCheckSummary(
@@ -26,33 +24,4 @@ export function printCheckSummary(
       console.log(colors.yellow(`(${warningCount} warning(s) found)`));
     }
   }
-}
-
-/** Gestiona la salida JSON. */
-export function handleJsonOutput({
-  global,
-  diagnostics,
-  errors,
-  warnings,
-  code,
-  message,
-}: {
-  global: GlobalFlags;
-  diagnostics: Diagnostic[];
-  errors: number;
-  warnings: number;
-  code: number;
-  message?: string;
-}): void {
-  const output = {
-    kind: "check",
-    meta: { strict: !!global.strict, watch: !!global.watch },
-    counts: { errors, warnings },
-    diagnostics,
-    status: code === 0 ? "ok" : "error",
-    diags: diagnostics,
-    exitCode: code,
-    ...(message && { message }),
-  };
-  process.stdout.write(JSON.stringify(output) + "\n");
 }

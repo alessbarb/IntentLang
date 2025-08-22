@@ -50,7 +50,7 @@ export function expandInputs(
   inputs: string[],
   cwd: string = process.cwd(),
 ): string[] {
-  return fg.sync(
+  const matches = fg.sync(
     inputs.filter(Boolean).map((i) => {
       // Si es un directorio, añadimos un glob para buscar archivos .il
       if (fs.existsSync(i) && fs.statSync(i).isDirectory()) {
@@ -60,4 +60,5 @@ export function expandInputs(
     }),
     { cwd, dot: true },
   );
+  return Array.from(new Set(matches)).sort();
 }

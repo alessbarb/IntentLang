@@ -3,7 +3,7 @@
 
 import { initRuntime } from "@intentlang/core";
 import { exitCodeFrom, summarize } from "../../diagnostics/exit-code.js";
-import { processFiles, isIlFile } from "./helpers.js";
+import { processFiles } from "./helpers.js";
 import { emitFiles } from "./helpers.js";
 import { printBuildSummary } from "./output.js";
 import { printDiagnostics, printWatchStatus } from "../../term/output.js";
@@ -13,12 +13,12 @@ import type { BuildFlags } from "./types.js";
 
 async function doBuildPass(files: string[], flags: BuildFlags) {
   initRuntime({
-    seedRng: flags.seedRng ? Number(flags.seedRng) : undefined,
-    seedClock: flags.seedClock ? Number(flags.seedClock) : undefined,
+    seedRng: flags.seedRng !== undefined ? Number(flags.seedRng) : undefined,
+    seedClock:
+      flags.seedClock !== undefined ? Number(flags.seedClock) : undefined,
   });
 
-  const ilFiles = files.filter(isIlFile);
-  const { programs, diagnostics, sources } = processFiles(ilFiles);
+  const { programs, diagnostics, sources } = processFiles(files);
   const { errors, warnings } = summarize(diagnostics);
   const code = exitCodeFrom(diagnostics, { strict: flags.strict });
 
