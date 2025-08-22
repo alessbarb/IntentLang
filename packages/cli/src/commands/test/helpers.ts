@@ -7,12 +7,8 @@ import ts from "typescript";
 import _ from "lodash";
 import { parse, check as checkProgram, emitTypeScript } from "@intentlang/core";
 import { isIlFile, processFiles } from "../../utils/files.js";
-import type {
-  TestFlags,
-  TestResult,
-  ProgramInfo,
-  Diagnostic,
-} from "./types.js";
+import type { TestFlags, TestResult, Diagnostic } from "./types.js";
+import type { ProgramInfo } from "../../utils/types.js";
 
 export { isIlFile, processFiles };
 

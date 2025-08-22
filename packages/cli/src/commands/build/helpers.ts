@@ -6,7 +6,8 @@ import path from "node:path";
 import ts from "typescript";
 import { emitTypeScript } from "@intentlang/core";
 import { isIlFile, processFiles } from "../../utils/files.js";
-import type { ProgramInfo, BuildFlags } from "./types.js";
+import type { BuildFlags } from "./types.js";
+import type { ProgramInfo } from "../../utils/types.js";
 
 export { isIlFile, processFiles };
 

@@ -2,7 +2,7 @@
 // Removed py from target as it is not implemented.
 
 import type { GlobalFlags } from "../../flags.js";
-import type { CliDiagnostic, ProgramInfo } from "../../utils/types.js";
+import type { CliDiagnostic } from "../../utils/types.js";
 
 export type Diagnostic = CliDiagnostic;
 
@@ -17,5 +17,3 @@ export type TestResult = {
   ok: boolean;
   error?: string;
 };
-
-export type { ProgramInfo };
