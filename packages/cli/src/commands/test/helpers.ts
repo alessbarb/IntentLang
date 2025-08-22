@@ -2,12 +2,9 @@ import fs from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 import _ from "lodash";
-import { parse, check as checkProgram, emitTypeScript } from "@intentlang/core";
-import { isIlFile, processFiles } from "../../utils/files.js";
-import type { TestFlags, TestResult, Diagnostic } from "./types.js";
+import { emitTypeScript } from "@intentlang/core";
+import type { TestFlags, TestResult } from "./types.js";
 import type { ProgramInfo } from "../../utils/types.js";
-
-export { isIlFile, processFiles };
 
 /**
  * Execute tests exported by compiled programs inside a sandboxed VM.

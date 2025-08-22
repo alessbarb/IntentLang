@@ -1,11 +1,11 @@
 import { initRuntime } from "@intentlang/core";
 import { exitCodeFrom, summarize } from "../../diagnostics/exit-code.js";
-import { processFiles } from "./helpers.js";
 import { executeTests } from "./helpers.js";
 import { printHumanResults, printTestSummary } from "./output.js";
 import { printDiagnostics, printWatchStatus } from "../../term/output.js";
 import { handleJsonOutput } from "../../utils/output.js";
 import type { TestFlags } from "./types.js";
+import { processFiles } from "../../utils/files.js";
 
 /**
  * Execute the test command for a set of files.

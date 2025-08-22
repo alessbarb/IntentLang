@@ -1,5 +1,3 @@
-import fs from "node:fs";
-import path from "node:path";
 import { parse, check as checkProgram } from "@intentlang/core";
 import type { GlobalFlags } from "../../flags.js";
 import { exitCodeFrom, summarize } from "../../diagnostics/exit-code.js";

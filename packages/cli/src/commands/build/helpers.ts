@@ -2,11 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import ts from "typescript";
 import { emitTypeScript } from "@intentlang/core";
-import { isIlFile, processFiles } from "../../utils/files.js";
 import type { BuildFlags } from "./types.js";
 import type { ProgramInfo } from "../../utils/types.js";
-
-export { isIlFile, processFiles };
 
 /**
  * Write TypeScript or JavaScript files for each compiled program.
@@ -21,7 +18,8 @@ export function emitFiles(
   for (const { file, program } of programs) {
     const tsCode = emitTypeScript(program);
     const baseName = path.basename(file).replace(/\.il$/i, "");
-    const destPath = (ext: string) => path.join(flags.outDir, `${baseName}${ext}`);
+    const destPath = (ext: string) =>
+      path.join(flags.outDir, `${baseName}${ext}`);
 
     if (flags.target === "ts") {
       const dest = destPath(".ts");

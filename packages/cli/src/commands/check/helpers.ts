@@ -1,10 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parse, check as checkProgram } from "@intentlang/core";
-import { expandInputs } from "../../utils/files.js";
 import type { Diagnostic, CacheEntry } from "./types.js";
-
-export { expandInputs };
+import { expandInputs } from "../../utils/files.js";
 
 /**
  * Read the entire standard input as a UTF-8 string.
