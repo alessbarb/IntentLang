@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.4.0...@intentlang/cli-v1.5.0) (2025-08-22)
+
+### Features
+
+* **@intentlang/cli:** new init feature to begin an IntentLang project ([6630e81](https://github.com/alessbarb/IntentLang/commit/6630e813645f09c9890b9947993f3a1648144839))
+
 ## [1.4.0](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.3.1...@intentlang/cli-v1.4.0) (2025-08-22)
 
 ### Features
