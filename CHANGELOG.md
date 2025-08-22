@@ -1,3 +1,9 @@
+## [1.13.1](https://github.com/alessbarb/IntentLang/compare/v1.13.0...v1.13.1) (2025-08-22)
+
+### Bug Fixes
+
+* types import ([af9d0bd](https://github.com/alessbarb/IntentLang/commit/af9d0bdae87340b1e4151145786655b97035adf6))
+
 ## [1.13.0](https://github.com/alessbarb/IntentLang/compare/v1.12.0...v1.13.0) (2025-08-22)
 
 ### Features
