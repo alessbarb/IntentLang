@@ -1,6 +1,6 @@
 # Diagnostic codes
 
-IntentLang uses stable codes `ILC000x` for all diagnostics. The table below maps each code to its message template. Placeholders in `{}` are filled with context when reported.
+IntentLang uses stable codes `ILCxxxx` for all diagnostics. The table below maps each code to its message template. Placeholders in `{}` are filled with context when reported.
 
 | Code    | Message                                                                                   |
 | ------- | ----------------------------------------------------------------------------------------- |
@@ -36,3 +36,6 @@ IntentLang uses stable codes `ILC000x` for all diagnostics. The table below maps
 | ILC0301 | Effect '{effect}' lists undeclared capability '{cap}'. Add it to 'uses { ... }'.          |
 | ILC0302 | Pure function '{func}' cannot use capability '{cap}'.                                     |
 | ILC0303 | Effect '{effect}' uses capability '{cap}' but it is not listed in 'uses' for this effect. |
+| ILC0401 | Unknown flag or invalid combination of flags '{flags}' in 'uses' declaration.             |
+| ILC0402 | File not found or empty pattern.                                                          |
+| ILC0403 | Invalid configuration file.                                                               |
