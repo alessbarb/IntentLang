@@ -31,7 +31,7 @@ IntentSection   = "intent" , string , [ TagList ] ;
 TagList         = "tags" , "[" , string , { "," , string } , "]" ;
 
 UsesSection     = "uses" , "{" , ws , { UseDecl } , "}" ;
-UseDecl         = ident , ":" , ident , [ RecordExpr ] , [","] ;
+UseDecl         = ident , ":" , ident , [ ObjectExpr ] , [","] ;
 
 TypesSection    = "types" , "{" , ws , { TypeDecl } , "}" ;
 TypeDecl        = "type" , ident , "=" , TypeExpr , [";" | ","] ;
@@ -61,7 +61,6 @@ FunctionCall    = ident , "(" , string , ")" ;
 Comparison      = Accessor , CompareOp , Literal ;
 Accessor        = "_" , [ "." , ident ] ;
 CompareOp       = "==" | "!=" | ">=" | "<=" | ">" | "<" ;
-Literal         = number | string ;
 
 GenericType     = ident , "<" , TypeExpr , { "," , TypeExpr } , ">" ;
 BrandType       = BasicType , "brand" , string ;
