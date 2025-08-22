@@ -1,4 +1,4 @@
-intent "Invoice service" tags ["billing","invoice"]
+intent "Invoice service"
 
 uses {
   http: Http { baseUrl: "https://api.example.com", timeoutMs: 3000 },
