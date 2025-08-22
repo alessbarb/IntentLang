@@ -1,3 +1,11 @@
+## [1.3.1](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.3.0...@intentlang/cli-v1.3.1) (2025-08-22)
+
+### Bug Fixes
+
+* cli types ([9f4854e](https://github.com/alessbarb/IntentLang/commit/9f4854eb96de733573555e146d2c1505f5fc07ee))
+* **core+examples:** repair parser lookahead, Fixed2 builtin, and example casts ([b293d8a](https://github.com/alessbarb/IntentLang/commit/b293d8a397c857227207877a0c578456b9cc5703))
+* types import ([af9d0bd](https://github.com/alessbarb/IntentLang/commit/af9d0bdae87340b1e4151145786655b97035adf6))
+
 ## [1.3.0](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.2.0...@intentlang/cli-v1.3.0) (2025-08-22)
 
 ### Features
