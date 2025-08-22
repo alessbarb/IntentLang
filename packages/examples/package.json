@@ -3,7 +3,9 @@
   "version": "0.4.0",
   "private": true,
   "scripts": {
-    "build": "node ./scripts/export-datasets.mjs",
+    "intent": "node ../cli/dist/index.js",
+    "build:datasets": "node ./scripts/export-datasets.mjs",
+    "build": "pnpm run build:datasets && pnpm run intent build",
     "test:goldens": "node ./scripts/goldens.mjs",
     "test:goldens:update": "UPDATE=1 node ./scripts/goldens.mjs"
   },
