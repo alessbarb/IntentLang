@@ -127,6 +127,8 @@ function tsType(t: TypeExpr): string {
 
 function basicToTs(b: BasicType): string {
   switch (b.name) {
+    case "Unit":
+      return "void";
     case "Bool":
       return "boolean";
     case "Int":

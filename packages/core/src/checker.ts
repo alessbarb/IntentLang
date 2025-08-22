@@ -61,6 +61,7 @@ function report(
 
 /* Internal types (checker) */
 type T =
+  | { kind: "Unit" }
   | { kind: "Bool" }
   | { kind: "Number" }
   | { kind: "String" }
@@ -80,6 +81,7 @@ type T =
 const TBool: T = { kind: "Bool" },
   TNum: T = { kind: "Number" },
   TString: T = { kind: "String" };
+const TUnit: T = { kind: "Unit" };
 const TUuid: T = { kind: "Uuid" },
   TDate: T = { kind: "DateTime" },
   TUnknown: T = { kind: "Unknown" };
@@ -166,6 +168,8 @@ function resolveType(ctx: Ctx, tx: TypeExpr): T {
   switch (tx.kind) {
     case "BasicType":
       switch (tx.name) {
+        case "Unit":
+          return TUnit;
         case "Bool":
           return TBool;
         case "Int":
@@ -860,6 +864,8 @@ function isAssignableTo(ctx: Ctx, a: T, b: T): boolean {
   if (a.kind === "Unknown" || b.kind === "Unknown") return true;
   if (a.kind === b.kind) {
     switch (a.kind) {
+      case "Unit":
+        return true;
       case "Brand":
         return (a as any).brand === (b as any).brand;
       case "Record": {
@@ -911,6 +917,8 @@ function isAssignableTo(ctx: Ctx, a: T, b: T): boolean {
 }
 function showType(t: T): string {
   switch (t.kind) {
+    case "Unit":
+      return "Unit";
     case "Bool":
       return "Bool";
     case "Number":

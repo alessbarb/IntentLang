@@ -61,7 +61,15 @@ export type TypeExpr =
 
 export type BasicType = {
   kind: "BasicType";
-  name: "Bool" | "Int" | "Float" | "String" | "Bytes" | "Uuid" | "DateTime";
+  name:
+    | "Unit"
+    | "Bool"
+    | "Int"
+    | "Float"
+    | "String"
+    | "Bytes"
+    | "Uuid"
+    | "DateTime";
   span: Span;
 };
 

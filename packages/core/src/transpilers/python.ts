@@ -156,6 +156,8 @@ function pyType(t: TypeExpr, typeName?: string): string {
 
 function basicToPy(b: BasicType): string {
   switch (b.name) {
+    case "Unit":
+      return "None";
     case "Bool":
       return "bool";
     case "Int":

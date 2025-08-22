@@ -410,8 +410,17 @@ export function parse(input: string): Program {
     expect("lparen");
     const params = parseParamSigList();
     expect("rparen");
-    expect("colon");
-    const ret = parseTypeExpr();
+    // Optional return type: `: TypeExpr` or default to Unit if `{` follows.
+    let ret: TypeExpr;
+    if (eat("colon")) {
+      if (peek("lbrace")) {
+        ret = { kind: "BasicType", name: "Unit", span: spanHere() };
+      } else {
+        ret = parseTypeExpr();
+      }
+    } else {
+      ret = { kind: "BasicType", name: "Unit", span: spanHere() };
+    }
     let contracts: { requires?: Expr; ensures?: Expr } | undefined;
     if (eat("kw_requires")) {
       const req = parseExpr();
@@ -440,8 +449,17 @@ export function parse(input: string): Program {
     expect("lparen");
     const params = parseParamSigList();
     expect("rparen");
-    expect("colon");
-    const ret = parseTypeExpr();
+    // Optional return type like in func.
+    let ret: TypeExpr;
+    if (eat("colon")) {
+      if (peek("lbrace")) {
+        ret = { kind: "BasicType", name: "Unit", span: spanHere() };
+      } else {
+        ret = parseTypeExpr();
+      }
+    } else {
+      ret = { kind: "BasicType", name: "Unit", span: spanHere() };
+    }
     let contracts: { requires?: Expr; ensures?: Expr } | undefined;
     if (eat("kw_requires")) {
       const req = parseExpr();
