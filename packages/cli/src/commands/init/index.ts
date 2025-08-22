@@ -3,12 +3,7 @@ import path from "node:path";
 import { colors } from "../../term/colors.js";
 import { handleJsonOutput } from "../../utils/output.js";
 import { failUsage } from "../../utils/cli-error.js";
-import type { GlobalFlags } from "../../flags.js";
-
-export type InitFlags = GlobalFlags & {
-  yes?: boolean;
-  template?: "minimal" | "tests";
-};
+import type { InitFlags } from "./types.js";
 
 type FileSpec = { rel: string; content: string };
 
