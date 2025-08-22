@@ -19,7 +19,7 @@ ident
   = letter _ (letter / digit)*
 
 string
-  = "\"" _ (( "\\\" . / (!["\\\\"] .) ))* _ "\""
+  = "\"" _ ("\\\"" . / (!["\\"] .))* _ "\""
 
 int
   = ("-")? _ digit _ (digit)*
@@ -31,7 +31,7 @@ bool
   = "true" / "false"
 
 comment
-  = "//" _ ((!"\n" .)*)* / "/*" _ ((!"*/" .)*)*
+  = "//" _ (!"\n" .)* / "/*" _ (!"*/" .)*
 
 ws
   = (" " / "\t" / "\r" / "\n" / comment)*
@@ -40,7 +40,10 @@ File
   = ws _ (IntentSection)? _ (UsesSection)? _ (TypesSection)? _ (FuncDecl / EffectDecl / TestDecl)* _ ws
 
 IntentSection
-  = "intent" _ string _ "tags" _ "[" _ (string _ ("," _ string)*)? _ "]"
+  = "intent" _ string _ (TagList)?
+
+TagList
+  = "tags" _ "[" _ string _ ("," _ string)* _ "]"
 
 UsesSection
   = "uses" _ "{" _ ws _ (UseDecl)* _ "}"

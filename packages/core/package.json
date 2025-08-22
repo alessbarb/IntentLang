@@ -17,7 +17,8 @@
   "sideEffects": false,
   "scripts": {
     "generate:ebnf2peggy": "node ./scripts/ebnf2peggy.mjs -i grammar/intentlang.ebnf -o grammar/intentlang.peggy --auto-ws --start File",
-    "generate:all": "pnpm run generate:ebnf2peggy",
+    "generate:parser": "node --loader ts-node/esm ./scripts/generate-parser.ts",
+    "generate:all": "pnpm run generate:parser",
     "build": "pnpm run generate:all && tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json -w",
     "lint": "echo \"(add eslint later)\"",
@@ -28,7 +29,9 @@
     "@types/node": "^22.17.2",
     "@vitest/coverage-v8": "^3.2.4",
     "peggy": "^5.0.6",
+    "prettier": "2.8.8",
     "ts-node": "^10.9.2",
+    "ts-pegjs": "^4.2.1",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   }
