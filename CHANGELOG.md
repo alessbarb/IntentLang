@@ -1,3 +1,9 @@
+## [1.12.0](https://github.com/alessbarb/IntentLang/compare/v1.11.0...v1.12.0) (2025-08-22)
+
+### Features
+
+* **core:** add match guards ([39cb16e](https://github.com/alessbarb/IntentLang/commit/39cb16e9b8c8c2ade3a8360dfff2539da2a797b0))
+
 ## [1.11.0](https://github.com/alessbarb/IntentLang/compare/v1.10.0...v1.11.0) (2025-08-21)
 
 ### ⚠ BREAKING CHANGES
