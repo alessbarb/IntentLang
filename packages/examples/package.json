@@ -11,6 +11,8 @@
     "@intentlang/core": "workspace:^"
   },
   "devDependencies": {
-    "picocolors": "^1.1.1"
+    "@vitest/coverage-v8": "^3.2.4",
+    "picocolors": "^1.1.1",
+    "vitest": "^3.2.4"
   }
 }
