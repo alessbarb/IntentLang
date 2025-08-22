@@ -9,7 +9,7 @@ import {
   check as checkProgram,
   type Diagnostic,
 } from "@intentlang/core";
-import type { ProgramInfo } from "../commands/build/types.js";
+import type { ProgramInfo } from "./types.js";
 
 /** Comprueba si una ruta corresponde a un archivo `.il`. */
 export function isIlFile(p: string): boolean {
