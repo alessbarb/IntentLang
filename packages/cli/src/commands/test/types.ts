@@ -1,3 +1,6 @@
+// Refactorization Notes:
+// Removed py from target as it is not implemented.
+
 import type { GlobalFlags } from "../../flags.js";
 import type { Diagnostic as CoreDiagnostic } from "@intentlang/core";
 

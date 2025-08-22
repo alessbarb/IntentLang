@@ -1,11 +1,16 @@
+// Refactorization Notes:
+// Integrated watch mode with chokidar and used the new unified JSON output.
+
 import fs from "node:fs";
 import path from "node:path";
 import { parse, check as checkProgram } from "@intentlang/core";
 import type { GlobalFlags } from "../../flags.js";
 import { exitCodeFrom, summarize } from "../../diagnostics/exit-code.js";
 import { readStdin, checkFiles } from "./helpers.js";
-import { printCheckSummary, handleJsonOutput } from "./output.js";
+import { printCheckSummary } from "./output.js";
 import { printDiagnostics, printWatchStatus } from "../../term/output.js";
+import { handleJsonOutput } from "../../utils/output.js";
+import { setupWatcher } from "../../utils/watch.js";
 import type { Diagnostic, CacheEntry } from "./types.js";
 
 async function handleStdin(global: GlobalFlags) {
@@ -19,7 +24,14 @@ async function handleStdin(global: GlobalFlags) {
   const code = exitCodeFrom(diagnostics, { strict: global.strict });
 
   if (global.json) {
-    handleJsonOutput({ global, diagnostics, errors, warnings, code });
+    handleJsonOutput({
+      kind: "check",
+      flags: global,
+      diagnostics,
+      errors,
+      warnings,
+      code,
+    });
   } else {
     const sources = new Map([["(stdin)", src]]);
     printDiagnostics(diagnostics, sources, global.maxErrors);
@@ -28,8 +40,53 @@ async function handleStdin(global: GlobalFlags) {
   process.exitCode = code;
 }
 
-function setupWatcher(doPass: () => Promise<void>, files: string[]) {
-  // ... (sin cambios en esta función)
+async function doCheckPass(
+  files: string[],
+  global: GlobalFlags,
+  cache: Map<string, CacheEntry>,
+) {
+  const { diagnostics, files: matched, sources } = checkFiles(files, cache);
+
+  if (matched.length === 0) {
+    if (global.json) {
+      handleJsonOutput({
+        kind: "check",
+        flags: global,
+        diagnostics: [],
+        errors: 0,
+        warnings: 0,
+        code: 2,
+        message: "No files matched.",
+      });
+    } else {
+      console.error("No files matched.");
+    }
+    if (!global.watch) process.exitCode = 2;
+    return;
+  }
+
+  const { errors, warnings } = summarize(diagnostics);
+  const code = exitCodeFrom(diagnostics, { strict: global.strict });
+
+  if (global.json) {
+    handleJsonOutput({
+      kind: "check",
+      flags: global,
+      diagnostics,
+      errors,
+      warnings,
+      code,
+    });
+  } else {
+    printDiagnostics(diagnostics, sources, global.maxErrors);
+    if (!global.watch) {
+      printCheckSummary(errors, warnings, !!global.strict);
+    } else {
+      printWatchStatus({ errors, warnings, strict: !!global.strict });
+    }
+  }
+
+  if (!global.watch) process.exitCode = code;
 }
 
 export async function runCheck(files: string[], global: GlobalFlags) {
@@ -38,47 +95,9 @@ export async function runCheck(files: string[], global: GlobalFlags) {
   }
 
   const cache = new Map<string, CacheEntry>();
-
-  const doPass = async () => {
-    const { diagnostics, files: matched, sources } = checkFiles(files, cache);
-
-    if (matched.length === 0) {
-      if (global.json) {
-        handleJsonOutput({
-          global,
-          diagnostics: [],
-          errors: 0,
-          warnings: 0,
-          code: 2,
-          message: "No files matched.",
-        });
-      } else {
-        console.error("No files matched.");
-      }
-      if (!global.watch) process.exitCode = 2;
-      return;
-    }
-
-    const { errors, warnings } = summarize(diagnostics);
-    const code = exitCodeFrom(diagnostics, { strict: global.strict });
-
-    if (global.json) {
-      handleJsonOutput({ global, diagnostics, errors, warnings, code });
-    } else {
-      printDiagnostics(diagnostics, sources, global.maxErrors);
-      if (!global.watch) {
-        printCheckSummary(errors, warnings, !!global.strict);
-      } else {
-        printWatchStatus({ errors, warnings, strict: !!global.strict });
-      }
-    }
-
-    if (!global.watch) process.exitCode = code;
-  };
-
-  await doPass();
+  await doCheckPass(files, global, cache);
 
   if (global.watch) {
-    setupWatcher(doPass, files);
+    setupWatcher(files, () => doCheckPass(files, global, cache));
   }
 }

@@ -1,12 +1,13 @@
+// Refactorization Notes:
+// Used the new unified JSON output.
+
 import { initRuntime } from "@intentlang/core";
 import { exitCodeFrom, summarize } from "../../diagnostics/exit-code.js";
-import { processFiles, executeTests } from "./helpers.js";
-import {
-  printHumanResults,
-  printTestSummary,
-  handleJsonOutput,
-} from "./output.js";
+import { processFiles } from "./helpers.js";
+import { executeTests } from "./helpers.js";
+import { printHumanResults, printTestSummary } from "./output.js";
 import { printDiagnostics, printWatchStatus } from "../../term/output.js";
+import { handleJsonOutput } from "../../utils/output.js";
 import type { TestFlags } from "./types.js";
 
 export async function runTest(files: string[], flags: TestFlags) {
@@ -16,7 +17,7 @@ export async function runTest(files: string[], flags: TestFlags) {
   });
 
   const { programs, diagnostics, sources } = processFiles(files);
-  const counts = summarize(diagnostics);
+  const { errors, warnings } = summarize(diagnostics); // <-- Se desestructura el objeto aquí
   const preCode = exitCodeFrom(diagnostics, { strict: flags.strict });
 
   const isJsonOutput = flags.json || flags.reporter === "json";
@@ -27,14 +28,16 @@ export async function runTest(files: string[], flags: TestFlags) {
 
   if (isJsonOutput) {
     handleJsonOutput({
+      kind: "test",
       flags,
-      counts,
+      errors,
+      warnings,
       diagnostics,
-      results,
-      exitCode: finalExit,
+      tests: results,
+      code: finalExit,
     });
   } else {
-    printDiagnostics(diagnostics, sources);
+    printDiagnostics(diagnostics, sources, flags.maxErrors);
     printHumanResults(results);
     printTestSummary(results, diagnostics);
 
@@ -42,8 +45,8 @@ export async function runTest(files: string[], flags: TestFlags) {
       process.exitCode = finalExit;
     } else {
       printWatchStatus({
-        errors: counts.errors,
-        warnings: counts.warnings,
+        errors, // <-- Propiedad 'errors'
+        warnings, // <-- Propiedad 'warnings'
         strict: !!flags.strict,
       });
     }

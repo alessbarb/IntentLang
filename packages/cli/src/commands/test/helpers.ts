@@ -1,8 +1,12 @@
+// Refactorization Notes:
+// Replaced duplicated file processing with shared utility function.
+
 import fs from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 import _ from "lodash";
 import { parse, check as checkProgram, emitTypeScript } from "@intentlang/core";
+import { isIlFile, processFiles } from "../../utils/files.js";
 import type {
   TestFlags,
   TestResult,
@@ -10,34 +14,7 @@ import type {
   Diagnostic,
 } from "./types.js";
 
-/** Comprueba si una ruta corresponde a un archivo `.il`. */
-function isIlFile(p: string): boolean {
-  try {
-    return fs.statSync(p).isFile() && /\.il$/i.test(p);
-  } catch {
-    return false;
-  }
-}
-
-/** Lee y procesa los ficheros .il, devolviendo los programas y diagnósticos. */
-export function processFiles(files: string[]): {
-  programs: ProgramInfo[];
-  diagnostics: Diagnostic[];
-  sources: Map<string, string>;
-} {
-  const diagnostics: Diagnostic[] = [];
-  const sources = new Map<string, string>();
-  const programs = files.filter(isIlFile).map((f) => {
-    const src = fs.readFileSync(f, "utf8");
-    sources.set(f, src);
-    const program = parse(src);
-    const diags = checkProgram(program);
-    diags.forEach((d: any) => ((d as any).file = f));
-    diagnostics.push(...diags);
-    return { file: f, program };
-  });
-  return { programs, diagnostics, sources };
-}
+export { isIlFile, processFiles };
 
 /** Ejecuta los tests de los programas compilados en un sandbox. */
 export async function executeTests(

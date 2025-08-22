@@ -1,47 +1,14 @@
+// Refactorization Notes:
+// Replaced duplicated file processing with shared utility functions.
+
 import fs from "node:fs";
 import path from "node:path";
 import ts from "typescript";
-import {
-  parse,
-  check as checkProgram,
-  emitTypeScript,
-  type Diagnostic,
-} from "@intentlang/core";
+import { emitTypeScript } from "@intentlang/core";
+import { isIlFile, processFiles } from "../../utils/files.js";
 import type { ProgramInfo, BuildFlags } from "./types.js";
 
-/** Comprueba si una ruta corresponde a un archivo `.il`. */
-export function isIlFile(p: string): boolean {
-  try {
-    return fs.statSync(p).isFile() && /\.il$/i.test(p);
-  } catch {
-    return false;
-  }
-}
-
-/** Procesa los archivos de entrada, parseando y comprobando cada uno. */
-export function processFiles(files: string[]): {
-  programs: ProgramInfo[];
-  diagnostics: Diagnostic[];
-  sources: Map<string, string>;
-} {
-  const diagnostics: Diagnostic[] = [];
-  const sources = new Map<string, string>();
-  const programs = files
-    .filter(isIlFile)
-    .map((file) => {
-      const src = fs.readFileSync(file, "utf8");
-      sources.set(file, src);
-      if (/^\s*$/.test(src)) return null;
-      const program = parse(src);
-      const diags = checkProgram(program);
-      diags.forEach((d: any) => ((d as any).file = file));
-      diagnostics.push(...diags);
-      return { file, program };
-    })
-    .filter((p): p is ProgramInfo => p !== null);
-
-  return { programs, diagnostics, sources };
-}
+export { isIlFile, processFiles };
 
 /** Escribe los archivos de salida (TS o JS) en el directorio de destino. */
 export function emitFiles(
