@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.2.0...@intentlang/cli-v1.3.0) (2025-08-22)
+
+### Features
+
+* **cli:** accept [files...] in subcommands and unify JSON output ([fab1ca2](https://github.com/alessbarb/IntentLang/commit/fab1ca2c95554913d110a637fbece139d8580f75))
+
 ## [1.2.0](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.1.0...@intentlang/cli-v1.2.0) (2025-08-21)
 
 ### Features
