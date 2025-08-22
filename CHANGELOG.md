@@ -1,3 +1,19 @@
+## [1.14.0](https://github.com/alessbarb/IntentLang/compare/v1.13.2...v1.14.0) (2025-08-22)
+
+### Features
+
+* **@intentlang/cli:** new init feature to begin an IntentLang project ([6630e81](https://github.com/alessbarb/IntentLang/commit/6630e813645f09c9890b9947993f3a1648144839))
+* **core/diagnostics:** extend diagnostic definitions and codes ([c26782b](https://github.com/alessbarb/IntentLang/commit/c26782b5f20a807b2d551cd15ebc6f28958a77b0))
+* **core:** make intent tags optional ([2c78e9d](https://github.com/alessbarb/IntentLang/commit/2c78e9d0d98931911ac3b06db40bfd9dbd75f741))
+
+### Bug Fixes
+
+* **examples:** adjust golden script for updated parser behavior ([2f9c85f](https://github.com/alessbarb/IntentLang/commit/2f9c85f3a74990c046d492b9599ec80901b816ea))
+
+### Refactors
+
+* **core/ast:** unify AST definitions with Node<K> base and clean duplicates ([dbab610](https://github.com/alessbarb/IntentLang/commit/dbab610e7af150417c4db74ab734f8da25fc7eff))
+
 ## [Unreleased]
 
 ### Docs
