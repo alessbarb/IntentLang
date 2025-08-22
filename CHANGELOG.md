@@ -1,3 +1,9 @@
+## [1.13.2](https://github.com/alessbarb/IntentLang/compare/v1.13.1...v1.13.2) (2025-08-22)
+
+### Bug Fixes
+
+* **core+examples:** repair parser lookahead, Fixed2 builtin, and example casts ([b293d8a](https://github.com/alessbarb/IntentLang/commit/b293d8a397c857227207877a0c578456b9cc5703))
+
 ## [1.13.1](https://github.com/alessbarb/IntentLang/compare/v1.13.0...v1.13.1) (2025-08-22)
 
 ### Bug Fixes
