@@ -141,4 +141,19 @@ export const DIAGNOSTICS = {
     message:
       "Effect '{effect}' uses capability '{cap}' but it is not listed in 'uses' for this effect.",
   },
+
+  // ILC040x: CLI errors
+  ILC0401: {
+    level: "error",
+    message:
+      "Unknown flag or invalid combination of flags '{flags}' in 'uses' declaration.",
+  },
+  ILC0402: {
+    level: "error",
+    message: "File not found or empty pattern.",
+  },
+  ILC0403: {
+    level: "error",
+    message: "Invalid configuration file.",
+  },
 } as const satisfies Record<string, DiagnosticDef>;
