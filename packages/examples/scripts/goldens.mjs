@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { resolve, basename } from "node:path";
 import pc from "picocolors";
-import { parse, check, emitTypeScript } from "@il/core";
+import { parse, check, emitTypeScript } from "@intentlang/core";
 
 const ROOT = resolve(process.cwd(), "..", "..");
 const EXAMPLES = resolve(ROOT, "packages/examples");
