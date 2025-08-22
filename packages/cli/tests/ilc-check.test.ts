@@ -16,6 +16,13 @@ spawnSync("pnpm", ["--filter", "@intentlang/entlang/cli", "build"], {
 });
 
 const cliPath = fileURLToPath(new URL("../dist/index.js", import.meta.url));
+const tagless = fileURLToPath(new URL("./fixtures/tagless.il", import.meta.url));
+
+test("intent check command without tags", () => {
+  const res = spawnSync("node", [cliPath, "check", tagless], { encoding: "utf8" });
+  expect(res.status).toBe(0);
+  expect(res.stdout).toMatch(/Check passed/);
+});
 
 test("intent check command", () => {
   const tmp = mkdtempSync(join(tmpdir(), "intent-check-"));
