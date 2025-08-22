@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Docs
+
+- document optional `intent` tags in grammar and guides.
+
 ## [1.13.2](https://github.com/alessbarb/IntentLang/compare/v1.13.1...v1.13.2) (2025-08-22)
 
 ### Bug Fixes

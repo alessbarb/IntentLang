@@ -2,16 +2,16 @@
 
 An `.il` file must follow this order of sections:
 
-1. `intent` – describes the service and its tags.
+1. `intent` – describes the service and optionally its tags.
 2. `uses` – declares external capabilities.
 3. `types` – defines domain types.
 4. `func` – pure functions.
 5. `effect` – functions with effects.
 
-Minimal example:
+Tags are optional; the example below omits the `tags` clause. Add them with `tags ["demo"]` when needed.
 
 ```intentlang
-intent "Ping" tags ["demo"]
+intent "Ping"
 
 uses {
   clock: Clock {}

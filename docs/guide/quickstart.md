@@ -13,10 +13,10 @@ pnpm install
 
 ## Create a simple service
 
-Create `user_service.il` with the following content:
+Create `user_service.il` with the following content. The `tags` clause is optional and omitted here.
 
 ```intentlang
-intent "User service" tags ["api", "users"]
+intent "User service"
 
 uses {
   http: Http { baseUrl: "https://api.example.com", timeoutMs: 2500 },
@@ -46,6 +46,8 @@ effect createUser(input: CreateUserInput): ResultUser uses http, clock
 
 test create_user { let now = clock.now(); }
 ```
+
+If needed, add tags after the service name, e.g. `intent "User service" tags ["api", "users"]`.
 
 ## Validate the file
 

@@ -44,7 +44,7 @@ File            = ws ,
 ## Sections
 
 ```ebnf
-IntentSection   = "intent" , string , "tags" , "[" , [ string , { "," , string } ] , "]" ;
+IntentSection   = "intent" , string , [ "tags" , "[" , string , { "," , string } , "]" ] ;
 
 UsesSection     = "uses" , "{" , ws , { UseDecl } , "}" ;
 UseDecl         = ident , ":" , ident , [ RecordExpr ] , [","] ;
