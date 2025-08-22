@@ -1,3 +1,14 @@
+## [1.15.0](https://github.com/alessbarb/IntentLang/compare/v1.14.0...v1.15.0) (2025-08-22)
+
+### Features
+
+* **core/grammar:** add Peggy grammar and EBNF→Peggy converter; keep EBNF in sync ([b23e4f7](https://github.com/alessbarb/IntentLang/commit/b23e4f7e1a898698fe072b2c6a37818db3237dcd))
+
+### Refactors
+
+* **cli:** unify helpers and tighten command wiring for build/check/test ([a2b6d8d](https://github.com/alessbarb/IntentLang/commit/a2b6d8de7a74f6cecf4364508d86e6d87926cd99))
+* **cli:** unify helpers and tighten command wiring for init ([2b6f622](https://github.com/alessbarb/IntentLang/commit/2b6f6221004d4cb8e75fa175099016fe7a8ecd1b))
+
 ## [1.14.0](https://github.com/alessbarb/IntentLang/compare/v1.13.2...v1.14.0) (2025-08-22)
 
 ### Features
