@@ -1,3 +1,13 @@
+## [1.1.0](https://github.com/alessbarb/IntentLang/compare/@intentlang/core-v1.0.0...@intentlang/core-v1.1.0) (2025-08-22)
+
+### Features
+
+* **core:** add match guards ([39cb16e](https://github.com/alessbarb/IntentLang/commit/39cb16e9b8c8c2ade3a8360dfff2539da2a797b0))
+
+### Bug Fixes
+
+* formats and error in package name ([132729c](https://github.com/alessbarb/IntentLang/commit/132729c3b57f3a45800d1ab0ef68bb934cf64091))
+
 ## 1.0.0 (2025-08-21)
 
 ### ⚠ BREAKING CHANGES
