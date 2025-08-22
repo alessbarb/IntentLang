@@ -37,7 +37,7 @@ func add(a: Int, b: Int): Int
   ensures _ >= a && _ >= b
 { return a + b; }
 
-test add_works { let r = random.int(); }
+test add_works { const r = random.int(); }
 ```
 
 ### For loops

@@ -13,9 +13,9 @@ func add(a: Int, b: Int): Int
 effect rollDie(): Int uses random { }
 
 test deterministic {
-  let sum = add(2, 3);
-  let r1 = rollDie();
-  let r2 = rollDie();
+  const sum = add(2, 3);
+  const r1 = rollDie();
+  const r2 = rollDie();
   // assertions will come in future versions
 }
 ```
