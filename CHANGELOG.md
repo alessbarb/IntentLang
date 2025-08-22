@@ -1,3 +1,17 @@
+## [1.13.0](https://github.com/alessbarb/IntentLang/compare/v1.12.0...v1.13.0) (2025-08-22)
+
+### Features
+
+* **cli:** accept [files...] in subcommands and unify JSON output ([fab1ca2](https://github.com/alessbarb/IntentLang/commit/fab1ca2c95554913d110a637fbece139d8580f75))
+
+### Bug Fixes
+
+* cli types ([9f4854e](https://github.com/alessbarb/IntentLang/commit/9f4854eb96de733573555e146d2c1505f5fc07ee))
+
+### Refactors
+
+* common utilities in cli ([d832e9a](https://github.com/alessbarb/IntentLang/commit/d832e9a13228562f8e5859345e74bc713350dc92))
+
 ## [1.12.0](https://github.com/alessbarb/IntentLang/compare/v1.11.0...v1.12.0) (2025-08-22)
 
 ### Features
