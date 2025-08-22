@@ -1,5 +1,6 @@
 import { test, expect } from "vitest";
 import { parse } from "../src/parser.js";
+import { check } from "../src/checker.js";
 
 test("parses a function with multiple statements and a match expression", () => {
   const il = `
@@ -15,7 +16,9 @@ test("parses a function with multiple statements and a match expression", () => 
     }
   `;
   const program = parse(il);
-  const funcDecl = program.items.find(i => i.kind === "FuncDecl");
+  const diags = check(program);
+  expect(diags).toHaveLength(0);
+  const funcDecl = program.items.find((i) => i.kind === "FuncDecl");
   expect(funcDecl).toBeDefined();
   expect((funcDecl as any).body.statements).toHaveLength(2);
 });
