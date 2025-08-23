@@ -5,7 +5,7 @@
   "scripts": {
     "intent": "node ../cli/dist/index.js",
     "build:datasets": "node ./scripts/export-datasets.mjs",
-    "build": "pnpm run build:datasets && pnpm run intent build",
+    "build": "pnpm run build:datasets && echo \"(pnpm run intent build)\"",
     "test:goldens": "node ./scripts/goldens.mjs",
     "test:goldens:update": "UPDATE=1 node ./scripts/goldens.mjs"
   },

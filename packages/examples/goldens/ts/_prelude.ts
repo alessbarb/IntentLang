@@ -1,6 +1,8 @@
 // _prelude.ts
 export type Brand<B extends string> = { readonly __brand: B };
 export type Result<T, E> = { type: "Ok"; value: T } | { type: "Err"; error: E };
+export type Option<T> = { kind: "some"; value: T } | { kind: "none" };
+export type Capabilities = {};
 
 export function fixed2Mul(
   a: number & Brand<"Fixed2">,
