@@ -10,6 +10,7 @@
     "test:core": "pnpm --filter @intentlang/core test",
     "test:cli": "pnpm --filter @intentlang/cli test",
     "typecheck": "pnpm -r run typecheck",
+    "generate": "pnpm --filter @intentlang/core run generate",
     "intent": "node packages/cli/dist/index.js"
   },
   "bin": {
