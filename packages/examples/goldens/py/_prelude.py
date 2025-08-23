@@ -3,12 +3,11 @@
 # DO NOT EDIT MANUALLY
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import TypeVar, Generic, Union, Optional, NewType, Literal
-from datetime import datetime
+from typing import TypeVar, Generic, Union
 
-# --- Preludio de Tipos ---
-T = TypeVar('T')
-E = TypeVar('E')
+# --- Type Prelude ---
+T = TypeVar("T")
+E = TypeVar("E")
 
 @dataclass
 class Ok(Generic[T]):
@@ -20,7 +19,7 @@ class Err(Generic[E]):
 
 Result = Union[Ok[T], Err[E]]
 
-# --- Capacidades (stubs) ---
+# --- Capabilities (stubs) ---
 @dataclass
 class Http:
     base_url: str
