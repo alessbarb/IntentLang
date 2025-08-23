@@ -32,42 +32,25 @@ pnpm --filter @intentlang/core test     # run unit tests
 
 ### Grammar Workflow (EBNF → ANTLR → TS)
 
-The grammar is maintained in **EBNF** (`grammar/intentlang.ebnf`) as the single
-source of truth.
-
-1. **Generate ANTLR grammar (`.g4`)**
+The grammar is maintained in **EBNF** (`grammar/IntentLang.ebnf`) as the single
+source of truth. Regenerate parser and AST helpers with:
 
 ```bash
-pnpm --filter @intentlang/core run generate:g4
+pnpm --filter @intentlang/core run generate
 ```
 
-Creates `grammar/intentlang.g4`.
+This command:
 
-2. **Generate TypeScript parser/lexer/visitor**
+1. Converts `grammar/IntentLang.ebnf` to `grammar/IntentLang.g4`.
+2. Runs `antlr4ts` and outputs to `src/generated/grammar`.
+3. Applies `scripts/patch-antlr-esm.mjs` on the generated files.
+4. Regenerates `visitor.gen.ts` and `nodes.gen.ts`.
+5. Formats results using `intent fmt`.
 
-```bash
-pnpm --filter @intentlang/core run generate:antlr
-```
-
-Runs `antlr4ts-cli` and writes outputs under `src/generated/grammar/`.
-Then `scripts/patch-antlr-esm.mjs` post-processes:
-
-- Adds `.js` to relative imports (NodeNext/ESM).
-- Fixes deep imports: `antlr4ts/foo` → `antlr4ts/foo.js`.
-- Replaces `tryGetToken` → `getToken` (compat with `antlr4ts@0.5.0-alpha.4`).
-- Applies `import type` where required.
-- Forces `Token` and `ParserRuleContext` to be imported as **values**, not types.
-
-3. **Build**
+After generation, compile TypeScript with:
 
 ```bash
 pnpm --filter @intentlang/core build
-```
-
-💡 Shortcut:
-
-```bash
-pnpm --filter @intentlang/core run generate:all
 ```
 
 ---
@@ -83,8 +66,8 @@ flowchart LR
   E[Generated ESM TS\nsrc/generated/grammar/*]
   F[TS Build\n(dist/*)]
 
-  A -- pnpm generate:g4 --> B
-  B -- pnpm generate:antlr --> C
+  A -- pnpm generate --> B
+  B -- pnpm generate --> C
   C -- outputs --> E
   E -- post-process --> D
   D -- fixes imports & types --> E
@@ -176,20 +159,8 @@ flowchart LR
 
 ## Useful Scripts
 
-- Regenerate everything and build:
+- Regenerate grammar, parser and AST helpers:
 
 ```bash
-pnpm --filter @intentlang/core run generate:all && pnpm --filter @intentlang/core build
-```
-
-- Only regenerate ANTLR and patch:
-
-```bash
-pnpm --filter @intentlang/core run generate:antlr
-```
-
-- Only regenerate `.g4` from EBNF:
-
-```bash
-pnpm --filter @intentlang/core run generate:g4
+pnpm --filter @intentlang/core run generate
 ```
