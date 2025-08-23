@@ -30,6 +30,20 @@ pnpm --filter @intentlang/core build    # compile TypeScript
 pnpm --filter @intentlang/core test     # run unit tests
 ```
 
+### When to run `pnpm run generate`
+
+Run `pnpm run generate` after modifying the grammar or generation scripts. It
+regenerates ANTLR artifacts and verifies that any `*.manual.ts` files remain
+unchanged, aborting if they differ.
+
+Once generation completes, run the test suite. `generation.spec.ts` checks that
+every grammar rule has a corresponding `visitX` method and context node in the
+generated sources. Failing tests indicate the grammar and generated files are
+out of sync.
+
+Skipping this step risks committing stale parser code or overwriting manual
+patches, leading to confusing build or runtime errors.
+
 ### Grammar Workflow (EBNF → ANTLR → TS)
 
 The grammar is maintained in **EBNF** (`grammar/intentlang.ebnf`) as the single

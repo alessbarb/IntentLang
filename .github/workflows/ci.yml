@@ -28,9 +28,19 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Generate
+        run: pnpm run generate
+      - name: Typecheck
+        run: pnpm -w typecheck
       - name: Lint
         run: pnpm lint
-      - name: Test
-        run: pnpm test
       - name: Build
         run: pnpm build
+      - name: intent check
+        run: pnpm intent check
+      - name: intent test
+        run: pnpm intent test
+      - name: Unit tests
+        run: pnpm test
+      - name: Ensure generated artifacts committed
+        run: git diff --exit-code
