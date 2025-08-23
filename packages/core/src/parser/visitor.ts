@@ -51,7 +51,7 @@ import type {
   VariantPattern,
   LiteralPattern,
   Span,
-} from "../ast.js";
+} from "../ast/index.js";
 
 import type { Token } from "antlr4ts/Token.js";
 import type {

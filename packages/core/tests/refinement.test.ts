@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { parse } from "../src/parser.js";
+import { parse } from "../src/parser/index.js";
 
 test("accepts function call refinements", () => {
   const il = `types { type Email = String where matches("foo"); }`;

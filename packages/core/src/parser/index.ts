@@ -6,7 +6,7 @@ import type {
   IntentSection,
   UsesSection,
   TypesSection,
-} from "../ast.js";
+} from "../ast/index.js";
 
 import { CharStreams } from "antlr4ts/CharStreams.js";
 import { CommonTokenStream } from "antlr4ts/CommonTokenStream.js";
