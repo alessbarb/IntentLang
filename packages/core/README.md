@@ -3,6 +3,19 @@
 Core libraries for **IntentLang**: parser, AST, type checker, transpiler, and
 runtime helpers used by the CLI.
 
+## Generación automática
+
+Ejecuta `pnpm run generate` para regenerar los artefactos derivados. Este
+comando actualiza:
+
+- `grammar/IntentLang.g4`
+- Archivos de gramática en `src/generated/grammar/` como
+  `IntentLangParser.ts`, `IntentLangLexer.ts` y `IntentLangVisitor.ts`
+- Los archivos `src/nodes.gen.ts` y `src/visitor.gen.ts`
+
+Incluye estos archivos generados en los commits para mantener el repositorio
+consistente.
+
 ## Usage
 
 ```ts

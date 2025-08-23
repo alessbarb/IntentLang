@@ -31,6 +31,7 @@ Refer first to the [repository-wide guide](../../AGENTS.md). This file adds rule
 
 ## PR checklist (Core)
 
+- [ ] `pnpm run generate` executed.
 - [ ] `pnpm -w build` passes.
 - [ ] `intent check` on examples (if touched) passes.
 - [ ] Tests for lexer/parser/checker/transpiler added.
