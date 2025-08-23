@@ -1,3 +1,5 @@
+// @manual: Hand-written visitor logic, do not overwrite.
+
 import type {
   Program,
   IntentSection,
@@ -54,16 +56,10 @@ import type {
 } from "../ast.js";
 
 import type { Token } from "antlr4ts/Token.js";
-import type {
-  IntentLangVisitor,
-  // importa aquí los tipos de Context que uses explícitamente si te ayudan
-} from "../generated/grammar/IntentLangVisitor.js";
-
 import type { ParserRuleContext } from "antlr4ts/ParserRuleContext.js";
-
 import { TerminalNode } from "antlr4ts/tree/TerminalNode.js";
-
 import { ErrorNode } from "antlr4ts/tree/ErrorNode.js";
+import { AstBuilderVisitorBase } from "./visitor.gen.js";
 
 // Utilidades para Span a partir de ctx/tokens
 function spanFromCtx(ctx: ParserRuleContext): Span {
@@ -114,7 +110,7 @@ const BIN_OPS: Record<string, BinaryExpr["op"]> = {
 
 const ASSIGN_OPS = new Set(["=", "+=", "-=", "*=", "/=", "%="]);
 
-export class AstBuilderVisitor implements IntentLangVisitor<any> {
+export class AstBuilderVisitor extends AstBuilderVisitorBase {
   // ---- Helpers ----
   visit(ctx: any): any {
     return ctx.accept(this);

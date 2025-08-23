@@ -17,7 +17,7 @@ import {
   type ProgramContext,
 } from "../generated/grammar/IntentLangParser.js";
 
-import { AstBuilderVisitor } from "./visitor.js";
+import { AstBuilderVisitor } from "./visitor.manual.js";
 
 export function parse(input: string): Program {
   // 1) CharStream -> Lexer -> Tokens -> Parser
