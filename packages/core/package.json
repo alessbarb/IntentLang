@@ -16,8 +16,8 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "generate:g4": "node ./scripts/ebnf2g4.mjs -i grammar/intentlang.ebnf -o grammar/intentlang.g4 --grammar intentlang",
-    "generate:antlr": "npx antlr4ts-cli -visitor -o ./src/generated/grammar ./grammar/intentlang.g4 && node ./scripts/patch-antlr-esm.mjs ./src/generated/grammar",
+    "generate:g4": "node ./scripts/ebnf2g4.mjs -i ./grammar/IntentLang.ebnf -o ./grammar/IntentLang.g4 --grammar IntentLang",
+    "generate:antlr": "npx antlr4ts-cli -visitor -o ./src/generated ./grammar/IntentLang.g4 && node ./scripts/patch-antlr-esm.mjs ./src/generated/",
     "generate:all": "pnpm run generate:g4 && pnpm run generate:antlr",
     "build": "pnpm run generate:all && tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json -w",
