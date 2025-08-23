@@ -16,8 +16,9 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "generate:ebnf2peggy": "node ./scripts/ebnf2peggy.mjs -i grammar/intentlang.ebnf -o grammar/intentlang.peggy --auto-ws --start File",
-    "generate:all": "pnpm run generate:ebnf2peggy",
+    "generate:g4": "node ./scripts/ebnf2g4.mjs -i grammar/intentlang.ebnf -o grammar/intentlang.g4 --grammar intentlang",
+    "generate:antlr": "npx antlr4ts-cli -visitor -o ./src/generated/grammar ./grammar/intentlang.g4 && node ./scripts/patch-antlr-esm.mjs ./src/generated/grammar",
+    "generate:all": "pnpm run generate:g4 && pnpm run generate:antlr",
     "build": "pnpm run generate:all && tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json -w",
     "lint": "echo \"(add eslint later)\"",
@@ -27,9 +28,11 @@
   "devDependencies": {
     "@types/node": "^22.17.2",
     "@vitest/coverage-v8": "^3.2.4",
-    "peggy": "^5.0.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "antlr4ts": "0.5.0-alpha.4"
   }
 }
