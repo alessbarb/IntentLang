@@ -1,3 +1,10 @@
+## [1.16.0](https://github.com/alessbarb/IntentLang/compare/v1.15.0...v1.16.0) (2025-08-23)
+
+### Features
+
+* **core/grammar:** migrate to ANTLR — add .g4 and generator scripts; drop Peggy; update EBNF ([528d24c](https://github.com/alessbarb/IntentLang/commit/528d24c1abe087466853e4ea3b654bc296633e11))
+* **core/parser:** replace Peggy parser with ANTLR-based module and generated grammar; update exports ([1cc8ff6](https://github.com/alessbarb/IntentLang/commit/1cc8ff63c6e6712f3100bdd2fce155556f78afc5))
+
 ## [1.15.0](https://github.com/alessbarb/IntentLang/compare/v1.14.0...v1.15.0) (2025-08-22)
 
 ### Features
