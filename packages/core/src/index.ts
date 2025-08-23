@@ -1,7 +1,7 @@
 /**
  * Public API surface for the core IntentLang library.
  */
-export * as AST from "./ast.js";
+export * as AST from "./ast/index.js";
 export { parse } from "./parser/index.js";
 export { check } from "./checker.js";
 export type { Diagnostic } from "./checker.js";

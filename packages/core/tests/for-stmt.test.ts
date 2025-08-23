@@ -1,6 +1,6 @@
 import { test, expect } from "vitest";
 import { emitTypeScript } from "../src/transpilers/typescript.js";
-import { parse } from "../src/parser.js";
+import { parse } from "../src/parser/index.js";
 import { check } from "../src/checker.js";
 import type { Program, Span } from "../src/ast.js";
 

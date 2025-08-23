@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { parse } from "../src/parser.js";
+import { parse } from "../src/parser/index.js";
 import { check } from "../src/checker.js";
 
 test("checks for exhaustive match on literal unions", () => {

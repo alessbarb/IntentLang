@@ -1,6 +1,6 @@
 import { test, expect } from "vitest";
 import { lex } from "../src/lexer.js";
-import { parse } from "../src/parser.js";
+import { parse } from "../src/parser/index.js";
 
 test("lexes extended operators", () => {
   const tokens = lex("a+=1; b--; c&d | e ^ ~f << 1 >> 2 ? g : h");

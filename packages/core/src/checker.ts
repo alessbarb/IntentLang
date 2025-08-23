@@ -28,7 +28,7 @@ import type {
   LiteralPattern,
   MatchStmt,
   ForStmt,
-} from "./ast.js";
+} from "./ast/index.js";
 import { DIAGNOSTICS } from "./diagnostics.js";
 
 /* Diagnostics */
