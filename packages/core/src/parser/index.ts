@@ -11,20 +11,20 @@ import type {
 import { CharStreams } from "antlr4ts/CharStreams.js";
 import { CommonTokenStream } from "antlr4ts/CommonTokenStream.js";
 
-import { intentlangLexer } from "../generated/grammar/intentlangLexer.js";
+import { IntentLangLexer } from "../generated/grammar/IntentLangLexer.js";
 import {
-  intentlangParser,
+  IntentLangParser,
   type ProgramContext,
-} from "../generated/grammar/intentlangParser.js";
+} from "../generated/grammar/IntentLangParser.js";
 
 import { AstBuilderVisitor } from "./visitor.js";
 
 export function parse(input: string): Program {
   // 1) CharStream -> Lexer -> Tokens -> Parser
   const inputStream = CharStreams.fromString(input);
-  const lexer = new intentlangLexer(inputStream);
+  const lexer = new IntentLangLexer(inputStream);
   const tokenStream = new CommonTokenStream(lexer);
-  const parser = new intentlangParser(tokenStream);
+  const parser = new IntentLangParser(tokenStream);
 
   // 2) Regla inicial (ajústala si tu start rule tiene otro nombre)
   const tree: ProgramContext = parser.program();

@@ -55,9 +55,9 @@ import type {
 
 import type { Token } from "antlr4ts/Token.js";
 import type {
-  intentlangVisitor,
+  IntentLangVisitor,
   // importa aquí los tipos de Context que uses explícitamente si te ayudan
-} from "../generated/grammar/intentlangVisitor.js";
+} from "../generated/grammar/IntentLangVisitor.js";
 
 import type { ParserRuleContext } from "antlr4ts/ParserRuleContext.js";
 
@@ -114,7 +114,7 @@ const BIN_OPS: Record<string, BinaryExpr["op"]> = {
 
 const ASSIGN_OPS = new Set(["=", "+=", "-=", "*=", "/=", "%="]);
 
-export class AstBuilderVisitor implements intentlangVisitor<any> {
+export class AstBuilderVisitor implements IntentLangVisitor<any> {
   // ---- Helpers ----
   visit(ctx: any): any {
     return ctx.accept(this);
