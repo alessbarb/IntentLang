@@ -1,3 +1,12 @@
+## [1.6.0](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.5.0...@intentlang/cli-v1.6.0) (2025-08-23)
+
+### Features
+
+* **core/grammar:** add Peggy grammar and EBNF→Peggy converter; keep EBNF in sync ([b23e4f7](https://github.com/alessbarb/IntentLang/commit/b23e4f7e1a898698fe072b2c6a37818db3237dcd))
+* **core/grammar:** migrate to ANTLR — add .g4 and generator scripts; drop Peggy; update EBNF ([528d24c](https://github.com/alessbarb/IntentLang/commit/528d24c1abe087466853e4ea3b654bc296633e11))
+* **core/parser:** replace Peggy parser with ANTLR-based module and generated grammar; update exports ([1cc8ff6](https://github.com/alessbarb/IntentLang/commit/1cc8ff63c6e6712f3100bdd2fce155556f78afc5))
+* **core:** make intent tags optional ([2c78e9d](https://github.com/alessbarb/IntentLang/commit/2c78e9d0d98931911ac3b06db40bfd9dbd75f741))
+
 ## [1.5.0](https://github.com/alessbarb/IntentLang/compare/@intentlang/cli-v1.4.0...@intentlang/cli-v1.5.0) (2025-08-22)
 
 ### Features
