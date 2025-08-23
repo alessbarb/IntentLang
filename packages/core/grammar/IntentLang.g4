@@ -1,4 +1,4 @@
-grammar intentlang;
+grammar IntentLang;
 
 /*
  * Parser rules

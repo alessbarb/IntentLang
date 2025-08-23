@@ -9,14 +9,14 @@
  *   the classic `" came as a complete surprise to me` errors.
  *
  * Usage:
- *   node ./scripts/ebnf2g4.mjs -i grammar/intentlang.ebnf -o grammar/intentlang.g4 --grammar intentlang
+ *   node ./scripts/ebnf2g4.mjs -i grammar/IntentLang.ebnf -o grammar/IntentLang.g4 --grammar IntentLang
  */
 
 import fs from "node:fs";
 import path from "node:path";
 
 function parseArgs(argv) {
-  const args = { i: null, o: null, grammar: "intentlang" };
+  const args = { i: null, o: null, grammar: "IntentLang" };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if ((a === "-i" || a === "--input") && argv[i + 1]) args.i = argv[++i];

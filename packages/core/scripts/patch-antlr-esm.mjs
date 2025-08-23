@@ -25,8 +25,8 @@ const TYPE_ONLY_NAMES = new Set([
   "TerminalNode",
   "ParseTree",
   // locales generados (interfaces)
-  "intentlangListener",
-  "intentlangVisitor",
+  "IntentLangListener",
+  "IntentLangVisitor",
 ]);
 // ¡OJO! Estos dos se usan como valores:
 const FORCE_VALUE_IMPORT = new Set(["Token", "ParserRuleContext"]);
@@ -74,7 +74,7 @@ function patchTypeOnlyImports(src) {
 
   // b) locales relativos listener/visitor -> type
   src = src.replace(
-    /(^|\n)\s*import\s*\{\s*(intentlangListener|intentlangVisitor)\s*\}\s*from\s*["'](\.\/[^"']+)["'];?/g,
+    /(^|\n)\s*import\s*\{\s*(IntentLangListener|IntentLangVisitor)\s*\}\s*from\s*["'](\.\/[^"']+)["'];?/g,
     (full, lead, name, spec) =>
       `${lead}import type { ${name} } from "${spec}";`,
   );
