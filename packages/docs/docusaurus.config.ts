@@ -2,7 +2,7 @@ import { themes as prismThemes } from "prism-react-renderer";
 import type { Config } from "@docusaurus/types";
 
 const config: Config = {
-  title: "Intent Lang Docs",
+  title: "IntentLang Docs",
   url: "https://your-domain",
   baseUrl: "/",
   favicon: "img/favicon.ico",
@@ -24,6 +24,11 @@ const config: Config = {
     navbar: {
       title: "Intent Lang",
       items: [
+        {
+          to: "/docs/handbook/from-scratch",
+          label: "From Scratch",
+          position: "left",
+        },
         {
           to: "/docs/reference/compiler-options",
           label: "Compiler Options",
