@@ -12,22 +12,21 @@ of IntentLang easier to scan.
 ## Lexical
 
 ```ebnf
-UpperLetter     = ? an uppercase letter from 'A' to 'Z' ? ;
-LowerLetter     = ? a lowercase letter from 'a' to 'z' ? ;
-DigitChar       = ? a digit from '0' to '9' ? ;
+UpperLetter     = "A" .. "Z" ;
+LowerLetter     = "a" .. "z" ;
+DigitChar       = "0" .. "9" ;
 
-letter          = UpperLetter | LowerLetter | "_" ;
-digit           = DigitChar ;
-ident           = letter , { letter | digit } ;
+letter          = UpperLetter | LowerLetter | "_" ;
+digit           = DigitChar ;
+ident           = letter { letter | digit } ;
 
-string          = '"' , { ? any string character, including escapes ? } , '"' ;
-int             = ["-"] , digit , { digit } ;
-float           = ["-"] , digit , { digit } , "." , digit , { digit } ;
-bool            = "true" | "false" ;
+string          = '"' { ~'"' | '\' . } '"' ;
+int             = ["-"] digit { digit } ;
+float           = ["-"] digit { digit } "." digit { digit } ;
+bool            = "true" | "false" ;
 
-comment         = "//" , { ? any character until end of line ? }
-                | "/*" , { ? any character until "*/" ? } ;
-ws              = { " " | "\t" | "\r" | "\n" | comment } ;
+comment         = "//" { ~"\n" } | "/*" { ~"*/" } "*/" ;
+ws              = { " " | "\t" | "\r" | "\n" | comment } ;
 ```
 
 ## File
@@ -48,10 +47,10 @@ IntentSection   = "intent" , string , [ TagList ] ;
 TagList         = "tags" , "[" , string , { "," , string } , "]" ;
 
 UsesSection     = "uses" , "{" , ws , { UseDecl } , "}" ;
-UseDecl         = ident , ":" , ident , [ RecordExpr ] , [","] ;
+UseDecl         = ident , ":" , ident , [ ObjectExpr ] , [","] ;
 
 TypesSection    = "types" , "{" , ws , { TypeDecl } , "}" ;
-TypeDecl        = "type" , ident , "=" , TypeExpr , [";" | ","] ;
+TypeDecl        = "type" , ident , "=" , TypeExpr , [ "where" , RefinementExpr ] , [";" | ","] ;
 ```
 
 ## Type Expressions
@@ -80,7 +79,6 @@ FunctionCall    = ident , "(" , string , ")" ;
 Comparison      = Accessor , CompareOp , Literal ;
 Accessor        = "_" , [ "." , ident ] ;
 CompareOp       = "==" | "!=" | ">=" | "<=" | ">" | "<" ;
-Literal         = number | string ;
 
 GenericType     = ident , "<" , TypeExpr , { "," , TypeExpr } , ">" ;
 BrandType       = BasicType , "brand" , string ;

@@ -96,12 +96,12 @@ function detectLeftRecursion(lines) {
 }
 
 function buildGrammar(grammarName) {
-  // Stable hand-tuned grammar (parser + lexer).
-  // You can extend safely without breaking ANTLR.
   return `grammar ${grammarName};
 
 /*
- * Parser rules
+ * ===============================
+ * ========== Parser =============
+ * ===============================
  */
 
 file
@@ -109,11 +109,31 @@ file
   ;
 
 program
-  : intentSection? usesSection? typesSection? item*
+  : moduleHeader? importDecl* intentSection? usesSection? typesSection? topLevelDecl*
   ;
 
+/* ---------- Modules & Imports ---------- */
+
+moduleHeader
+  : MODULE modulePath (AS IDENT)? SEMI?
+  ;
+
+modulePath
+  : IDENT (DOT IDENT)*
+  ;
+
+importDecl
+  : IMPORT (importList FROM modulePath | modulePath) (AS IDENT)? SEMI?
+  ;
+
+importList
+  : LBRACE IDENT (COMMA IDENT)* COMMA? RBRACE
+  ;
+
+/* ---------- Sections ---------- */
+
 intentSection
-  : INTENT stringLiteral TAGS tagList
+  : INTENT stringLiteral (TAGS tagList)?
   ;
 
 tagList
@@ -124,20 +144,18 @@ usesSection
   : USES LBRACE useDecl* RBRACE
   ;
 
+useDecl
+  : IDENT COLON IDENT objectExpr? COMMA?
+  ;
+
 typesSection
   : TYPES LBRACE typeDecl* RBRACE
   ;
 
-/* ---- Uses ---- */
-
-useDecl
-  : IDENT (AS IDENT)? (COLON IDENT)? (LBRACE RBRACE)? (SEMI)?
-  ;
-
-/* ---- Types ---- */
+/* ---------- Types ---------- */
 
 typeDecl
-  : TYPEKW IDENT ASSIGN typeExpr (SEMI)?
+  : TYPEKW IDENT ASSIGN typeExpr (WHERE refinementExpr)? (SEMI | COMMA)?
   ;
 
 typeExpr
@@ -145,55 +163,124 @@ typeExpr
   ;
 
 unionType
-  : typeAtom (OR typeAtom)*
+  : (OR)? unionCtor (OR unionCtor)*
   ;
 
-typeAtom
-  : namedType
+unionCtor
+  : IDENT recordType?
+  | stringLiteral
+  ;
+
+nonUnionType
+  : recordType
+  | genericType
+  | brandType
+  | funcType
+  | arrayType
+  | mapType
+  | typeRef
+  | basicType
   | literalType
-  | recordType
-  | tupleType
+  ;
+
+typeRef
+  : IDENT
   | LPAREN typeExpr RPAREN
   ;
 
-namedType
-  : IDENT (LT typeExpr (COMMA typeExpr)* GT)?
-  ;
-
 recordType
-  : LBRACE field (COMMA field)* RBRACE
+  : LBRACE fieldList? RBRACE
   ;
 
-field
-  : IDENT COLON typeExpr
+fieldList
+  : fieldDecl (COMMA fieldDecl)* COMMA?
   ;
 
-tupleType
-  : LPAREN typeExpr (COMMA typeExpr)+ RPAREN
+fieldDecl
+  : IDENT COLON typeExpr (WHERE refinementExpr)?
+  ;
+
+refinementExpr
+  : functionCall
+  | comparison
+  ;
+
+functionCall
+  : IDENT LPAREN stringLiteral RPAREN
+  ;
+
+comparison
+  : accessor compareOp literal
+  ;
+
+accessor
+  : UNDERSCORE (DOT IDENT)?
+  ;
+
+compareOp
+  : EQEQ | BANGEQ | GTE | LTE | GT | LT
+  ;
+
+genericType
+  : IDENT LT typeExpr (COMMA typeExpr)* GT
+  ;
+
+brandType
+  : basicType BRAND stringLiteral
+  ;
+
+basicType
+  : BOOLKW | INTKW | FLOATKW | STRINGKW | BYTESKW | UUIDKW | DATETIMEKW
   ;
 
 literalType
-  : STRING
-  | FLOAT
-  | INT
-  | BOOL
+  : stringLiteral
   ;
 
-/* ---- Items (stubs) ---- */
+funcType
+  : LPAREN paramTypeList? RPAREN ARROW typeExpr
+  ;
 
-item
-  : funcDecl
-  | effectDecl
-  | testDecl
-  | stmt
+paramTypeList
+  : paramType (COMMA paramType)*
+  ;
+
+paramType
+  : (IDENT COLON)? typeExpr
+  ;
+
+arrayType
+  : ARRAYKW LT typeExpr GT
+  ;
+
+mapType
+  : MAPKW LT typeExpr COMMA typeExpr GT
+  ;
+
+/* ---------- Top-level Declarations ---------- */
+
+topLevelDecl
+  : EXPORT? ( constDecl
+            | funcDecl
+            | effectDecl
+            | testDecl
+            | typeDecl )
+  ;
+
+constDecl
+  : CONST IDENT COLON typeExpr ASSIGN expr SEMI?
   ;
 
 funcDecl
-  : FN IDENT LPAREN params? RPAREN (COLON typeExpr)? block?
+  : ASYNC? FUNC IDENT LPAREN params? RPAREN COLON typeExpr contractBlock? block
   ;
 
 effectDecl
-  : EFFECT IDENT LPAREN params? RPAREN (COLON typeExpr)? USES IDENT block?
+  : EFFECT IDENT LPAREN params? RPAREN COLON typeExpr contractBlock? USES identList block
+  ;
+
+identList
+  : IDENT (COMMA IDENT)*
   ;
 
 testDecl
@@ -205,26 +292,94 @@ params
   ;
 
 param
-  : IDENT (COLON typeExpr)?
+  : IDENT COLON typeExpr
   ;
+
+contractBlock
+  : (REQUIRES expr)? (ENSURES expr)?
+  ;
+
+/* ---------- Statements & Blocks ---------- */
 
 block
   : LBRACE stmt* RBRACE
   ;
 
 stmt
-  : RETURN expr SEMI
-  | LET IDENT (ASSIGN expr)? SEMI
-  | block
-  | expr SEMI
+  : letStmt
+  | constStmt
+  | returnStmt
+  | ifStmt
+  | matchStmt SEMI?
+  | forStmt
+  | whileStmt
+  | tryStmt
+  | breakStmt
+  | continueStmt
+  | exprStmt
   ;
+
+letStmt
+  : LET IDENT ASSIGN expr SEMI?
+  ;
+
+constStmt
+  : CONST IDENT ASSIGN expr SEMI?
+  ;
+
+returnStmt
+  : RETURN expr? SEMI?
+  ;
+
+ifStmt
+  : IF expr block (ELSE block)?
+  ;
+
+matchStmt
+  : matchExpr
+  ;
+
+forStmt
+  : FOR IDENT IN expr block
+  ;
+
+whileStmt
+  : WHILE expr block
+  ;
+
+breakStmt
+  : BREAK SEMI?
+  ;
+
+continueStmt
+  : CONTINUE SEMI?
+  ;
+
+tryStmt
+  : TRY block CATCH LPAREN IDENT RPAREN block
+  ;
+
+exprStmt
+  : expr SEMI?
+  ;
+
+/* ---------- Expressions (precedence, low → high) ---------- */
 
 expr
-  : assignmentExpr
+  : assignExpr
   ;
 
-assignmentExpr
-  : orExpr (ASSIGN assignmentExpr)?
+assignExpr
+  : condExpr (assignOp condExpr)*
+  ;
+
+assignOp
+  : ASSIGN
+  | PLUSEQ | MINUSEQ | STAREQ | SLASHEQ | PERCENTEQ
+  ;
+
+condExpr
+  : orExpr (QMARK expr COLON expr)?
   ;
 
 orExpr
@@ -232,38 +387,144 @@ orExpr
   ;
 
 andExpr
-  : equalityExpr (ANDAND equalityExpr)*
+  : bitOrExpr (ANDAND bitOrExpr)*
+  ;
+
+bitOrExpr
+  : bitXorExpr (OR bitXorExpr)*
+  ;
+
+bitXorExpr
+  : bitAndExpr (CARET bitAndExpr)*
+  ;
+
+bitAndExpr
+  : equalityExpr (AMP equalityExpr)*
   ;
 
 equalityExpr
-  : relationalExpr ((EQEQ | BANGEQ) relationalExpr)*
+  : relExpr ((EQEQ | BANGEQ) relExpr)*
   ;
 
-relationalExpr
-  : additiveExpr ((LT | LTE | GT | GTE) additiveExpr)*
+relExpr
+  : shiftExpr ((LT | LTE | GT | GTE) shiftExpr)*
   ;
 
-additiveExpr
-  : multiplicativeExpr ((PLUS | MINUS) multiplicativeExpr)*
+shiftExpr
+  : addExpr ((LSHIFT | RSHIFT) addExpr)*
   ;
 
-multiplicativeExpr
+addExpr
+  : mulExpr ((PLUS | MINUS) mulExpr)*
+  ;
+
+mulExpr
   : unaryExpr ((STAR | SLASH | PERCENT) unaryExpr)*
   ;
 
 unaryExpr
-  : (BANG | MINUS) unaryExpr
-  | primaryExpr
+  : (BANG | MINUS | TILDE | PLUSPLUS | MINUSMINUS | AWAIT | SPAWN) unaryExpr
+  | postfixExpr
+  ;
+
+postfixExpr
+  : primaryExpr ( PLUSPLUS
+                | MINUSMINUS
+                | LPAREN argList? RPAREN
+                | DOT IDENT
+                )*
+  ;
+
+argList
+  : expr (COMMA expr)*
   ;
 
 primaryExpr
   : literal
   | IDENT
   | LPAREN expr RPAREN
+  | objectExpr
+  | variantExpr
+  | arrayExpr
+  | mapExpr
+  | matchExpr
+  | resultOkExpr
+  | resultErrExpr
+  | optionSomeExpr
+  | optionNoneExpr
+  | brandCastExpr
+  | lambdaExpr
+  | throwExpr
+  ;
+
+throwExpr
+  : THROW expr
+  ;
+
+/* Lambdas */
+lambdaExpr
+  : FN LPAREN params? RPAREN (COLON typeExpr)? FATARROW (expr | block)
+  ;
+
+/* Compound literals */
+objectExpr
+  : LBRACE recordFieldList? RBRACE
+  ;
+
+recordFieldList
+  : recordField (COMMA recordField)* COMMA?
+  ;
+
+recordField
+  : IDENT (COLON expr)?
+  ;
+
+variantExpr
+  : IDENT LBRACE recordFieldList? RBRACE
+  ;
+
+arrayExpr
+  : LBRACK (expr (COMMA expr)*)? RBRACK
+  ;
+
+mapExpr
+  : LBRACE (mapEntry (COMMA mapEntry)*)? COMMA? RBRACE
+  ;
+
+mapEntry
+  : LPAREN expr COLON expr RPAREN
+  ;
+
+matchExpr
+  : MATCH expr LBRACE caseClause* RBRACE
+  ;
+
+caseClause
+  : pattern (IF expr)? FATARROW (expr | block) (SEMI | COMMA)?
+  ;
+
+resultOkExpr
+  : OK LPAREN expr RPAREN
+  ;
+
+resultErrExpr
+  : ERR LPAREN expr RPAREN
+  ;
+
+optionSomeExpr
+  : SOME LPAREN expr RPAREN
+  ;
+
+optionNoneExpr
+  : NONE
+  ;
+
+brandCastExpr
+  : BRAND LT IDENT GT LPAREN expr RPAREN
   ;
 
 literal
-  : STRING
+  : stringLiteral
   | FLOAT
   | INT
   | BOOL
@@ -273,24 +534,108 @@ stringLiteral
   : STRING
   ;
 
+/* ---------- Patterns ---------- */
+
+pattern
+  : literalPattern
+  | variantPattern
+  | recordPattern
+  | identPattern
+  ;
+
+literalPattern
+  : literal
+  ;
+
+variantPattern
+  : IDENT recordPattern?
+  ;
+
+recordPattern
+  : LBRACE patternFieldList? RBRACE
+  ;
+
+patternFieldList
+  : patternField (COMMA patternField)* COMMA?
+  ;
+
+patternField
+  : IDENT (COLON IDENT)?
+  ;
+
+identPattern
+  : IDENT
+  ;
+
 /*
- * Lexer rules
+ * ===============================
+ * =========== Lexer =============
+ * ===============================
  */
 
-INTENT   : 'intent';
-USES     : 'uses';
-TYPES    : 'types';
-TAGS     : 'tags';
-TYPEKW   : 'type';
-EFFECT   : 'effect';
-FN       : 'fn';
-TEST     : 'test';
-RETURN   : 'return';
-LET      : 'let';
-AS       : 'as';
+/* Keywords */
+MODULE    : 'module';
+IMPORT    : 'import';
+FROM      : 'from';
+EXPORT    : 'export';
+AS        : 'as';
 
-BOOL     : 'true' | 'false';
-IDENT    : [A-Za-z_] [A-Za-z0-9_]*;
+INTENT    : 'intent';
+TAGS      : 'tags';
+USES      : 'uses';
+TYPES     : 'types';
+TYPEKW    : 'type';
+WHERE     : 'where';
+BRAND     : 'brand';
+
+FUNC      : 'func';
+EFFECT    : 'effect';
+TEST      : 'test';
+CONST     : 'const';
+LET       : 'let';
+
+REQUIRES  : 'requires';
+ENSURES   : 'ensures';
+
+RETURN    : 'return';
+IF        : 'if';
+ELSE      : 'else';
+MATCH     : 'match';
+FOR       : 'for';
+IN        : 'in';
+WHILE     : 'while';
+BREAK     : 'break';
+CONTINUE  : 'continue';
+
+TRY       : 'try';
+CATCH     : 'catch';
+THROW     : 'throw';
+
+ASYNC     : 'async';
+AWAIT     : 'await';
+SPAWN     : 'spawn';
+
+OK        : 'Ok';
+ERR       : 'Err';
+SOME      : 'Some';
+NONE      : 'None';
+
+ARRAYKW   : 'Array';
+MAPKW     : 'Map';
+
+BOOLKW    : 'Bool';
+INTKW     : 'Int';
+FLOATKW   : 'Float';
+STRINGKW  : 'String';
+BYTESKW   : 'Bytes';
+UUIDKW    : 'Uuid';
+DATETIMEKW: 'DateTime';
+
+FN        : 'fn';
+
+/* Identifiers & literals */
+BOOL      : 'true' | 'false';
+IDENT     : [A-Za-z_] [A-Za-z0-9_]*;
 
 STRING
   : '"' ( '\\\\' . | ~["\\\\\\r\\n] )* '"'
@@ -304,32 +649,50 @@ INT
   : MINUS? DIGIT+
   ;
 
-LBRACE   : '{';
-RBRACE   : '}';
-LPAREN   : '(';
-RPAREN   : ')';
-LBRACK   : '[';
-RBRACK   : ']';
-COMMA    : ',';
-SEMI     : ';';
-COLON    : ':';
-DOT      : '.';
-LT       : '<';
-GT       : '>';
-LTE      : '<=';
-GTE      : '>=';
-EQEQ     : '==';
-BANGEQ   : '!=';
-ASSIGN   : '=';
-PLUS     : '+';
-MINUS    : '-';
-STAR     : '*';
-SLASH    : '/';
-PERCENT  : '%';
-BANG     : '!';
-OR       : '|';
-OROR     : '||';
-ANDAND   : '&&';
+/* Operators & punctuation */
+LBRACE    : '{';
+RBRACE    : '}';
+LPAREN    : '(';
+RPAREN    : ')';
+LBRACK    : '[';
+RBRACK    : ']';
+COMMA     : ',';
+SEMI      : ';';
+COLON     : ':';
+DOT       : '.';
+LT        : '<';
+GT        : '>';
+LTE       : '<=';
+GTE       : '>=';
+EQEQ      : '==';
+BANGEQ    : '!=';
+ASSIGN    : '=';
+PLUSEQ    : '+=';
+MINUSEQ   : '-=';
+STAREQ    : '*=';
+SLASHEQ   : '/=';
+PERCENTEQ : '%=';
+
+PLUS      : '+';
+MINUS     : '-';
+STAR      : '*';
+SLASH     : '/';
+PERCENT   : '%';
+BANG      : '!';
+TILDE     : '~';
+AMP       : '&';
+CARET     : '^';
+OR        : '|';
+OROR      : '||';
+ANDAND    : '&&';
+LSHIFT    : '<<';
+RSHIFT    : '>>';
+PLUSPLUS  : '++';
+MINUSMINUS: '--';
+QMARK     : '?';
+FATARROW  : '=>';
+ARROW     : '->';
+UNDERSCORE: '_';
 
 /* Fragments */
 fragment DIGIT : [0-9];

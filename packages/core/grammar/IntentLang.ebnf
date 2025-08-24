@@ -1,46 +1,131 @@
-(* ---------- Lexical ---------- *)
-UpperLetter     = "A" .. "Z" ;
-LowerLetter     = "a" .. "z" ;
-DigitChar       = "0" .. "9" ;
+(* =================================================== *)
+(* ===== Directivas para el generador de .g4 ========= *)
+(* =================================================== *)
 
-letter          = UpperLetter | LowerLetter | "_" ;
-digit           = DigitChar ;
-ident           = letter { letter | digit } ;
+%keywords:
+  module, import, from, export, as,
+  intent, tags, uses, types, type, where,
+  func, effect, test, const, let, brand,
+  requires, ensures,
+  return, if, else, match, for, in,
+  while, break, continue,
+  try, catch, throw,
+  async, await, spawn,
+  Ok, Err, Some, None,
+  Array, Map,
+  Bool, Int, Float, String, Bytes, Uuid, DateTime,
+  fn
+;
 
-string          = '"' { ~'"' | '\' . } '"' ;
-int             = ["-"] digit { digit } ;
-float           = ["-"] digit { digit } "." digit { digit } ;
-bool            = "true" | "false" ;
+%punct:
+  "||" OROR, "&&" ANDAND, "==" EQEQ, "!=" BANGEQ, "<=" LTE, ">=" GTE,
+  "<<" LSHIFT, ">>" RSHIFT, "++" PLUSPLUS, "--" MINUSMINUS,
+  "=>" FATARROW, "->" ARROW,
+  "+=" PLUSEQ, "-=" MINUSEQ, "*=" STAREQ, "/=" SLASHEQ, "%=" PERCENTEQ,
+  "|" OR, "^" CARET, "&" AMP, "<" LT, ">" GT,
+  "+" PLUS, "-" MINUS, "*" STAR, "/" SLASH, "%" PERCENT,
+  "!" BANG, "~" TILDE,
+  "(" LPAREN, ")" RPAREN, "." DOT, "," COMMA, ":" COLON, ";" SEMI,
+  "{" LBRACE, "}" RBRACE, "[" LBRACK, "]" RBRACK,
+  "?" QMARK, "_" UNDERSCORE,
+  "=" ASSIGN
+;
 
-comment         = "//" { ~"\n" } | "/*" { ~"*/" } "*/" ;
-ws              = { " " | "\t" | "\r" | "\n" | comment } ;
+%lexer {
+  // Reglas de lexer (se emiten tal cual al IntentLangLexer.g4)
 
-(* ---------- File ---------- *)
-File            = ws ,
+  BOOL      : 'true' | 'false' ;
+  IDENT     : [A-Za-z_] [A-Za-z0-9_]* ;
+
+  STRING
+    : '"' ( ESC | ~["\\\r\n] )* '"'
+    ;
+
+  fragment ESC
+    : '\\' ( ['"\\/bfnrt] | 'u' HEX HEX HEX HEX )
+    ;
+
+  fragment HEX : [0-9a-fA-F] ;
+
+  FLOAT     : '-'? [0-9]+ '.' [0-9]+ ;
+  INT       : '-'? [0-9]+ ;
+
+  // Comentarios y WS
+  LINE_COMMENT : '//' ~[\r\n]* -> skip ;
+  BLOCK_COMMENT: '/*' .*? '*/' -> skip ;
+  WS           : [ \t\r\n]+     -> skip ;
+}
+
+(* =================================================== *)
+(* ============== Puentes léxicos ==================== *)
+(* =================================================== *)
+
+(* En parser usa estos nombres; el generador los mapea a tokens léxicos *)
+ident  = IDENT ;
+string = STRING ;
+int    = INT ;
+float  = FLOAT ;
+bool   = BOOL ;
+
+(* =================================================== *)
+(* ============== Gramática (parser) ================= *)
+(* =================================================== *)
+
+(* ============================= *)
+(* ========== File ============ *)
+(* ============================= *)
+
+File            = [ ModuleHeader ] ,
+                  { ImportDecl } ,
                   [ IntentSection ] ,
                   [ UsesSection ] ,
                   [ TypesSection ] ,
-                  { FuncDecl | EffectDecl | TestDecl } ,
-                  ws ;
+                  { TopLevelDecl } ;
 
+TopLevelDecl    = DeclModifier? ( FuncDecl | EffectDecl | ConstDecl | TestDecl | TypeDecl ) ;
 
-(* ---------- Sections ---------- *)
+DeclModifier    = "export" ;
+
+(* ============================= *)
+(* ======== Modules/Imports ==== *)
+(* ============================= *)
+
+ModuleHeader    = "module" , ModulePath , [ "as" , ident ] , [";"] ;
+ModulePath      = ident , { "." , ident } ;
+
+ImportDecl      = "import" ,
+                    ( ImportList , "from" , ModulePath
+                    | ModulePath ) ,
+                  [ "as" , ident ] ,
+                  [";"] ;
+
+ImportList      = "{" , ident , { "," , ident } , [ "," ] , "}" ;
+
+(* ============================= *)
+(* ========= Sections ========= *)
+(* ============================= *)
+
 IntentSection   = "intent" , string , [ TagList ] ;
 TagList         = "tags" , "[" , string , { "," , string } , "]" ;
 
-UsesSection     = "uses" , "{" , ws , { UseDecl } , "}" ;
+UsesSection     = "uses" , "{" , { UseDecl } , "}" ;
 UseDecl         = ident , ":" , ident , [ ObjectExpr ] , [","] ;
 
-TypesSection    = "types" , "{" , ws , { TypeDecl } , "}" ;
+TypesSection    = "types" , "{" , { TypeDecl } , "}" ;
 TypeDecl        = "type" , ident , "=" , TypeExpr , [ "where" , RefinementExpr ] , [";" | ","] ;
 
+(* ============================= *)
+(* ======== Type System ======== *)
+(* ============================= *)
 
-(* ---------- Type Expressions ---------- *)
 TypeExpr        = UnionType | NonUnionType ;
 
 NonUnionType    = RecordType
                 | GenericType
                 | BrandType
+                | FuncType
+                | ArrayType
+                | MapType
                 | TypeRef
                 | BasicType
                 | LiteralType ;
@@ -63,11 +148,25 @@ CompareOp       = "==" | "!=" | ">=" | "<=" | ">" | "<" ;
 GenericType     = ident , "<" , TypeExpr , { "," , TypeExpr } , ">" ;
 BrandType       = BasicType , "brand" , string ;
 BasicType       = "Bool" | "Int" | "Float" | "String" | "Bytes" | "Uuid" | "DateTime" ;
+
 LiteralType     = string ;
 
+(* Nuevos tipos de función y colecciones *)
+FuncType        = "(" , [ ParamTypeList ] , ")" , "->" , TypeExpr ;
+ParamTypeList   = ParamType , { "," , ParamType } ;
+ParamType       = [ ident , ":" ] , TypeExpr ;
 
-(* ---------- Declarations ---------- *)
-FuncDecl        = "func" , ident , "(" , [ ParamList ] , ")" ,
+ArrayType       = "Array" , "<" , TypeExpr , ">" ;
+MapType         = "Map" , "<" , TypeExpr , "," , TypeExpr , ">" ;
+
+(* ============================= *)
+(* ======= Declarations ======== *)
+(* ============================= *)
+
+ConstDecl       = "const" , ident , ":" , TypeExpr , "=" , Expr , [";"] ;
+
+FuncDecl        = [ "async" ] ,
+                  "func" , ident , "(" , [ ParamList ] , ")" ,
                   ":" , TypeExpr ,
                   [ ContractBlock ] ,
                   Block ;
@@ -85,37 +184,74 @@ Param           = ident , ":" , TypeExpr ;
 
 ContractBlock   = [ "requires" , Expr ] , [ "ensures" , Expr ] ;
 
+(* ============================= *)
+(* ===== Statements/Blocks ===== *)
+(* ============================= *)
 
-(* ---------- Statements & Blocks ---------- *)
-Block           = "{" , ws , { Stmt } , "}" ;
-Stmt            = LetStmt | ReturnStmt | IfStmt | MatchStmt | ForStmt | ExprStmt ;
+Block           = "{" , { Stmt } , "}" ;
+
+Stmt            = LetStmt
+                | ConstStmt
+                | ReturnStmt
+                | IfStmt
+                | MatchStmt
+                | ForStmt
+                | WhileStmt
+                | TryStmt
+                | BreakStmt
+                | ContinueStmt
+                | ExprStmt ;
 
 LetStmt         = "let" , ident , "=" , Expr , [";"] ;
+ConstStmt       = "const" , ident , "=" , Expr , [";"] ;
+
 ReturnStmt      = "return" , [ Expr ] , [";"] ;
 IfStmt          = "if" , Expr , Block , [ "else" , Block ] ;
 MatchStmt       = MatchExpr , [";"] ;
 ForStmt         = "for" , ident , "in" , Expr , Block ;
+WhileStmt       = "while" , Expr , Block ;
+BreakStmt       = "break" , [";"] ;
+ContinueStmt    = "continue" , [";"] ;
+
+TryStmt         = "try" , Block , "catch" , "(" , ident , ")" , Block ;
+ThrowStmt       = "throw" , Expr , [";"] ;
+
 ExprStmt        = Expr , [";"] ;
 
+(* ============================= *)
+(* ======= Expressions ========= *)
+(* (lowest → highest precedence) *)
+(* ============================= *)
 
-(* ---------- Expressions (lowest → highest precedence) ---------- *)
 Expr            = AssignExpr ;
+
 AssignExpr      = CondExpr , { AssignOp , CondExpr } ;
 AssignOp        = "=" | "+=" | "-=" | "*=" | "/=" | "%=" ;
+
 CondExpr        = OrExpr , [ "?" , Expr , ":" , Expr ] ;
+
 OrExpr          = AndExpr , { "||" , AndExpr } ;
 AndExpr         = BitOrExpr , { "&&" , BitOrExpr } ;
 BitOrExpr       = BitXorExpr , { "|" , BitXorExpr } ;
 BitXorExpr      = BitAndExpr , { "^" , BitAndExpr } ;
 BitAndExpr      = EqualityExpr , { "&" , EqualityExpr } ;
+
 EqualityExpr    = RelExpr , { ("==" | "!=") , RelExpr } ;
 RelExpr         = ShiftExpr , { ("<" | "<=" | ">" | ">=") , ShiftExpr } ;
 ShiftExpr       = AddExpr , { ("<<" | ">>") , AddExpr } ;
 AddExpr         = MulExpr , { ("+" | "-") , MulExpr } ;
 MulExpr         = UnaryExpr , { ("*" | "/" | "%") , UnaryExpr } ;
-UnaryExpr       = ("!" | "-" | "~" | "++" | "--") , UnaryExpr | PostfixExpr ;
 
-PostfixExpr     = Primary , { "++" | "--" | "(" , [ ArgList ] , ")" | "." , ident } ;
+UnaryExpr       = ("!" | "-" | "~" | "++" | "--" | "await" | "spawn") , UnaryExpr
+                | PostfixExpr ;
+
+PostfixExpr     = Primary ,
+                  { "++"
+                  | "--"
+                  | "(" , [ ArgList ] , ")"
+                  | "." , ident
+                  } ;
+
 ArgList         = Expr , { "," , Expr } ;
 
 Primary         = Literal
@@ -124,16 +260,31 @@ Primary         = Literal
                 | ObjectExpr
                 | VariantExpr
                 | ArrayExpr
+                | MapExpr
                 | MatchExpr
                 | ResultOkExpr
                 | ResultErrExpr
                 | OptionSomeExpr
                 | OptionNoneExpr
-                | BrandCastExpr ;
+                | BrandCastExpr
+                | LambdaExpr
+                | ThrowPrimary ;
+
+ThrowPrimary    = "throw" , Expr ;
+
+(* Lambdas / funciones anónimas *)
+LambdaExpr      = "fn" , "(" , [ ParamList ] , ")" , [ ":" , TypeExpr ] , "=>" , ( Expr | Block ) ;
+
+(* ============================= *)
+(* ===== Compound literals ===== *)
+(* ============================= *)
 
 ObjectExpr      = "{" , [ RecordFieldList ] , "}" ;
 VariantExpr     = ident , "{" , [ RecordFieldList ] , "}" ;
 ArrayExpr       = "[" , [ Expr , { "," , Expr } ] , "]" ;
+MapExpr         = "{" , [ MapEntry , { "," , MapEntry } , [ "," ] ] , "}" ;
+MapEntry        = "(" , Expr , ":" , Expr , ")" ;
+
 MatchExpr       = "match" , Expr , "{" , { CaseClause } , "}" ;
 
 RecordFieldList = RecordField , { "," , RecordField } , [ "," ] ;
@@ -148,11 +299,14 @@ BrandCastExpr   = "brand" , "<" , ident , ">" , "(" , Expr , ")" ;
 CaseClause      = Pattern , [ "if" , Expr ] , "=>" , ( Expr | Block ) , [";" | ","] ;
 Literal         = string | float | int | bool ;
 
+(* ============================= *)
+(* ========= Patterns ========= *)
+(* ============================= *)
 
-(* ---------- Patterns ---------- *)
-Pattern         = LiteralPattern | VariantPattern ;
+Pattern         = LiteralPattern | VariantPattern | RecordPattern | IdentPattern ;
 LiteralPattern  = Literal ;
 VariantPattern  = ident , [ RecordPattern ] ;
 RecordPattern   = "{" , [ PatternFieldList ] , "}" ;
 PatternFieldList = PatternField , { "," , PatternField } , [ "," ] ;
 PatternField     = ident , [ ":" , ident ] ;
+IdentPattern     = ident ;
