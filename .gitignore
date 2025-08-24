@@ -8,3 +8,4 @@ tmp
 .env
 .env.*
 coveragepackages/docs/.docusaurus/
+packages/docs/.docusaurus/
