@@ -21,10 +21,10 @@ runtimes:
 # Lint configuration. (https://docs.trunk.io/check/configuration)
 lint:
   enabled:
-    - checkov@3.2.461
+    - checkov@3.2.464
     - git-diff-check
     - markdownlint@0.45.0
-    - osv-scanner@2.0.3
+    - osv-scanner@2.2.1
     - prettier@3.6.2
     - trufflehog@3.90.5
     - yamllint@1.37.1
@@ -34,6 +34,8 @@ lint:
     - black
     - isort
     - ruff
+    - oxipng
+    - svgo
 
   # Ignore rules: agrupa paths y decide a qué linters afecta.
   ignore:
@@ -58,12 +60,9 @@ lint:
         - "**/*.spec.ts"
         - "**/*.d.ts"
         - "**/*.il"
+        - "**/*.md"
+        - "**/*.mdx"
         - "LICENSE"
-        - "CHANGELOG.md"
-        - "README.md"
-        - "CODE_OF_CONDUCT.md"
-        - "CONTRIBUTING.md"
-        - "STYLEGUIDE.md"
 
       linters:
         - ALL

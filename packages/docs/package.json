@@ -21,6 +21,7 @@
     "@docusaurus/theme-classic": "^3.8.1",
     "@tsconfig/docusaurus": "^2.0.3",
     "@types/react": "^19.1.11",
+    "@types/webpack-env": "^1.18.8",
     "clsx": "^2.1.1",
     "raw-loader": "^4.0.2",
     "typescript": "^5.9.2"
