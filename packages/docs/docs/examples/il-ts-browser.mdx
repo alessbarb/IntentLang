@@ -1,28 +1,26 @@
 ---
 id: il-ts-browser
-title: IL ⇄ TS/PY Browser
-sidebar_label: IL ⇄ TS/PY Browser
+title: IL ⇄ TS Browser
+sidebar_label: IL ⇄ TS Browser
 sidebar_position: 10
-description: Explora ejemplos IL y sus goldens TS/PY con búsqueda y selector.
+description: Explora ejemplos IL y sus goldens TS con búsqueda y selector.
 ---
 
 import Admonition from "@theme/Admonition";
-import CodeToggleBrowser from "@site/src/components/CodeToggleBrowser";
+import CodeToggleBrowser from "@site/src/components/CodeToggle/CodeToggleBrowser";
 
 <Admonition type="info" title="Cómo funciona">
   Esta galería descubre todos los ficheros <code>.il</code> en{" "}
   <code>packages/examples/intentlang/</code> y busca su golden <code>.ts</code>{" "}
-  o <code>.py</code> con el mismo basename (para Python se mapean guiones a
-  guiones_bajos).
+  .
 </Admonition>
 
 {/* Vista por defecto: buscador + selector superior */}
 
-<CodeToggleBrowser />
+<CodeToggleBrowser horizontal={false} />
 
 {/* Variantes (solo demostración, no se ejecutan): */}
 
-```mdx
-<CodeToggleBrowser include={/^(operators|fixed2|for-loop)\.il$/} />
-<CodeToggleBrowser horizontal={false} />
-```
+{/* <CodeToggleBrowser /> */}
+{/* <CodeToggleBrowser include={/^(operators|fixed2|for-loop)\.il$/} /> */}
+{/* <CodeToggleBrowser horizontal={false} /> */}

@@ -1,0 +1,264 @@
+---
+id: why-il
+title: ¿Por qué IntentLang?
+sidebar_label: Why IL
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# ¿Por qué IntentLang es mejor que TypeScript?
+
+IntentLang nace para eliminar la **ambigüedad y la complejidad accidental** que arrastra TypeScript (y, por extensión, JavaScript).  
+Aquí mostramos comparativas reales que ilustran por qué IL es más claro, seguro y predecible.
+
+---
+
+## 1. Tipado nominal real
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+type Email = string & { readonly __brand: "Email" };
+type UserId = string & { readonly __brand: "UserId" };
+
+function send(u: UserId, e: Email) {
+  /* ... */
+}
+
+const u = "abc" as unknown as UserId; // escape hatch
+const e = "x@y.z" as Email; // trust me, bro
+send(u, e); // compila, aunque inseguro
+```
+
+</TabItem>
+<TabItem value="il" label="IntentLang">
+
+```il
+types {
+  type Email = String brand "Email" where matches("^[^@]+@[^@]+\\.[^@]+$");
+  type UserId = String brand "UserId";
+}
+
+func send(u: UserId, e: Email): Unit { /* ... */ }
+// No puedes pasar un String “pelado”: debes brandear explícitamente.
+```
+
+</TabItem>
+</Tabs>
+
+**IL elimina la ambigüedad**: los _brands_ son parte del lenguaje, no un patrón opcional.
+
+---
+
+## 2. Exhaustividad en `match`
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+type Seat = { type: "Economy" } | { type: "Business" } | { type: "First" };
+
+function code(s: Seat): string {
+  switch (s.type) {
+    case "Economy":
+      return "E";
+    case "Business":
+      return "B";
+    // ❌ Falta "First": compila si no fuerzas never-checking
+  }
+}
+```
+
+</TabItem>
+<TabItem value="il" label="IntentLang">
+
+```il
+type Seat = Economy {} | Business {} | First {};
+func code(s: Seat): String {
+  match s {
+    Economy {}  => "E";
+    Business {} => "B";
+    First {}    => "F";   // obligatorio
+  }
+}
+```
+
+</TabItem>
+</Tabs>
+
+En IL **no puedes olvidarte de casos**: el checker exige cubrirlos todos.
+
+---
+
+## 3. Efectos declarativos
+
+En TS cualquier función puede hacer I/O aunque no lo diga su firma.
+En IL los efectos son **explícitos**:
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { http, clock } from "./ambient";
+
+export async function createOrder(i: { total: number }) {
+  return http.post("/orders", { total: i.total, at: clock.now() });
+}
+```
+
+</TabItem>
+<TabItem value="il" label="IntentLang">
+
+```il
+uses { http: Http { baseUrl: "…" }, clock: Clock {} }
+
+effect createOrder(i: { total: Float }): Result<Order, ApiError> uses http, clock {
+  return http.post("/orders", { total: i.total, at: clock.now() });
+}
+```
+
+</TabItem>
+</Tabs>
+
+**Ventaja IL:** ves qué dependencias externas se usan en la firma (`uses http, clock`).
+
+---
+
+## 4. Contratos y refinamientos
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+type NonNegative = number & { readonly __brand: "NonNegative" };
+
+function toNonNegative(n: number): NonNegative {
+  if (n < 0) throw new Error();
+  return n as NonNegative;
+}
+```
+
+</TabItem>
+<TabItem value="il" label="IntentLang">
+
+```il
+type Money = Float where _ >= 0;
+
+func price(amount: Float): Money
+  requires amount >= 0
+  ensures _ >= 0
+{ return amount; }
+```
+
+</TabItem>
+</Tabs>
+
+Los **contratos son lenguaje**: no necesitas librerías externas.
+
+---
+
+## 5. `Option` y `Result` en vez de `undefined` y `throw` invisibles
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+function find(id: string): User | undefined {
+  /* ... */
+}
+function parse(s: string): number {
+  if (bad) throw Error();
+}
+```
+
+</TabItem>
+<TabItem value="il" label="IntentLang">
+
+```il
+func find(id: String): Option<User> { /* Some(user) | None */ }
+
+func parse(s: String): Result<Int, String> {
+  // Ok(n) | Err("reason")
+}
+```
+
+</TabItem>
+</Tabs>
+
+---
+
+## 6. Sin coerciones implícitas
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+1 + "2"; // "12"
+if ("0") {
+  /* truthy */
+}
+```
+
+</TabItem>
+<TabItem value="il" label="IntentLang">
+
+```il
+// ❌ 1 + "2" // error de tipos
+"Seat " + label // ✅ concatenación de Strings
+
+if "0" { } // ❌ solo Bool permitido
+```
+
+</TabItem>
+</Tabs>
+
+---
+
+## 7. Sintaxis sin trampas
+
+TS/JS tiene _ASI_ (automatic semicolon insertion):
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+function f() {
+  return; // <- ASI lo corta
+  {
+    ok: true;
+  }
+}
+// devuelve undefined
+```
+
+</TabItem>
+<TabItem value="il" label="IntentLang">
+
+```il
+func f(): { ok: Bool } {
+  return { ok: true };
+}
+```
+
+</TabItem>
+</Tabs>
+
+En IL, los `;` son parte de la sintaxis: **no hay sorpresas**.
+
+---
+
+## Resumen
+
+IntentLang **sacrifica ambigüedad para ganar claridad**:
+
+- Tipado nominal real.
+- Exhaustividad en `match`.
+- Contratos y refinamientos de serie.
+- Efectos declarativos.
+- Sin coerciones implícitas.
+- Sintaxis predecible.
+
+> En IL, si el programa compila, sabes exactamente qué significa.
+> En TS, todavía tienes que preguntarte: “¿qué pasará en runtime?”.

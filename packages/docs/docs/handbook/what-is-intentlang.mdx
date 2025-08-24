@@ -1,0 +1,57 @@
+---
+id: what-is-intentlang
+title: ¿Qué es IntentLang?
+sidebar_label: ¿Qué es IntentLang?
+description: Un lenguaje seguro, predecible y diseñado para humanos y agentes de IA.
+---
+
+**IntentLang** es un nuevo lenguaje de programación de propósito general, diseñado desde cero para ser **excepcionalmente seguro, predecible y fácil de entender tanto para humanos como para sistemas de inteligencia artificial**.
+
+Su misión es ofrecer toda la potencia de un lenguaje moderno compatible con el ecosistema de Node.js, pero eliminando las ambigüedades y comportamientos implícitos que son una fuente común de errores en otros lenguajes.
+
+### El Problema que Resuelve: La Complejidad Accidental
+
+Los lenguajes modernos son flexibles y potentes, pero a menudo pagan un precio: comportamientos inesperados (`null`/`undefined`), efectos secundarios ocultos, y reglas complejas que dificultan la creación de software verdaderamente robusto. Esta complejidad no solo afecta a los desarrolladores, sino que representa un obstáculo aún mayor para los agentes de IA, que necesitan reglas claras para analizar y generar código de forma segura.
+
+IntentLang nace de la convicción de que un lenguaje puede ser poderoso sin ser complicado. Prioriza la **claridad, la seguridad y la predictibilidad** por encima de todo.
+
+### Los Pilares de IntentLang
+
+La filosofía del lenguaje se define por los siguientes principios:
+
+#### 1. Seguridad y Fiabilidad por Diseño
+
+IntentLang está inspirado en los conceptos más robustos de lenguajes modernos como Rust y Elm para eliminar clases enteras de errores en tiempo de ejecución:
+
+- **Cero Nulos**: La ausencia de valor y los errores se manejan explícitamente con los tipos `Option<T>` y `Result<T, E>`. El compilador obliga a gestionar cada posible resultado.
+- **Tipado Fuerte y Explícito**: Todas las variables deben tener un tipo declarado, eliminando la necesidad de inferencias complejas y asegurando que la intención del programador esté siempre clara.
+- **Coincidencia Exhaustiva (`match`)**: El compilador verifica estáticamente que todas las posibilidades de un tipo `union` sean manejadas, garantizando que no existan casos olvidados.
+- **Contratos de Código (`requires` / `ensures`)**: Las funciones pueden declarar precondiciones y postcondiciones que se validan automáticamente, asegurando que la lógica opere siempre dentro de los parámetros esperados.
+
+#### 2. Gestión de Efectos Secundarios como un Contrato
+
+El lenguaje impone una separación radical y segura entre el código puro y el que interactúa con el mundo exterior:
+
+- **`func` (Funciones Puras)**: Son el pilar para la lógica de negocio. Son siempre síncronas, deterministas y el compilador garantiza que no pueden tener efectos secundarios.
+- **`effect` (Funciones con Efectos)**: Son el único medio para realizar operaciones asíncronas o de I/O (ficheros, red, etc.). Deben declarar explícitamente sus “capacidades” en una cláusula `uses`.
+
+Esta cláusula `uses` actúa como un **manifiesto de permisos**. Al ejecutar un programa, el runtime de IntentLang puede usar esta declaración para otorgar o denegar acceso a recursos sensibles, convirtiendo la seguridad en una característica central del lenguaje.
+
+#### 3. Un Ecosistema “IA-First”
+
+IntentLang está diseñado para prosperar en una era donde la IA es un colaborador clave en el desarrollo de software.
+
+- **Sintaxis sin Ambigüedad**: Reglas como el uso obligatorio de punto y coma y la prohibición del _shadowing_ de variables eliminan la confusión y hacen que el código sea trivial de analizar para las herramientas automáticas.
+- **Interoperabilidad Segura**: A través de una FFI (Foreign Function Interface), IntentLang puede utilizar el vasto ecosistema de `npm`, pero de una manera controlada que no compromete su seguridad.
+- **Toolchain Integrado**: El compilador (`ilc`) no solo ejecuta código (`run`), sino que también ofrece herramientas de `check`, `fmt` y `test`, creando un entorno de desarrollo cohesivo y productivo.
+
+---
+
+### ¿Para Quién es IntentLang?
+
+IntentLang está dirigido a:
+
+- **Desarrolladores e Ingenieros de Sistemas** que buscan construir aplicaciones backend y herramientas de alta fiabilidad, donde la corrección y la seguridad son críticas.
+- **Pioneros en la Ingeniería de IA** que necesitan un lenguaje robusto y predecible como base para sistemas de generación y mantenimiento de código autónomos.
+
+En resumen, **IntentLang es una apuesta por un futuro donde el software es más seguro porque su lenguaje fundamental está diseñado para la claridad y la colaboración, tanto con humanos como con máquinas.**

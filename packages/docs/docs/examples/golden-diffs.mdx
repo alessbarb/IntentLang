@@ -1,44 +1,21 @@
 ---
 id: golden-diffs
-title: Golden Diffs (IL ⇄ TS/PY)
+title: Golden Diffs (IL ⇄ TS)
 sidebar_label: Golden Diffs
 sidebar_position: 15
-description: Compara lado a lado IL con sus goldens TS/PY.
+description: Compara lado a lado IL con sus goldens TS.
 ---
 
 import Admonition from "@theme/Admonition";
-import GoldenDiff from "@site/src/components/GoldenDiff";
+import GoldenDiffBrowser from "@site/src/components/GoldenDiff/GoldenDiffBrowser";
 
-// IL y TS reales
-import operatorsIl from "!!raw-loader!@site/../../packages/examples/intentlang/operators.il";
-import operatorsTs from "!!raw-loader!@site/../../packages/examples/goldens/ts/operators.ts";
-
-// IL y PY (nota: for-loop.il → for_loop.py)
-import forLoopIl from "!!raw-loader!@site/../../packages/examples/intentlang/for-loop.il";
-import forLoopPy from "!!raw-loader!@site/../../packages/examples/goldens/py/for_loop.py";
+import {
+  normalizeLineIL,
+  normalizeLineTS,
+} from "@site/../../packages/core/src/transpilers/compare-normalize.ts";
 
 <Admonition type="info" title="Objetivo">
-  Los diffs son didácticos: muestran estructura y correspondencia general, no pretenden ser un LCS exacto.
+  Los diffs son didácticos: muestran estructura y correspondencia general.
 </Admonition>
 
-## operators (IL ⇄ TS)
-
-<GoldenDiff
-  leftLabel="IL"
-  left={operatorsIl}
-  rightLabel="TS (emit)"
-  right={operatorsTs}
-  languageLeft="intentlang"
-  languageRight="ts"
-/>
-
-## for-loop (IL ⇄ PY)
-
-<GoldenDiff
-  leftLabel="IL"
-  left={forLoopIl}
-  rightLabel="PY (emit)"
-  right={forLoopPy}
-  languageLeft="intentlang"
-  languageRight="python"
-/>
+<GoldenDiffBrowser />

@@ -1,157 +1,216 @@
-import React from "react";
+import React, { type JSX } from "react";
 import Layout from "@theme/Layout";
 import Head from "@docusaurus/Head";
 import Link from "@docusaurus/Link";
 import CodeBlock from "@theme/CodeBlock";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
-import useBaseUrl from "@docusaurus/useBaseUrl";
+import clsx from "clsx";
 
-const Card: React.FC<{ title: string; description: string; to: string }> = ({
-  title,
-  description,
-  to,
-}) => (
-  <Link
-    to={to}
-    className="card padding--lg"
-    style={{
-      borderRadius: 16,
-      textDecoration: "none",
-      border: "1px solid var(--ifm-toc-border-color, #e6e6e6)",
-      boxShadow: "0 6px 24px rgba(0,0,0,0.06)",
-      background: "var(--ifm-background-surface-color)",
-    }}
+import { featureList, principles, type FeatureItem } from "./homepageData";
+import styles from "./Homepage.module.css";
+
+/* Inline SVG for tiny icons (no deps) */
+const CheckIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="3"
+    {...props}
   >
-    <h3 style={{ marginTop: 0 }}>{title}</h3>
-    <p style={{ marginBottom: 0, color: "var(--ifm-color-emphasis-700)" }}>
-      {description}
-    </p>
+    <path d="M20 6L9 17l-5-5" />
+  </svg>
+);
+
+/* ====== UI Blocks ====== */
+
+const FeatureCard: React.FC<FeatureItem> = ({ title, description, to }) => (
+  <Link to={to} className={styles.card}>
+    <h3 className={styles.cardTitle}>{title}</h3>
+    <p className={styles.cardDesc}>{description}</p>
   </Link>
 );
 
+const QuickDemo = () => (
+  <section className={clsx("container", styles.section)}>
+    <div className={styles.sectionHeader}>
+      <span className={styles.sectionEyebrow}>demo</span>
+      <h2 className={styles.sectionTitle}>
+        Del cero al “check” en dos comandos
+      </h2>
+      <p style={{ margin: 0, color: "var(--ifm-color-emphasis-700)" }}>
+        Instalas, inicializas y validas. Sin rituales.
+      </p>
+    </div>
+
+    <div
+      className={styles.demoBlock}
+      role="region"
+      aria-label="Demo de inicio rápido"
+    >
+      <div className={styles.demoHeader}>
+        <p className={styles.demoTitle}>Shell</p>
+        <div className={styles.kbd}>Tip: copia y pega</div>
+      </div>
+      <CodeBlock language="bash">{`# En el monorepo
+pnpm i
+pnpm intent --help
+
+# Proyecto mínimo
+intent init ./hello-il --template tests -y
+intent check --strict`}</CodeBlock>
+    </div>
+
+    <div className="margin-top--sm">
+      <div className={styles.hint}>
+        ¿Prefieres ver IL junto a su salida en TypeScript? — Abre{" "}
+        <Link to="/docs/examples/il-ts-browser">
+          <code className={styles.inlineCode}>IL ⇄ TS Browser</code>
+        </Link>
+        .
+      </div>
+    </div>
+  </section>
+);
+
+const Principles = () => (
+  <section className={clsx("container", styles.section)}>
+    <div className={styles.sectionHeader}>
+      <span className={styles.sectionEyebrow}>filosofía</span>
+      <h2 className={styles.sectionTitle}>
+        Principios que guían decisiones de diseño
+      </h2>
+    </div>
+
+    <div className={styles.principles}>
+      <div>
+        <ul className={styles.principleList}>
+          {principles.map((p) => (
+            <li key={p.title} className={styles.principleItem}>
+              <CheckIcon className={styles.checkIcon} />
+              <div>
+                <strong>{p.title}</strong>
+                {p.details ? (
+                  <>
+                    {" "}
+                    — <code className={styles.inlineCode}>{p.details}</code>
+                  </>
+                ) : null}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className={styles.demoBlock}>
+        <div className={styles.demoHeader}>
+          <p className={styles.demoTitle}>Match exhaustivo en acción</p>
+          <span className={styles.kbd}>Seguro por defecto</span>
+        </div>
+        <Tabs
+          groupId="lang"
+          queryString
+          values={[
+            { label: "IL", value: "il" },
+            { label: "TypeScript", value: "ts" },
+          ]}
+        >
+          <TabItem value="il">
+            <CodeBlock language="rust">{`type Result = Ok(Int) | Err(Text)
+
+func describe(r: Result): Text {
+  match r {
+    Ok(x)  -> "ok: " + x.toText()
+    Err(e) -> "error: " + e
+    // Sin default: el checker exige exhaustividad
+  }
+}`}</CodeBlock>
+          </TabItem>
+          <TabItem value="ts">
+            <CodeBlock language="ts">{`type Result = { kind: "Ok"; value: number } | { kind: "Err"; error: string };
+
+function describe(r: Result): string {
+  switch (r.kind) {
+    case "Ok":  return "ok: " + r.value.toString();
+    case "Err": return "error: " + r.error;
+    // no default -> exhaustive by construction with ts exhaustive checks
+  }
+}`}</CodeBlock>
+          </TabItem>
+        </Tabs>
+      </div>
+    </div>
+  </section>
+);
+
+const FeatureGrid = () => (
+  <section className={clsx("container", styles.section)}>
+    <div className={styles.sectionHeader}>
+      <span className={styles.sectionEyebrow}>explora</span>
+      <h2 className={styles.sectionTitle}>
+        Todo lo que necesitas, bien ordenado
+      </h2>
+    </div>
+    <div className={styles.featureGrid}>
+      {featureList.map((f) => (
+        <FeatureCard key={f.title} {...f} />
+      ))}
+    </div>
+  </section>
+);
+
+/* ====== Page ====== */
+
 export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
-  const title = siteConfig?.title ?? "IntentLang";
-  const tagline = siteConfig?.tagline ?? "Deterministic. Safe. Intentful.";
-  const heroUrl = useBaseUrl("/img/intentlang-hero.svg");
-
   return (
     <Layout>
       <Head>
-        <meta property="og:title" content={`${title} — ${tagline}`} />
+        <title>{`${siteConfig.title} — ${siteConfig.tagline}`}</title>
         <meta
           name="description"
-          content="IntentLang: lenguaje con determinismo, match exhaustivo y separación func/effect."
+          content="IntentLang: determinista, seguro y claro. Match exhaustivo, Option/Result, separación func/effect."
         />
       </Head>
 
-      {/* Hero */}
-      <header
-        style={{
-          padding: "64px 0 24px",
-          textAlign: "center",
-          background: "linear-gradient(180deg, rgba(0,0,0,0.03) 0%, transparent 100%)",
-        }}
-      >
+      <header className={clsx("hero", styles.heroBanner)}>
+        <div className={styles.heroBackdrop} aria-hidden="true" />
         <div className="container">
-          <h1 style={{ fontSize: 48, margin: 0 }}>{title}</h1>
-          <p style={{ fontSize: 18, marginTop: 8, color: "var(--ifm-color-emphasis-700)" }}>
-            {tagline}
-          </p>
-          <img
-            src={heroUrl}
-            alt="IntentLang hero"
-            style={{
-              maxWidth: 760,
-              width: "100%",
-              margin: "20px auto 8px",
-              display: "block",
-            }}
-          />
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 20, flexWrap: "wrap" }}>
-            <Link className="button button--secondary button--lg" to="/docs/handbook/what-is-intentlang">
-              ¿Qué es IntentLang?
-            </Link>
-            <Link className="button button--primary button--lg" to="/docs/handbook/from-scratch">
-              Empezar desde cero
-            </Link>
-            <Link className="button button--secondary button--lg" to="/docs/examples/il-ts-browser">
-              Explorar ejemplos IL ⇄ TS/PY
-            </Link>
+          <div className={styles.heroInner}>
+            <h1 className={styles.heroTitle}>{siteConfig.title}</h1>
+            <p className={styles.heroTagline}>{siteConfig.tagline}</p>
+            <div className={styles.heroCTA}>
+              <Link
+                className="button button--primary button--lg"
+                to="/docs/handbook/from-scratch"
+              >
+                Empezar ahora
+              </Link>
+              <Link
+                className="button button--secondary button--lg"
+                to="/docs/handbook/what-is-intentlang"
+              >
+                ¿Qué es IntentLang?
+              </Link>
+              <Link
+                className="button button--link button--lg"
+                to="/docs/examples/il-ts-browser"
+              >
+                Ver ejemplos
+              </Link>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Quick start */}
-      <main className="container" style={{ padding: "24px 0 56px" }}>
-        <section style={{ marginBottom: 32 }}>
-          <div className="row">
-            <div className="col col--6">
-              <h2>Instalación rápida</h2>
-              <CodeBlock language="bash">{`# En el monorepo
-pnpm i
-pnpm intent --help`}</CodeBlock>
-              <p style={{ marginTop: 8 }}>
-                O inicia un proyecto:
-              </p>
-              <CodeBlock language="bash">{`intent init ./hello-il --template tests -y
-intent check --strict
-intent build src -t ts -o dist`}</CodeBlock>
-            </div>
-            <div className="col col--6">
-              <h2>Principios del lenguaje</h2>
-              <ul>
-                <li>✔️ Determinismo: <code>--seed-rng</code> y <code>--seed-clock</code></li>
-                <li>✔️ <code>match</code> exhaustivo</li>
-                <li>✔️ <code>Option</code>/<code>Result</code> (sin null/undefined)</li>
-                <li>✔️ <em>Brands</em> para tipos seguros</li>
-                <li>✔️ Separación <code>func</code> (puro) vs <code>effect</code> (con <code>uses</code>)</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* Feature links */}
-        <section>
-          <h2>Explora la documentación</h2>
-          <div className="row" style={{ gap: 16 }}>
-            <div className="col col--4">
-              <Card
-                title="From Scratch"
-                description="Guía de inicio rápido: instalación, primer proyecto, tests y build."
-                to="/docs/handbook/from-scratch"
-              />
-            </div>
-            <div className="col col--4">
-              <Card
-                title="IL ⇄ TS/PY Browser"
-                description="Explora los ejemplos reales y sus goldens generados."
-                to="/docs/examples/il-ts-browser"
-              />
-            </div>
-            <div className="col col--4">
-              <Card
-                title="CLI Playground"
-                description="Construye comandos de intent a partir de SPEC, sin memorizar flags."
-                to="/docs/reference/cli-playground"
-              />
-            </div>
-            <div className="col col--4">
-              <Card
-                title="Compiler Options"
-                description="Listado generado automáticamente desde SPEC."
-                to="/docs/reference/compiler-options/"
-              />
-            </div>
-            <div className="col col--4">
-              <Card
-                title="Grammar (EBNF)"
-                description="Navega la gramática con índice de reglas."
-                to="/docs/reference/grammar"
-              />
-            </div>
-          </div>
-        </section>
+      <main className={styles.main}>
+        <QuickDemo />
+        <Principles />
+        <FeatureGrid />
       </main>
     </Layout>
   );

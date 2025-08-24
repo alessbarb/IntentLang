@@ -1,5 +1,24 @@
 :root {
   --ifm-table-cell-padding: 0.4rem 0.6rem;
+  --il-watermark-opacity: 0.12;
+}
+html[data-theme="dark"] {
+  --il-watermark-opacity: 0.1;
+}
+body::after {
+  content: "";
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  width: 120px;
+  height: 120px;
+  background-image: url("/img/watermark.png"); /* o .svg */
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: var(--il-watermark-opacity);
+  pointer-events: none;
+  z-index: 2147483647;
 }
 .markdown table {
   font-size: 0.95rem;
@@ -7,3 +26,18 @@
 .markdown h2 {
   scroll-margin-top: 80px;
 } /* anclajes cómodos */
+
+/* Más pequeño en móvil */
+@media (max-width: 480px) {
+  body::after {
+    width: 88px;
+    height: 88px;
+  }
+}
+
+/* No imprimir */
+@media print {
+  body::after {
+    display: none;
+  }
+}

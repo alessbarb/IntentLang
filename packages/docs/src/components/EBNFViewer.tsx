@@ -1,6 +1,7 @@
 import React from "react";
 import CodeBlock from "@theme/CodeBlock";
-import grammarRaw from "!!raw-loader!@site/../../packages/core/grammar/IntentLang.ebnf";
+
+const grammarRaw = require("!!raw-loader!@site/../../packages/core/grammar/IntentLang.ebnf");
 
 type Rule = { name: string; line: number };
 
@@ -43,7 +44,7 @@ export default function EBNFViewer() {
       </aside>
       <main>
         {/* Añadimos anchors ligeros en el código */}
-        <CodeBlock language="ebnf" children={false}>
+        <CodeBlock language="ebnf">
           {src
             .split("\n")
             .map((ln) => {
