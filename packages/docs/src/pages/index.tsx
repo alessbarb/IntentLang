@@ -4,6 +4,7 @@ import Head from "@docusaurus/Head";
 import Link from "@docusaurus/Link";
 import CodeBlock from "@theme/CodeBlock";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+import useBaseUrl from "@docusaurus/useBaseUrl";
 
 const Card: React.FC<{ title: string; description: string; to: string }> = ({
   title,
@@ -32,6 +33,7 @@ export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   const title = siteConfig?.title ?? "IntentLang";
   const tagline = siteConfig?.tagline ?? "Deterministic. Safe. Intentful.";
+  const heroUrl = useBaseUrl("/img/intentlang-hero.svg");
 
   return (
     <Layout>
@@ -56,7 +58,20 @@ export default function Home(): JSX.Element {
           <p style={{ fontSize: 18, marginTop: 8, color: "var(--ifm-color-emphasis-700)" }}>
             {tagline}
           </p>
+          <img
+            src={heroUrl}
+            alt="IntentLang hero"
+            style={{
+              maxWidth: 760,
+              width: "100%",
+              margin: "20px auto 8px",
+              display: "block",
+            }}
+          />
           <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 20, flexWrap: "wrap" }}>
+            <Link className="button button--secondary button--lg" to="/docs/handbook/what-is-intentlang">
+              ¿Qué es IntentLang?
+            </Link>
             <Link className="button button--primary button--lg" to="/docs/handbook/from-scratch">
               Empezar desde cero
             </Link>
@@ -112,13 +127,6 @@ intent build src -t ts -o dist`}</CodeBlock>
                 title="IL ⇄ TS/PY Browser"
                 description="Explora los ejemplos reales y sus goldens generados."
                 to="/docs/examples/il-ts-browser"
-              />
-            </div>
-            <div className="col col--4">
-              <Card
-                title="Golden Diffs"
-                description="Compara lado a lado IL con TS/PY para entender el mapping."
-                to="/docs/examples/golden-diffs"
               />
             </div>
             <div className="col col--4">
