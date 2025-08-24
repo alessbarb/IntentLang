@@ -1,0 +1,44 @@
+---
+id: golden-diffs
+title: Golden Diffs (IL ⇄ TS/PY)
+sidebar_label: Golden Diffs
+sidebar_position: 15
+description: Compara lado a lado IL con sus goldens TS/PY.
+---
+
+import Admonition from "@theme/Admonition";
+import GoldenDiff from "@site/src/components/GoldenDiff";
+
+// IL y TS reales
+import operatorsIl from "!!raw-loader!@site/../../packages/examples/intentlang/operators.il";
+import operatorsTs from "!!raw-loader!@site/../../packages/examples/goldens/ts/operators.ts";
+
+// IL y PY (nota: for-loop.il → for_loop.py)
+import forLoopIl from "!!raw-loader!@site/../../packages/examples/intentlang/for-loop.il";
+import forLoopPy from "!!raw-loader!@site/../../packages/examples/goldens/py/for_loop.py";
+
+<Admonition type="info" title="Objetivo">
+  Los diffs son didácticos: muestran estructura y correspondencia general, no pretenden ser un LCS exacto.
+</Admonition>
+
+## operators (IL ⇄ TS)
+
+<GoldenDiff
+  leftLabel="IL"
+  left={operatorsIl}
+  rightLabel="TS (emit)"
+  right={operatorsTs}
+  languageLeft="intentlang"
+  languageRight="ts"
+/>
+
+## for-loop (IL ⇄ PY)
+
+<GoldenDiff
+  leftLabel="IL"
+  left={forLoopIl}
+  rightLabel="PY (emit)"
+  right={forLoopPy}
+  languageLeft="intentlang"
+  languageRight="python"
+/>

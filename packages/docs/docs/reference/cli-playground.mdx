@@ -1,0 +1,17 @@
+---
+id: cli-playground
+title: CLI Playground
+sidebar_label: CLI Playground
+sidebar_position: 20
+description: Construye comandos de intent interactivamente a partir de SPEC.
+---
+
+import Admonition from "@theme/Admonition";
+import { SPEC } from "@site/../../packages/cli/src/options";
+import FlagPlayground from "@site/src/components/FlagPlayground";
+
+<Admonition type="tip" title="Determinismo">
+  Todos los ejemplos respetan `--seed-rng` y `--seed-clock` cuando aplica.
+</Admonition>
+
+<FlagPlayground spec={SPEC} />
