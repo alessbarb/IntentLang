@@ -42,6 +42,7 @@ export const SPEC: Spec = {
       options: [
         {
           name: "--json",
+          aliases: ["-j"],
           kind: "boolean",
           default: false,
           since: "0.2",
@@ -89,6 +90,7 @@ export const SPEC: Spec = {
         },
         {
           name: "--strict",
+          aliases: ["-s"],
           kind: "boolean",
           default: false,
           since: "0.2",
@@ -99,6 +101,7 @@ export const SPEC: Spec = {
         },
         {
           name: "--watch",
+          aliases: ["-w"],
           kind: "boolean",
           default: false,
           since: "0.2",

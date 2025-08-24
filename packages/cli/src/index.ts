@@ -4,7 +4,7 @@
  * Uses the commander.js framework to provide a robust command interface.
  */
 
-import { Command } from "commander";
+import { Command, Option as CommanderOption } from "commander";
 import { setColors } from "./term/colors.js";
 import { loadConfig } from "./config/index.js";
 import { expandInputsFromConfig } from "./config/expand.js";
@@ -20,43 +20,37 @@ import { SPEC, type Option } from "./options.js";
 const program = new Command();
 const { config, configPath } = loadConfig(process.cwd());
 
-// ---- helpers para mapear SPEC → commander options ----
-function buildOptionFlags(o: Option, alias?: string) {
-  const long = (alias ?? o.name).replace(/^--/, "");
-  const needsValue =
-    o.kind === "string" || o.kind === "number" || o.kind === "enum";
-  const valueToken =
-    o.kind === "enum"
-      ? `<${long}:${(o.enumValues ?? []).join("|")}>`
-      : o.kind === "number"
-        ? `<${long}:number>`
-        : needsValue
-          ? `<${long}>`
-          : "";
-  return `--${long}` + (valueToken ? ` ${valueToken}` : "");
-}
-function registerOptions(
-  cmd: Command,
-  opts: Option[],
-  skipNames = new Set<string>(),
-) {
+// ---- helpers SPEC → commander (sin duplicar y con .choices en enums) ----
+function registerOptions(cmd: Command, opts: Option[]) {
   for (const o of opts) {
-    if (skipNames.has(o.name)) continue;
-    const allNames = [o.name, ...(o.aliases ?? [])];
-    const shorts = allNames.filter((n) => /^-[a-zA-Z]$/.test(n));
-    const longs = allNames.filter((n) => /^--/.test(n));
-    // genera combinaciones: si hay short + long principal, usa " -x, --long"
-    if (shorts.length && longs.length) {
-      const flag = `${shorts[0]}, ${buildOptionFlags(o, longs[0])}`;
-      cmd.option(flag, o.description);
-    } else if (longs.length) {
-      for (const L of longs) cmd.option(buildOptionFlags(o, L), o.description);
-    } else if (shorts.length) {
-      // raro, pero soportamos short solo
-      const s = shorts[0].replace(/^-/, "");
-      const needsValue = o.kind !== "boolean";
-      cmd.option(`-${s}${needsValue ? ` <${s}>` : ""}`, o.description);
+    const names = [o.name, ...(o.aliases ?? [])];
+    const shorts = names.filter((n) => /^-[a-zA-Z]$/.test(n));
+    const longs = names.filter((n) => /^--/.test(n));
+    const primaryLong = longs[0] ?? undefined;
+    // token de valor según tipo
+    const needsValue =
+      o.kind === "string" || o.kind === "number" || o.kind === "enum";
+    const valueToken =
+      o.kind === "enum"
+        ? `<${primaryLong ? primaryLong.replace(/^--/, "") : "value"}:${(o.enumValues ?? []).join("|")}>`
+        : o.kind === "number"
+          ? `<number>`
+          : needsValue
+            ? `<value>`
+            : "";
+    // construimos un único flags string con todos los alias
+    const parts: string[] = [];
+    for (const s of shorts) parts.push(s);
+    if (primaryLong)
+      parts.push(primaryLong + (valueToken ? ` ${valueToken}` : ""));
+    for (let i = 1; i < longs.length; i++) parts.push(longs[i]); // otros longs sin token
+    const flags = parts.join(", ");
+    // Creamos una Option para poder aplicar choices
+    const opt = new CommanderOption(flags, o.description);
+    if (o.kind === "enum" && o.enumValues?.length) {
+      opt.choices(o.enumValues);
     }
+    cmd.addOption(opt);
   }
 }
 const GLOBAL_SPEC = SPEC.groups.find((g) => g.id === "global")!;
@@ -66,10 +60,7 @@ const INIT_SPEC = SPEC.groups.find((g) => g.id === "init");
 
 program
   .name("intent")
-  .description("A CLI for the IntentLang compiler and test runner.")
-  .option("-s, --strict", "Treat warnings as failures (exit code 1)")
-  .option("-j, --json", "Output results as JSON")
-  .option("-w, --watch", "Watch files and re-run");
+  .description("A CLI for the IntentLang compiler and test runner.");
 
 /**
  * Convert an arbitrary value into a deterministic seed string.
@@ -110,11 +101,7 @@ program
   });
 
 // Inyecta el resto de flags globales desde SPEC (evita duplicar las que ya tienen short)
-registerOptions(
-  program,
-  GLOBAL_SPEC.options,
-  new Set(["--strict", "--json", "--watch"]),
-);
+registerOptions(program, GLOBAL_SPEC.options);
 
 program
   .command("build")
