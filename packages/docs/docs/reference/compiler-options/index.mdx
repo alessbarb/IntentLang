@@ -19,9 +19,11 @@ description: Reference of ilc CLI and compiler options.
 
 Salida JSON estable para máquinas.
 
-| Name     | Type    | Default | Since | Deprecated |
-| -------- | ------- | ------- | ----- | ---------- |
-| `--json` | boolean | `false` | 0.2   | No         |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--json` | boolean | `false` | 0.2 | No |
+
+
 
 ```bash
 intent check packages/examples --json
@@ -33,9 +35,11 @@ intent check packages/examples --json
 
 Máximo de errores a imprimir en salida humana.
 
-| Name           | Type   | Default | Since | Deprecated |
-| -------------- | ------ | ------- | ----- | ---------- |
-| `--max-errors` | number | —       | 0.2   | No         |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--max-errors` | number | — | 0.2 | No |
+
+
 
 ```bash
 intent check src/**/*.il --max-errors 5
@@ -47,57 +51,78 @@ intent check src/**/*.il --max-errors 5
 
 Desactiva colores ANSI en la salida.
 
-| Name         | Type    | Default | Since | Deprecated |
-| ------------ | ------- | ------- | ----- | ---------- |
-| `--no-color` | boolean | `false` | 0.2   | No         |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--no-color` | boolean | `false` | 0.2 | No |
+
+
+
+
+
 
 ## --seed-clock {#seed-clock}
 
 Fija el reloj para builds/tests deterministas.
 
-| Name           | Type   | Default                      | Since | Deprecated |
-| -------------- | ------ | ---------------------------- | ----- | ---------- |
-| `--seed-clock` | string | `fixed:1970-01-01T00:00:00Z` | 0.2   | No         |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--seed-clock` | string | `fixed:1970-01-01T00:00:00Z` | 0.2 | No |
+
+
 
 ```bash
 intent build packages/examples --seed-clock fixed:2024-01-01T00:00:00Z
 ```
 
+
+
 ## --seed-rng {#seed-rng}
 
 Semilla RNG para test/build deterministas.
 
-| Name         | Type   | Default | Since | Deprecated |
-| ------------ | ------ | ------- | ----- | ---------- |
-| `--seed-rng` | string | `0`     | 0.2   | No         |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--seed-rng` | string | `0` | 0.2 | No |
+
+
 
 ```bash
 intent test --seed-rng 1234
 ```
 
+
+
 ## --strict {#strict}
 
 Trata warnings como errores (falla con diagnósticos).
 
-| Name       | Type    | Default | Since | Deprecated |
-| ---------- | ------- | ------- | ----- | ---------- |
-| `--strict` | boolean | `false` | 0.2   | No         |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--strict` | boolean | `false` | 0.2 | No |
+
+
 
 ```bash
 intent check packages/examples/**/*.il --strict
 ```
 
+
+
 ## --watch {#watch}
 
 Re‑ejecuta al cambiar archivos.
 
-| Name      | Type    | Default | Since | Deprecated |
-| --------- | ------- | ------- | ----- | ---------- |
-| `--watch` | boolean | `false` | 0.2   | No         |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--watch` | boolean | `false` | 0.2 | No |
+
+
 
 ```bash
 intent build --watch
 ```
+
+
 
 # Build Options
 
@@ -111,9 +136,9 @@ Opciones específicas para `intent build`.
 
 Directorio de salida para archivos emitidos.
 
-| Name    | Type   | Default | Since | Deprecated |
-| ------- | ------ | ------- | ----- | ---------- |
-| `--out` | string | `dist`  | 0.2   | No         |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--out` | string | `dist` | 0.2 | No |
 
 **Aliases:** `--outDir` · **Related:** [`--target`](#target), [`--sourcemap`](#sourcemap)
 
@@ -127,9 +152,9 @@ intent build src --out dist
 
 Emite sourcemaps (sólo cuando --target js).
 
-| Name          | Type    | Default | Since | Deprecated |
-| ------------- | ------- | ------- | ----- | ---------- |
-| `--sourcemap` | boolean | `false` | 0.2   | No         |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--sourcemap` | boolean | `false` | 0.2 | No |
 
 **Related:** [`--target`](#target)
 
@@ -137,13 +162,17 @@ Emite sourcemaps (sólo cuando --target js).
 intent build src -t js --sourcemap
 ```
 
+
+
 ## --target {#target}
 
 Formato de salida.
 
-| Name       | Type    | Default | Since | Deprecated |
-| ---------- | ------- | ------- | ----- | ---------- | --- |
-| `--target` | enum(ts | js)     | `ts`  | 0.2        | No  |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--target` | enum(ts | js) | `ts` | 0.2 | No |
+
+
 
 ```bash
 intent build src -t ts
@@ -153,9 +182,12 @@ intent build src -t ts
 intent build src -t js --sourcemap
 ```
 
+
+
 # Check Options
 
 Opciones específicas para `intent check` (además de las globales).
+
 
 # Test Options
 
@@ -169,29 +201,41 @@ Opciones específicas para `intent test`.
 
 Detiene la ejecución en el primer test fallido.
 
-| Name     | Type    | Default | Since | Deprecated |
-| -------- | ------- | ------- | ----- | ---------- |
-| `--bail` | boolean | `false` | 0.2   | No         |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--bail` | boolean | `false` | 0.2 | No |
+
+
+
+
+
 
 ## --only {#only}
 
 Ejecuta sólo tests cuyo nombre hace match con el patrón.
 
-| Name     | Type   | Default | Since | Deprecated |
-| -------- | ------ | ------- | ----- | ---------- |
-| `--only` | string | —       | 0.2   | No         |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--only` | string | — | 0.2 | No |
+
+
 
 ```bash
 intent test src --only greet
 ```
 
+
+
 ## --reporter {#reporter}
 
 Formato de salida del runner.
 
-| Name         | Type       | Default | Since   | Deprecated |
-| ------------ | ---------- | ------- | ------- | ---------- | --- |
-| `--reporter` | enum(human | json)   | `human` | 0.2        | No  |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--reporter` | enum(human | json) | `human` | 0.2 | No |
+
+
+
 
 > Cuando se usa `--reporter json`, es equivalente a `--json` en cuanto a forma de salida.
 
@@ -206,20 +250,28 @@ Opciones específicas para `intent init`.
 
 Plantilla de proyecto inicial.
 
-| Name         | Type         | Default | Since     | Deprecated |
-| ------------ | ------------ | ------- | --------- | ---------- | --- |
-| `--template` | enum(minimal | tests)  | `minimal` | 0.2        | No  |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--template` | enum(minimal | tests) | `minimal` | 0.2 | No |
+
+
 
 ```bash
 intent init --template tests
 ```
 
+
+
 ## --yes {#yes}
 
 Sobrescribe archivos existentes sin preguntar.
 
-| Name    | Type    | Default | Since | Deprecated |
-| ------- | ------- | ------- | ----- | ---------- |
-| `--yes` | boolean | `false` | 0.2   | No         |
+| Name | Type | Default | Since | Deprecated |
+| --- | --- | --- | --- | --- |
+| `--yes` | boolean | `false` | 0.2 | No |
 
 **Aliases:** `-y`
+
+
+
+

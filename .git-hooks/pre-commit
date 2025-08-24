@@ -1,0 +1,2 @@
+pnpm run docs:gen
+git add packages/docs/docs/reference/compiler-options/index.mdx
