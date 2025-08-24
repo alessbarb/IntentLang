@@ -13,6 +13,7 @@ import { runBuild } from "./commands/build/index.js";
 import { runCheck } from "./commands/check/index.js";
 import { runInit } from "./commands/init/index.js";
 import { runTest } from "./commands/test/index.js";
+import { runFmt } from "./commands/fmt/index.js";
 import type { GlobalFlags } from "./flags.js";
 import { failUsage } from "./utils/cli-error.js";
 import { SPEC, type Option } from "./options.js";
@@ -57,6 +58,7 @@ const GLOBAL_SPEC = SPEC.groups.find((g) => g.id === "global")!;
 const BUILD_SPEC = SPEC.groups.find((g) => g.id === "build");
 const TEST_SPEC = SPEC.groups.find((g) => g.id === "test");
 const INIT_SPEC = SPEC.groups.find((g) => g.id === "init");
+const FMT_SPEC = SPEC.groups.find((g) => g.id === "fmt");
 
 program
   .name("intent")
@@ -180,6 +182,27 @@ program
     const filesToProcess = getFilesToProcess(files, finalFlags);
     setColors(!finalFlags.noColor);
     await runTest(filesToProcess, finalFlags);
+  });
+
+program
+  .command("fmt")
+  .description("Format IntentLang source files.")
+  .argument("[files...]", "Files or glob patterns")
+  .hook("preAction", (thisCmd) => {
+    if (FMT_SPEC) registerOptions(thisCmd, FMT_SPEC.options);
+  })
+  .action(async (files: string[], _options: unknown, command: Command) => {
+    const globals = command.optsWithGlobals?.() ?? {
+      ...program.opts(),
+      ...command.opts?.(),
+    };
+    const merged = { ...globals };
+    const finalFlags = { ...globalDefaults, ...merged } as any;
+    setColors(!finalFlags.noColor);
+    const filesToProcess = finalFlags.stdin
+      ? ["-"] // sentinel para stdin
+      : getFilesToProcess(files, finalFlags);
+    await runFmt(filesToProcess, finalFlags);
   });
 
 /**
