@@ -11,7 +11,7 @@ type Props = {
   horizontal?: boolean;
 };
 
-type Entry = { id: string; title: string; ilRaw: string; tsRaw?: string };
+type Entry = { id: string; title: string; ilRaw: string; tsRaw?: string; pyRaw?: string };
 
 /** Carga require.context(raw) => {"file.ext": "contenido"} */
 function loadContext(ctx: any): Record<string, string> {
@@ -38,8 +38,14 @@ function useExamples(include?: RegExp, exclude?: RegExp): Entry[] {
     false,
     /\.ts$/
   );
+  const pyCtx = (require as any).context(
+    "!!raw-loader!@site/../../packages/examples/goldens/py",
+    false,
+    /\.py$/
+  );
   const ils = loadContext(ilCtx);  // {"operators.il": "...", ...}
   const tss = loadContext(tsCtx);  // {"operators.ts": "...", ...}
+  const pys = loadContext(pyCtx);  // {"operators.py": "...", ...}
 
   let files = Object.keys(ils);
   if (include) files = files.filter((f) => include.test(f));
@@ -48,11 +54,13 @@ function useExamples(include?: RegExp, exclude?: RegExp): Entry[] {
 
   return files.map((ilFile) => {
     const base = ilFile.replace(/\.il$/, "");
+    const basePy = base.replace(/-/g, "_");
     return {
       id: base,
       title: base,
       ilRaw: ils[ilFile],
       tsRaw: tss[`${base}.ts`], // puede no existir
+      pyRaw: pys[`${basePy}.py`], // puede no existir
     };
   });
 }
@@ -187,6 +195,7 @@ export default function CodeToggleBrowser({
               title={current.title}
               ilRaw={current.ilRaw}
               tsRaw={current.tsRaw}
+              pyRaw={current.pyRaw}
             />
           ) : (
             <div

@@ -9,10 +9,14 @@ export type CodeToggleProps = {
   il?: string;
   /** Código TS (inline) */
   ts?: string;
+  /** Código PY (inline) */
+  py?: string;
   /** Código IL importado con raw-loader */
   ilRaw?: string;
   /** Código TS importado con raw-loader */
   tsRaw?: string;
+  /** Código PY importado con raw-loader */
+  pyRaw?: string;
   /** Título/identificador del snippet (opcional) */
   title?: string;
 };
@@ -20,13 +24,16 @@ export type CodeToggleProps = {
 export default function CodeToggle({
   il,
   ts,
+  py,
   ilRaw,
   tsRaw,
+  pyRaw,
   title,
 }: CodeToggleProps) {
   const ilCode = (il ?? ilRaw ?? "").trim();
   const tsCode = (ts ?? tsRaw ?? "").trim();
-  const defaultValue = ilCode ? "il" : "ts";
+  const pyCode = (py ?? pyRaw ?? "").trim();
+  const defaultValue = ilCode ? "il" : tsCode ? "ts" : "py";
   const groupId =
     "code-toggle-" + (title ?? "snippet").toLowerCase().replace(/\s+/g, "-");
 
@@ -51,7 +58,12 @@ export default function CodeToggle({
             {tsCode || "// (no TS proporcionado)"}
           </CodeBlock>
         </TabItem>
+        <TabItem value="py" label="PY (emit)" children={false}>
+          <CodeBlock language="python" title={title} children={false}>
+            {pyCode || "# (no PY proporcionado)"}
+          </CodeBlock>
+        </TabItem>
       </Tabs>
-    </div>
+    </div >
   );
 }
