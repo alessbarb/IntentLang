@@ -1,2 +1,4 @@
-src/generated/**
+src/generated/
+grammar/IntentLangLexer.g4
+grammar/IntentLangParser.g4
 .antlr
