@@ -11,7 +11,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import CodeToggle from "@site/src/components/CodeToggle";
 import Admonition from "@theme/Admonition";
-import CodeToggleGallery from "@site/src/components/CodeToggleGallery";
+import CodeToggleBrowser from "@site/src/components/CodeToggleBrowser";
 
 > Esta guía es para personas que empiezan desde cero con IntentLang. No necesitas conocer la gramática, pero ayuda saber programar a nivel básico.
 
@@ -190,12 +190,15 @@ intent build src --seed-rng 1234 --seed-clock 0
 
 El siguiente bloque carga **archivos reales** del repo para mostrar el código IL junto al **TS emitido**:
 
-{/* Todos los .il existentes con su golden TS si está */}
+{/* Todos los .il existentes con su golden */}
 
-<CodeToggleGallery />
+<CodeToggleBrowser />
 
-{/* O filtra explícitamente por los que quieras mostrar: */}
-{/* <CodeToggleGallery include={/^(operators|fixed2|for-loop)\.il$/} /> */}
+{/* O filtra explícitamente */}
+{/* <CodeToggleBrowser include={/^(operators|fixed2|for-loop)\.il$/} /> */}
+
+{/* O layout con lista lateral */}
+{/* <CodeToggleBrowser horizontal={false} /> */}
 
 ## 7) Conceptos clave del lenguaje
 
