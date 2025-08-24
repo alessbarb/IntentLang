@@ -31,9 +31,15 @@ export default function CodeToggleGallery({ include, exclude, order = "asc" }: P
     false,
     /\.ts$/,
   );
+  const pyCtx = (require as any).context(
+    "!!raw-loader!@site/../../packages/examples/goldens/py",
+    false,
+    /\.py$/,
+  );
 
   const ils = loadContext(ilCtx); // { "operators.il": "...", ... }
   const tss = loadContext(tsCtx); // { "operators.ts": "...", ... }
+  const pys = loadContext(pyCtx); // { "operators.py": "...", ... }
 
   let files = Object.keys(ils);
   if (include) files = files.filter((f) => include.test(f));
@@ -44,17 +50,21 @@ export default function CodeToggleGallery({ include, exclude, order = "asc" }: P
   return (
     <div>
       {files.map((ilFile) => {
-        const base = ilFile.replace(/\.il$/, ""); // e.g. "operators"
+        const base = ilFile.replace(/\.il$/, "");
         const tsFile = `${base}.ts`;
+        const pyFile = `${base}.py`;
         const ilRaw = ils[ilFile];
-        const tsRaw = tss[tsFile]; // puede faltar; CodeToggle mostrará fallback
+        const tsRaw = tss[tsFile];
+        const pyRaw = pys[pyFile];
         return (
-          <CodeToggle
-            key={ilFile}
-            title={base}
-            ilRaw={ilRaw}
-            tsRaw={tsRaw}
-          />
+          <div key={ilFile} style={{ marginBottom: 16 }}>
+            <CodeToggle
+              title={base}
+              ilRaw={ilRaw}
+              tsRaw={tsRaw}
+              pyRaw={pyRaw}
+            />
+          </div>
         );
       })}
     </div>
