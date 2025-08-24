@@ -69,15 +69,7 @@ program
   .description("A CLI for the IntentLang compiler and test runner.")
   .option("-s, --strict", "Treat warnings as failures (exit code 1)")
   .option("-j, --json", "Output results as JSON")
-  .option("-w, --watch", "Watch files and re-run")
-  .option("--no-color", "Disable colorized output")
-  .option(
-    "--max-errors <number>",
-    "Limit printed errors (human)",
-    (val: string) => parseInt(val, 10),
-  )
-  .option("--seed-rng <seed>", "Seed the RNG for deterministic behavior")
-  .option("--seed-clock <seed>", "Seed the clock for deterministic behavior");
+  .option("-w, --watch", "Watch files and re-run");
 
 /**
  * Convert an arbitrary value into a deterministic seed string.
