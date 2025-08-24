@@ -1,3 +1,4 @@
+// packages/docs/src/components/CodeToggle.tsx
 import React from "react";
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
@@ -16,32 +17,37 @@ export type CodeToggleProps = {
   title?: string;
 };
 
-/**
- * Toggle con pestañas IL ⇄ TS, tipado para Docusaurus.
- * - Siempre renderiza ambas pestañas para satisfacer el tipo de `children`.
- * - Si falta código, muestra un fallback amable.
- */
-export default function CodeToggle({ il, ts, ilRaw, tsRaw, title }: CodeToggleProps) {
+export default function CodeToggle({
+  il,
+  ts,
+  ilRaw,
+  tsRaw,
+  title,
+}: CodeToggleProps) {
   const ilCode = (il ?? ilRaw ?? "").trim();
   const tsCode = (ts ?? tsRaw ?? "").trim();
   const defaultValue = ilCode ? "il" : "ts";
-  const groupId = `code-toggle-${(title ?? "snippet").toLowerCase().replace(/\s+/g, "-")}`;
-
-  const values = [
-    { label: "IL", value: "il" },
-    { label: "TS (emit)", value: "ts" },
-  ];
+  const groupId =
+    "code-toggle-" + (title ?? "snippet").toLowerCase().replace(/\s+/g, "-");
 
   return (
-    <div style={{ borderRadius: 12, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", margin: "12px 0" }}>
-      <Tabs groupId={groupId} defaultValue={defaultValue} values={values}>
-        <TabItem value="il" label="IL">
-          <CodeBlock language="intentlang" title={title}>
+    <div
+      style={{
+        borderRadius: 12,
+        overflow: "hidden",
+        boxShadow: "0 6px 24px rgba(0,0,0,0.08)",
+        margin: "16px 0",
+        border: "1px solid var(--ifm-toc-border-color, #e6e6e6)",
+      }}
+    >
+      <Tabs groupId={groupId} defaultValue={defaultValue} children={false}>
+        <TabItem value="il" label="IL" children={false}>
+          <CodeBlock language="intentlang" title={title} children={false}>
             {ilCode || "// (no IL proporcionado)"}
           </CodeBlock>
         </TabItem>
-        <TabItem value="ts" label="TS (emit)">
-          <CodeBlock language="ts" title={title}>
+        <TabItem value="ts" label="TS (emit)" children={false}>
+          <CodeBlock language="ts" title={title} children={false}>
             {tsCode || "// (no TS proporcionado)"}
           </CodeBlock>
         </TabItem>
