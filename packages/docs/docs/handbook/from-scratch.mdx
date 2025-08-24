@@ -10,6 +10,7 @@ description: "Aprende IntentLang desde cero: instalación, primer proyecto, tipo
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import CodeToggle from "@site/src/components/CodeToggle";
+import operatorsIl from "!!raw-loader!@site/../../packages/examples/intentlang/operators.il";
 
 > Esta guía es para personas que empiezan desde cero con IntentLang. No necesitas conocer la gramática, pero ayuda saber programar a nivel básico.
 
@@ -188,7 +189,7 @@ El siguiente bloque carga **archivos reales** del repo para mostrar el código I
 
 \<CodeToggle
 title="operators"
-ilRaw={require("!!raw-loader!@site/../../packages/examples/intentlang/operators.il").default}
+ilRaw={operatorsIl}
 ts={`// TS (ejemplo). Sustituye por el golden real si existe en
 // packages/examples/goldens/ts/operators.ts
 export function example() { /* ... */ }`}
