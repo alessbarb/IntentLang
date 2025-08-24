@@ -15,9 +15,54 @@ import { runInit } from "./commands/init/index.js";
 import { runTest } from "./commands/test/index.js";
 import type { GlobalFlags } from "./flags.js";
 import { failUsage } from "./utils/cli-error.js";
+import { SPEC, type Option } from "./options.js";
 
 const program = new Command();
 const { config, configPath } = loadConfig(process.cwd());
+
+// ---- helpers para mapear SPEC → commander options ----
+function buildOptionFlags(o: Option, alias?: string) {
+  const long = (alias ?? o.name).replace(/^--/, "");
+  const needsValue =
+    o.kind === "string" || o.kind === "number" || o.kind === "enum";
+  const valueToken =
+    o.kind === "enum"
+      ? `<${long}:${(o.enumValues ?? []).join("|")}>`
+      : o.kind === "number"
+        ? `<${long}:number>`
+        : needsValue
+          ? `<${long}>`
+          : "";
+  return `--${long}` + (valueToken ? ` ${valueToken}` : "");
+}
+function registerOptions(
+  cmd: Command,
+  opts: Option[],
+  skipNames = new Set<string>(),
+) {
+  for (const o of opts) {
+    if (skipNames.has(o.name)) continue;
+    const allNames = [o.name, ...(o.aliases ?? [])];
+    const shorts = allNames.filter((n) => /^-[a-zA-Z]$/.test(n));
+    const longs = allNames.filter((n) => /^--/.test(n));
+    // genera combinaciones: si hay short + long principal, usa " -x, --long"
+    if (shorts.length && longs.length) {
+      const flag = `${shorts[0]}, ${buildOptionFlags(o, longs[0])}`;
+      cmd.option(flag, o.description);
+    } else if (longs.length) {
+      for (const L of longs) cmd.option(buildOptionFlags(o, L), o.description);
+    } else if (shorts.length) {
+      // raro, pero soportamos short solo
+      const s = shorts[0].replace(/^-/, "");
+      const needsValue = o.kind !== "boolean";
+      cmd.option(`-${s}${needsValue ? ` <${s}>` : ""}`, o.description);
+    }
+  }
+}
+const GLOBAL_SPEC = SPEC.groups.find((g) => g.id === "global")!;
+const BUILD_SPEC = SPEC.groups.find((g) => g.id === "build");
+const TEST_SPEC = SPEC.groups.find((g) => g.id === "test");
+const INIT_SPEC = SPEC.groups.find((g) => g.id === "init");
 
 program
   .name("intent")
@@ -72,13 +117,21 @@ program
     await runCheck(filesToProcess, finalFlags);
   });
 
+// Inyecta el resto de flags globales desde SPEC (evita duplicar las que ya tienen short)
+registerOptions(
+  program,
+  GLOBAL_SPEC.options,
+  new Set(["--strict", "--json", "--watch"]),
+);
+
 program
   .command("build")
   .description("Compile .il files to TypeScript or JavaScript.")
   .argument("[files...]", "Files or glob patterns to process")
-  .option("-t, --target <target>", "Output target (ts, js)")
-  .option("-o, --out <dir>", "Output directory")
-  .option("--sourcemap", "Emit source maps when --target js")
+  // flags de build desde SPEC (incluye --out y alias --outDir, --target, --sourcemap)
+  .hook("preAction", (thisCmd) => {
+    if (BUILD_SPEC) registerOptions(thisCmd, BUILD_SPEC.options);
+  })
   .action(async (files: string[], _options: unknown, command: Command) => {
     const globals = command.optsWithGlobals?.() ?? {
       ...program.opts(),
@@ -118,8 +171,9 @@ program
     "Initialize a new IntentLang project in the given directory (default: .).",
   )
   .argument("[dir]", "Target directory", ".")
-  .option("-y, --yes", "Overwrite existing files without prompt")
-  .option("--template <name>", "Project template (minimal, tests)", "minimal")
+  .hook("preAction", (thisCmd) => {
+    if (INIT_SPEC) registerOptions(thisCmd, INIT_SPEC.options);
+  })
   .action(async (dir: string, _options: unknown, command: Command) => {
     const globals = command.optsWithGlobals?.() ?? {
       ...program.opts(),
@@ -134,9 +188,9 @@ program
   .command("test")
   .description("Run tests defined in .il files.")
   .argument("[files...]", "Files or glob patterns to process")
-  .option("--only <pattern>", "Run tests matching a pattern")
-  .option("--bail", "Stop on the first test failure")
-  .option("--reporter <reporter>", "Reporter to use (human, json)")
+  .hook("preAction", (thisCmd) => {
+    if (TEST_SPEC) registerOptions(thisCmd, TEST_SPEC.options);
+  })
   .action(async (files: string[], _options: unknown, command: Command) => {
     const globals = command.optsWithGlobals?.() ?? {
       ...program.opts(),
