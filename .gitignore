@@ -7,5 +7,5 @@ tmp
 *.log
 .env
 .env.*
-coveragepackages/docs/.docusaurus/
+coverage
 packages/docs/.docusaurus/
