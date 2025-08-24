@@ -10,7 +10,10 @@
     "test:core": "pnpm --filter @intentlang/core test",
     "test:cli": "pnpm --filter @intentlang/cli test",
     "typecheck": "pnpm -r run typecheck",
-    "intent": "node packages/cli/dist/index.js"
+    "intent": "node packages/cli/dist/index.js",
+    "docs:gen": "ts-node packages/cli/scripts/gen-docs.ts",
+    "docs:start": "pnpm run docs:gen && pnpm --filter @intentlang/docs run start",
+    "docs:build": "pnpm run docs:gen && pnpm --filter @intentlang/docs run build"
   },
   "bin": {
     "intent": "packages/cli/dist/index.js"
@@ -21,9 +24,11 @@
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^11.0.4",
     "@semantic-release/release-notes-generator": "^14.0.3",
+    "@types/node": "^20.12.12",
     "@vitest/coverage-v8": "^3.2.4",
     "conventional-changelog-conventionalcommits": "^9.1.0",
     "semantic-release": "^24.2.7",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },
