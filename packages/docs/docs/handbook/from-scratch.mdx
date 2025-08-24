@@ -11,7 +11,12 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import CodeToggle from "@site/src/components/CodeToggle";
 import Admonition from "@theme/Admonition";
-import operatorsIl from "!!raw-loader!@site/../../packages/examples/intentlang/operators.il";
+import userServiceIl from "!!raw-loader!@site/../../packages/examples/intentlang/user_service.il";
+import userServiceTs from "!!raw-loader!@site/../../packages/examples/goldens/ts/user_service.ts";
+import fixed2Il from "!!raw-loader!@site/../../packages/examples/intentlang/fixed2.il";
+import fixed2Ts from "!!raw-loader!@site/../../packages/examples/goldens/ts/fixed2.ts";
+import forLoopIl from "!!raw-loader!@site/../../packages/examples/intentlang/for-loop.il";
+import forLoopTs from "!!raw-loader!@site/../../packages/examples/goldens/ts/for-loop.ts";
 
 > Esta guía es para personas que empiezan desde cero con IntentLang. No necesitas conocer la gramática, pero ayuda saber programar a nivel básico.
 
@@ -190,13 +195,9 @@ intent build src --seed-rng 1234 --seed-clock 0
 
 El siguiente bloque carga **archivos reales** del repo para mostrar el código IL junto al **TS emitido**:
 
-\<CodeToggle
-title="operators"
-ilRaw={operatorsIl}
-ts={`// TS (ejemplo). Sustituye por el golden real si existe en
-// packages/examples/goldens/ts/operators.ts
-export function example() { /* ... */ }`}
-/>
+<CodeToggle title="user_service" ilRaw={userServiceIl} tsRaw={userServiceTs} />
+<CodeToggle title="fixed2" ilRaw={fixed2Il} tsRaw={fixed2Ts} />
+<CodeToggle title="for-loop" ilRaw={forLoopIl} tsRaw={forLoopTs} />
 
 ## 7) Conceptos clave del lenguaje
 
@@ -291,8 +292,7 @@ La consola muestra el estado (`clean`, warnings o errors) tras cada cambio.
 - 🔍 Ejemplos: `packages/examples/intentlang/*`
 - 🧠 Gramática EBNF: `packages/core/grammar/IntentLang.ebnf`
 
-\:::info Sugerencias
-
-- Usa `--max-errors N` para limitar el ruido en salida humana.
-- `--no-color` para logs sin ANSI (CI/terminals simples).
-  \:::
+<Admonition type="info" title="Sugerencias">
+  - Usa `--max-errors N` para limitar el ruido en salida humana. - `--no-color`
+  para logs sin ANSI (CI/terminals simples).
+</Admonition>
