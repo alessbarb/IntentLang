@@ -1,0 +1,9 @@
+:root {
+  --ifm-table-cell-padding: 0.4rem 0.6rem;
+}
+.markdown table {
+  font-size: 0.95rem;
+}
+.markdown h2 {
+  scroll-margin-top: 80px;
+} /* anclajes cómodos */
