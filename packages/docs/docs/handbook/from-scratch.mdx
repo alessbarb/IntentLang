@@ -1,0 +1,282 @@
+---
+
+id: from-scratch
+title: IntentLang from Scratch
+sidebar\_label: From Scratch
+description: Aprende IntentLang desde cero: instalación, primer proyecto, tipos, match exhaustivo y efectos.
+---
+
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+> Esta guía es para personas que empiezan desde cero con IntentLang. No necesitas conocer la gramática, pero ayuda saber programar a nivel básico.
+
+## Requisitos
+
+- Node.js LTS y pnpm.
+- Entorno POSIX o PowerShell.
+- Editor con soporte de resaltado para `.il` (opcional).
+
+\:::note Filosofía
+IntentLang prioriza _determinismo_ y _seguridad_: sin `null/undefined`, `match` exhaustivo, `Option/Result`, `brands` y separación entre `func` (puro) y `effect` (efectos con `uses`).
+\:::
+
+## 1) Instalar el CLI
+
+<Tabs groupId="install">
+  <TabItem value="workspace" label="Monorepo (workspace)">
+
+```bash
+# Desde la raíz del repo
+pnpm i
+# El bin se expone como "intent"
+pnpm intent --help
+```
+
+  </TabItem>
+  <TabItem value="global" label="Global (opcional)">
+
+```bash
+# Si has publicado el paquete, puedes instalarlo globalmente
+# npm i -g @intentlang/cli
+intent --help
+```
+
+  </TabItem>
+</Tabs>
+
+## 2) Crear un proyecto
+
+```bash
+# Minimal o con tests
+intent init . --template minimal
+# o
+intent init ./hello-il --template tests -y
+```
+
+Estructura generada:
+
+```text
+ilconfig.json
+src/hello.il
+```
+
+`ilconfig.json` (editable):
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ts",
+    "outDir": "dist",
+    "seedRng": "42",
+    "seedClock": "0"
+  },
+  "include": ["src/**/*.il"]
+}
+```
+
+## 3) Tu primer archivo `.il`
+
+```intentlang
+intent "hello"
+
+types
+  // Branded type para nombres
+  type Name = brand "Name" string
+
+func
+  greet(name: Name): string {
+    "Hello, " + name
+  }
+```
+
+Valida:
+
+```bash
+intent check --strict
+```
+
+## 4) Ejecuta tests (si usaste template `tests`)
+
+Los tests son funciones exportadas que comienzan con `test_`.
+
+```intentlang
+func
+  test_greet_hello(): void {
+    let got = greet("Ada" as Name)
+    requires got == "Hello, Ada"
+  }
+```
+
+```bash
+intent test src --only greet
+```
+
+Salida humana:
+
+```text
+✓ test_greet_hello
+
+Test Summary
+  Tests: 1 passed, 1 total
+```
+
+<Tabs groupId="reporter">
+  <TabItem value="human" label="human (default)">
+
+```bash
+intent test
+```
+
+  </TabItem>
+  <TabItem value="json" label="--reporter json">
+
+```bash
+intent test --reporter json
+# o equivalente:
+intent test --json
+```
+
+```json
+{
+  "kind": "test",
+  "meta": { "strict": true, "watch": false },
+  "counts": { "errors": 0, "warnings": 0 },
+  "tests": [{ "name": "test_greet_hello", "ok": true }],
+  "status": "ok",
+  "exitCode": 0
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## 5) Build a TypeScript o JavaScript
+
+<Tabs groupId="target">
+  <TabItem value="ts" label="Target: ts (recomendado)">
+
+```bash
+intent build src -t ts -o dist
+```
+
+  </TabItem>
+  <TabItem value="js" label="Target: js (+sourcemap)">
+
+```bash
+intent build src -t js -o dist --sourcemap
+```
+
+  </TabItem>
+</Tabs>
+
+\:::tip Determinismo
+Para salidas reproducibles usa semillas fijas:
+
+```bash
+intent build src --seed-rng 1234 --seed-clock 0
+```
+
+\:::
+
+## 6) Conceptos clave del lenguaje
+
+### 6.1 Brands
+
+```intentlang
+types
+  type UserId = brand "UserId" string
+
+func
+  mkUser(id: UserId): string { "user#" + id }
+```
+
+### 6.2 Records y Unions
+
+```intentlang
+types
+  type User = {
+    id: UserId
+    name: string
+    email: string
+  }
+
+  type Payment = Card | Cash
+
+  type Card = { last4: string }
+  type Cash = { }
+```
+
+### 6.3 `Option` y `Result` (sin null)
+
+```intentlang
+func
+  head(xs: string[]): Option<string> {
+    match xs {
+      [] -> None
+      [x, .._] -> Some(x)
+    }
+  }
+
+func
+  parseIntStrict(s: string): Result<number, string> {
+    let n = toInt(s)
+    match isNaN(n) {
+      true -> Err("not a number")
+      false -> Ok(n)
+    }
+  }
+```
+
+### 6.4 `match` exhaustivo
+
+```intentlang
+types
+  type Shape = Circle | Rect
+  type Circle = { r: number }
+  type Rect = { w: number, h: number }
+
+func
+  area(s: Shape): number {
+    match s {
+      Circle{ r } -> 3.14159 * r * r
+      Rect{ w, h } -> w * h
+    }
+  }
+```
+
+### 6.5 `func` vs `effect` + `uses`
+
+```intentlang
+effect
+  // Declaras capacidades que usarás (ej. "console")
+  logHello(name: string): void
+    uses console
+  {
+    console.log("Hello, " + name)
+  }
+```
+
+## 7) Watch Mode
+
+```bash
+intent check src --watch --strict
+intent build src -t ts -o dist --watch
+```
+
+La consola muestra el estado (`clean`, warnings o errors) tras cada cambio.
+
+## 8) Qué sigue
+
+- 📖 Referencia de **Compiler Options**: ver todos los flags de `intent` con ejemplos.
+- 🔍 Ejemplos: `packages/examples/intentlang/*`
+- 🧠 Gramática EBNF: `packages/core/grammar/IntentLang.ebnf`
+
+\:::info Sugerencias
+
+- Usa `--max-errors N` para limitar el ruido en salida humana.
+- `--no-color` para logs sin ANSI (CI/terminals simples).
+  \:::
