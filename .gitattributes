@@ -1,0 +1,5 @@
+# ==== Generated grammars (ANTLR) ====
+packages/core/grammar/*.g4 linguist-generated=true
+
+# ==== Generated TS outputs from ANTLR ====
+packages/core/src/generated/** linguist-generated=true
