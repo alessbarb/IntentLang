@@ -11,12 +11,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import CodeToggle from "@site/src/components/CodeToggle";
 import Admonition from "@theme/Admonition";
-import userServiceIl from "!!raw-loader!@site/../../packages/examples/intentlang/user_service.il";
-import userServiceTs from "!!raw-loader!@site/../../packages/examples/goldens/ts/user_service.ts";
-import fixed2Il from "!!raw-loader!@site/../../packages/examples/intentlang/fixed2.il";
-import fixed2Ts from "!!raw-loader!@site/../../packages/examples/goldens/ts/fixed2.ts";
-import forLoopIl from "!!raw-loader!@site/../../packages/examples/intentlang/for-loop.il";
-import forLoopTs from "!!raw-loader!@site/../../packages/examples/goldens/ts/for-loop.ts";
+import CodeToggleGallery from "@site/src/components/CodeToggleGallery";
 
 > Esta guía es para personas que empiezan desde cero con IntentLang. No necesitas conocer la gramática, pero ayuda saber programar a nivel básico.
 
@@ -191,13 +186,16 @@ intent build src --seed-rng 1234 --seed-clock 0
 
 \:::
 
-## 6) IL ⇄ TS: ejemplo con toggle
+## 6) IL ⇄ TS: ejemplos
 
 El siguiente bloque carga **archivos reales** del repo para mostrar el código IL junto al **TS emitido**:
 
-<CodeToggle title="user_service" ilRaw={userServiceIl} tsRaw={userServiceTs} />
-<CodeToggle title="fixed2" ilRaw={fixed2Il} tsRaw={fixed2Ts} />
-<CodeToggle title="for-loop" ilRaw={forLoopIl} tsRaw={forLoopTs} />
+{/* Todos los .il existentes con su golden TS si está */}
+
+<CodeToggleGallery />
+
+{/* O filtra explícitamente por los que quieras mostrar: */}
+{/* <CodeToggleGallery include={/^(operators|fixed2|for-loop)\.il$/} /> */}
 
 ## 7) Conceptos clave del lenguaje
 
