@@ -3,14 +3,12 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@site/*": [
-        "./*"
-      ]
+      "@site/*": ["./*"]
     },
-    "skipLibCheck": true
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["webpack-env", "node"]
   },
-  "include": [
-    "src/**/*",
-    "docs/**/*"
-  ]
+  "include": ["src/**/*", "docs/**/*"]
 }
