@@ -9,6 +9,7 @@ description: "Aprende IntentLang desde cero: instalación, primer proyecto, tipo
 
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
+import CodeToggle from "@site/src/components/CodeToggle";
 
 > Esta guía es para personas que empiezan desde cero con IntentLang. No necesitas conocer la gramática, pero ayuda saber programar a nivel básico.
 
@@ -181,9 +182,21 @@ intent build src --seed-rng 1234 --seed-clock 0
 
 \:::
 
-## 6) Conceptos clave del lenguaje
+## 6) IL ⇄ TS: ejemplo con toggle
 
-### 6.1 Brands
+El siguiente bloque carga **archivos reales** del repo para mostrar el código IL junto al **TS emitido**:
+
+\<CodeToggle
+title="operators"
+ilRaw={require("!!raw-loader!@site/../../packages/examples/intentlang/operators.il").default}
+ts={`// TS (ejemplo). Sustituye por el golden real si existe en
+// packages/examples/goldens/ts/operators.ts
+export function example() { /* ... */ }`}
+/>
+
+## 7) Conceptos clave del lenguaje
+
+### 7.1 Brands
 
 ```intentlang
 types
@@ -193,7 +206,7 @@ func
   mkUser(id: UserId): string { "user#" + id }
 ```
 
-### 6.2 Records y Unions
+### 7.2 Records y Unions
 
 ```intentlang
 types
@@ -209,7 +222,7 @@ types
   type Cash = { }
 ```
 
-### 6.3 `Option` y `Result` (sin null)
+### 7.3 `Option` y `Result` (sin null)
 
 ```intentlang
 func
@@ -230,7 +243,7 @@ func
   }
 ```
 
-### 6.4 `match` exhaustivo
+### 7.4 `match` exhaustivo
 
 ```intentlang
 types
@@ -247,7 +260,7 @@ func
   }
 ```
 
-### 6.5 `func` vs `effect` + `uses`
+### 7.5 `func` vs `effect` + `uses`
 
 ```intentlang
 effect
@@ -259,7 +272,7 @@ effect
   }
 ```
 
-## 7) Watch Mode
+## 8) Watch Mode
 
 ```bash
 intent check src --watch --strict
@@ -268,7 +281,7 @@ intent build src -t ts -o dist --watch
 
 La consola muestra el estado (`clean`, warnings o errors) tras cada cambio.
 
-## 8) Qué sigue
+## 9) Qué sigue
 
 - 📖 Referencia de **Compiler Options**: ver todos los flags de `intent` con ejemplos.
 - 🔍 Ejemplos: `packages/examples/intentlang/*`
