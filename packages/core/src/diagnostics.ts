@@ -141,6 +141,11 @@ export const DIAGNOSTICS = {
     message:
       "Effect '{effect}' uses capability '{cap}' but it is not listed in 'uses' for this effect.",
   },
+  ILC0304: {
+    level: "error",
+    message:
+      "'func' no puede ser 'async'. Usa 'effect' para operaciones asíncronas.",
+  },
 
   // ILC040x: CLI errors
   ILC0401: {

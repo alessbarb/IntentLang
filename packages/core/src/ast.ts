@@ -105,6 +105,23 @@ export interface LiteralType extends Node<"LiteralType"> {
   value: string;
 }
 
+/** Function type: (a: T, b: U) -> R */
+export interface FuncType extends Node<"FuncType"> {
+  params: Array<{ name?: Identifier; type: TypeExpr }>;
+  returnType: TypeExpr;
+}
+
+/** Array<T> */
+export interface ArrayType extends Node<"ArrayType"> {
+  element: TypeExpr;
+}
+
+/** Map<K, V> */
+export interface MapType extends Node<"MapType"> {
+  key: TypeExpr;
+  value: TypeExpr;
+}
+
 /** Union constructors can be either named (with optional record fields) or literal. */
 export type UnionCtor =
   | (Node<"NamedCtor"> & {
@@ -134,7 +151,10 @@ export type TypeExpr =
   | RecordType
   | UnionType
   | GenericType
-  | LiteralType;
+  | LiteralType
+  | FuncType
+  | ArrayType
+  | MapType;
 
 /* =======================
  * Literals
@@ -168,7 +188,7 @@ export interface EffectDecl extends Node<"EffectDecl"> {
   params: ParamSig[];
   returnType: TypeExpr;
   contracts?: { requires?: Expr; ensures?: Expr };
-  /** Capabilities required by this effect. */
+  /** Capabilities required by this effect (`uses a, b`). */
   uses: Identifier[];
   /** Effect body. */
   body: Block;
@@ -191,17 +211,53 @@ export interface TestBlock extends Node<"TestBlock"> {
   statements: Stmt[];
 }
 
+/** Property/index selection step for LValue paths. */
+export type LValueStep =
+  | (Node<"LvProp"> & { kind: "LvProp"; name: Identifier })
+  | (Node<"LvIndex"> & { kind: "LvIndex"; index: Expr });
+
+/** LValue: base identifier plus zero or more steps (e.g., foo.bar[0].baz). */
+export interface LValue extends Node<"LValue"> {
+  base: Identifier;
+  path: LValueStep[];
+}
+
 export type Stmt =
   | LetStmt
+  | ConstStmt
+  | AssignStmt
+  | UpdateStmt
   | ReturnStmt
   | IfStmt
   | MatchStmt
   | ForStmt
+  | WhileStmt
+  | TryStmt
+  | BreakStmt
+  | ContinueStmt
   | ExprStmt;
 
 export interface LetStmt extends Node<"LetStmt"> {
   id: Identifier;
   init: Expr;
+}
+
+export interface ConstStmt extends Node<"ConstStmt"> {
+  id: Identifier;
+  init: Expr;
+}
+
+export type AssignOp = "=" | "+=" | "-=" | "*=" | "/=" | "%=";
+export interface AssignStmt extends Node<"AssignStmt"> {
+  op: AssignOp;
+  target: LValue;
+  value: Expr;
+}
+
+export type UpdateOp = "++" | "--";
+export interface UpdateStmt extends Node<"UpdateStmt"> {
+  op: UpdateOp;
+  target: LValue;
 }
 
 export interface ReturnStmt extends Node<"ReturnStmt"> {
@@ -225,6 +281,20 @@ export interface ForStmt extends Node<"ForStmt"> {
   body: Block;
 }
 
+export interface WhileStmt extends Node<"WhileStmt"> {
+  test: Expr;
+  body: Block;
+}
+
+export interface TryStmt extends Node<"TryStmt"> {
+  tryBlock: Block;
+  catchParam: Identifier;
+  catchBlock: Block;
+}
+
+export type BreakStmt = Node<"BreakStmt">;
+export type ContinueStmt = Node<"ContinueStmt">;
+
 export interface ExprStmt extends Node<"ExprStmt"> {
   expression: Expr;
 }
@@ -238,12 +308,13 @@ export type Expr =
   | IdentifierExpr
   | ObjectExpr
   | ArrayExpr
+  | MapExpr
   | CallExpr
   | MemberExpr
+  | IndexExpr
   | UnaryExpr
-  | UpdateExpr
   | BinaryExpr
-  | AssignExpr
+  | AssignExpr /* kept for internal lowering; parser should prefer AssignStmt */
   | ConditionalExpr
   | ResultOkExpr
   | ResultErrExpr
@@ -251,7 +322,8 @@ export type Expr =
   | OptionNoneExpr
   | BrandCastExpr
   | VariantExpr
-  | MatchExpr;
+  | MatchExpr
+  | LambdaExpr;
 
 export interface LiteralExpr extends Node<"LiteralExpr"> {
   value: Literal;
@@ -261,9 +333,10 @@ export interface IdentifierExpr extends Node<"IdentifierExpr"> {
   id: Identifier;
 }
 
+/** Record field; value is optional to allow shorthand { x }. */
 export interface ObjectField extends Node<"ObjectField"> {
   key: Identifier;
-  value: Expr;
+  value?: Expr;
 }
 
 export interface ObjectExpr extends Node<"ObjectExpr"> {
@@ -272,6 +345,15 @@ export interface ObjectExpr extends Node<"ObjectExpr"> {
 
 export interface ArrayExpr extends Node<"ArrayExpr"> {
   elements: Expr[];
+}
+
+export interface MapEntry extends Node<"MapEntry"> {
+  key: Expr;
+  value: Expr;
+}
+
+export interface MapExpr extends Node<"MapExpr"> {
+  entries: MapEntry[];
 }
 
 export interface CallExpr extends Node<"CallExpr"> {
@@ -284,18 +366,16 @@ export interface MemberExpr extends Node<"MemberExpr"> {
   property: Identifier;
 }
 
+/** Computed property/index access: obj[expr] */
+export interface IndexExpr extends Node<"IndexExpr"> {
+  object: Expr;
+  index: Expr;
+}
+
 export type UnaryOp = "!" | "-" | "~";
 export interface UnaryExpr extends Node<"UnaryExpr"> {
   op: UnaryOp;
   argument: Expr;
-}
-
-export type UpdateOp = "++" | "--";
-export interface UpdateExpr extends Node<"UpdateExpr"> {
-  op: UpdateOp;
-  argument: Expr;
-  /** true for prefix (e.g., ++x), false for postfix (x++) */
-  prefix: boolean;
 }
 
 export type BinaryOp =
@@ -324,7 +404,7 @@ export interface BinaryExpr extends Node<"BinaryExpr"> {
   right: Expr;
 }
 
-export type AssignOp = "=" | "+=" | "-=" | "*=" | "/=" | "%=";
+/** Expression-level assignment (for internal transforms). Prefer AssignStmt in parser. */
 export interface AssignExpr extends Node<"AssignExpr"> {
   op: AssignOp;
   left: Expr;
@@ -352,7 +432,8 @@ export interface OptionSomeExpr extends Node<"OptionSomeExpr"> {
 export type OptionNoneExpr = Node<"OptionNoneExpr">;
 
 export interface BrandCastExpr extends Node<"BrandCastExpr"> {
-  target: TypeExpr | Identifier;
+  /** EBNF: brand "<" ident ">" "(" Expr ")" — el target es un Identificador. */
+  target: Identifier;
   value: Expr;
 }
 
@@ -375,6 +456,17 @@ export interface CaseClause extends Node<"CaseClause"> {
   pattern: Pattern;
   guard?: Expr;
   body: Block | Expr;
+}
+
+/** Lambda: fn (params) => expr | block */
+export interface LambdaParam extends Node<"LambdaParam"> {
+  name: Identifier;
+  type: TypeExpr;
+}
+export interface LambdaExpr extends Node<"LambdaExpr"> {
+  params: LambdaParam[];
+  returnType?: TypeExpr;
+  body: Expr | Block;
 }
 
 /* =======================
