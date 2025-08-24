@@ -7,7 +7,7 @@ uses {
 
 types {
   type Email = String brand "Email" where matches("^[^@]+@[^@]+\\.[^@]+$");
-  type UserId = Uuid;
+  type UserId = String;
   type User = {
     id: UserId,
     name: String where _.length >= 2,

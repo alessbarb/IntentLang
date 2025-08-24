@@ -7,10 +7,10 @@ test operators {
   n %= 2;
   n++;
   n--;
-  let mask = (n & 6) | 3;
-  let xor = mask ^ 1;
-  let inv = ~xor;
-  let left = xor << 1;
-  let right = xor >> 1;
-  let label = n > 0 ? "pos" : "neg";
+  const mask = (n & 6) | 3;
+  const xor = mask ^ 1;
+  const inv = ~xor;
+  const left = xor << 1;
+  const right = xor >> 1;
+  const label = n > 0 ? "pos" : "neg";
 }

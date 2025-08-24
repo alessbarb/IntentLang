@@ -14,4 +14,3 @@ test deterministic {
   let first = rollDie();
   let second = rollDie();
 }
-

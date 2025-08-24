@@ -6,7 +6,7 @@ uses {
 
 types {
   type CardNumber = String brand "CardNumber" where matches("^\\d{16}$");
-  type PaymentId = Uuid;
+  type PaymentId = String;
   type Payment =
     | Card { id: PaymentId, card: CardNumber }
     | Cash { id: PaymentId, amount: Float where _ >= 0 };

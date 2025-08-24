@@ -12,12 +12,6 @@ const TRANSPILER_TARGETS = [
     goldensSubDir: "ts",
     transpiler: (program) => emitTypeScript(program),
   },
-  {
-    name: "py",
-    fileExtension: ".py",
-    goldensSubDir: "py",
-    transpiler: (program) => emitPython(program),
-  },
 ];
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

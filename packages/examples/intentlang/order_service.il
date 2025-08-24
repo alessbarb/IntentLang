@@ -6,16 +6,16 @@ uses {
 }
 
 types {
-  type OrderId = Uuid;
+  type OrderId = String;
   type Order = {
     id: OrderId,
-    userId: Uuid,
+    userId: String,
     total: Float where _ >= 0,
   };
   type OrderError = { code: Int, message: String };
 }
 
-effect createOrder(input: { userId: Uuid, total: Float }): Result<Order, OrderError> uses http, random {
+effect createOrder(input: { userId: String, total: Float }): Result<Order, OrderError> uses http, random {
   let id = random.next().toString();
   return http.post("/orders", { id: brand<OrderId>(id), userId: input.userId, total: input.total });
 }

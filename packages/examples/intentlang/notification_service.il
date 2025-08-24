@@ -5,15 +5,15 @@ uses {
 }
 
 types {
-  type NotificationId = Uuid;
+  type NotificationId = String;
   type Notification = {
     id: NotificationId,
-    userId: Uuid,
+    userId: String,
     message: String,
   };
   type NotificationError = { code: Int, message: String };
 }
 
-effect sendNotification(input: { userId: Uuid, message: String }): Result<Notification, NotificationError> uses http {
+effect sendNotification(input: { userId: String, message: String }): Result<Notification, NotificationError> uses http {
   return http.post("/notifications", input);
 }

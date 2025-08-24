@@ -8,8 +8,8 @@ types {
 
 func show(x: Letter): String {
   match x {
-    A => "a"
-    A => "again"   // <= duplicate; should warn as unreachable/duplicate
-    B => "b"
+    A => "a";
+    A => "again";   // <= duplicate; should warn as unreachable/duplicate
+    B => "b";
   }
 }

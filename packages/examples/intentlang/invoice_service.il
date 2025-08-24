@@ -6,15 +6,15 @@ uses {
 }
 
 types {
-  type InvoiceId = Uuid;
+  type InvoiceId = String;
   type Invoice = {
     id: InvoiceId,
-    orderId: Uuid,
+    orderId: String,
     issuedAt: DateTime,
   };
   type InvoiceError = { code: Int, message: String };
 }
 
-effect generateInvoice(orderId: Uuid): Result<Invoice, InvoiceError> uses http, clock {
+effect generateInvoice(orderId: String): Result<Invoice, InvoiceError> uses http, clock {
   return http.post("/invoices", { orderId, issuedAt: clock.now() });
 }
