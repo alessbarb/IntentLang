@@ -34,6 +34,26 @@ const config: Config = {
           label: "Compiler Options",
           position: "left",
         },
+        {
+          label: "Examples",
+          position: "left",
+          items: [
+            { to: "/docs/examples/il-ts-browser", label: "IL ⇄ TS/PY Browser" },
+            { to: "/docs/examples/golden-diffs", label: "Golden Diffs" },
+          ],
+        },
+        {
+          label: "Reference",
+          position: "left",
+          items: [
+            { to: "/docs/reference/cli-playground", label: "CLI Playground" },
+            {
+              to: "/docs/reference/compiler-options/",
+              label: "Compiler Options",
+            },
+            { to: "/docs/reference/grammar", label: "Grammar (EBNF)" },
+          ],
+        },
       ],
     },
     prism: { theme: prismThemes.github, darkTheme: prismThemes.dracula },
