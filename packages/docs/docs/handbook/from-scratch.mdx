@@ -10,6 +10,7 @@ description: "Aprende IntentLang desde cero: instalación, primer proyecto, tipo
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import CodeToggle from "@site/src/components/CodeToggle";
+import Admonition from "@theme/Admonition";
 import operatorsIl from "!!raw-loader!@site/../../packages/examples/intentlang/operators.il";
 
 > Esta guía es para personas que empiezan desde cero con IntentLang. No necesitas conocer la gramática, pero ayuda saber programar a nivel básico.
@@ -20,9 +21,11 @@ import operatorsIl from "!!raw-loader!@site/../../packages/examples/intentlang/o
 - Entorno POSIX o PowerShell.
 - Editor con soporte de resaltado para `.il` (opcional).
 
-\:::note Filosofía
-IntentLang prioriza _determinismo_ y _seguridad_: sin `null/undefined`, `match` exhaustivo, `Option/Result`, `brands` y separación entre `func` (puro) y `effect` (efectos con `uses`).
-\:::
+<Admonition type="note" title="Filosofía">
+  IntentLang prioriza _determinismo_ y _seguridad_: sin `null/undefined`,
+  `match` exhaustivo, `Option/Result`, `brands` y separación entre `func` (puro)
+  y `effect` (efectos con `uses`).
+</Admonition>
 
 ## 1) Instalar el CLI
 
