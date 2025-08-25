@@ -24,7 +24,7 @@
     "gen:ast:builder": "node ./scripts/gen-ast-builder.mjs",
     "gen:post": "node -e \"const fs=require('fs');for (const f of fs.readdirSync('./src/_generated/grammar')) { if (f.endsWith('.ts')) { const p='./src/_generated/grammar/'+f; fs.writeFileSync(p, fs.readFileSync(p,'utf8').replace(/\\s+$/gm,'')+'\\n'); } }\"",
     "generate": "pnpm gen:clean && pnpm gen:ebnf && pnpm run gen:parser && pnpm run gen:antlr:patch && pnpm run gen:ast && pnpm run gen:ast:builder && pnpm run gen:post",
-    "build": "tsc -p tsconfig.json",
+    "build": "pnpm generate && tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json -w",
     "lint": "echo \"(add eslint later)\"",
     "test": "vitest run",
