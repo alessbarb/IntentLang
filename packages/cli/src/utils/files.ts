@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import fg from "fast-glob";
 import {
-  parse,
+  parseToAst,
   check as checkProgram,
   type Diagnostic,
 } from "@intentlang/core";
@@ -34,7 +34,7 @@ export function processFiles(files: string[]): {
       const src = fs.readFileSync(file, "utf8");
       sources.set(file, src);
       if (/^\s*$/.test(src)) return null;
-      const program = parse(src);
+      const program = parseToAst(src);
       const diags = checkProgram(program);
       diags.forEach((d: any) => ((d as any).file = file));
       diagnostics.push(...diags);

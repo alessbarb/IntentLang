@@ -14,7 +14,7 @@
  */
 
 import fs from "node:fs";
-import { parse, formatProgram } from "@intentlang/core";
+import { parseToAst, formatProgram } from "@intentlang/core";
 // Si el core expone pretty-printer, mejor usarlo:
 // import { formatProgram } from "@intentlang/core";
 import type { FmtFlags, FmtResult } from "./types.js";
@@ -24,7 +24,7 @@ import type { FmtFlags, FmtResult } from "./types.js";
  * Aquí reunimos las reglas de organización (imports/exports) y el pretty-print.
  */
 export function formatSource(src: string, flags: FmtFlags): string {
-  const ast = parse(src);
+  const ast = parseToAst(src);
   // De momento, imports/exports no están en el AST.
   // Si quieres seguir organizándolos, puedes hacerlo ANTES o DESPUÉS
   // de formatear (textual), pero aquí mantenemos sólo AST-first:

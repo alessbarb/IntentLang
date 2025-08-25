@@ -4,22 +4,141 @@ import { colors } from "../../term/colors.js";
 import { handleJsonOutput } from "../../utils/output.js";
 import { failUsage } from "../../utils/cli-error.js";
 import type { InitFlags } from "./types.js";
+import { SPEC, type Option } from "../../options.js";
 
 type FileSpec = { rel: string; content: string };
 
-const ilconfig =
-  `{
-  // IntentLang project config
-  "compilerOptions": {
-    "strict": true,
-    "target": "ts",
-    "outDir": "dist",
-    "seedRng": "42",
-    "seedClock": "0"
-  },
-  "include": ["src/**/*.il"]
+/** Mapea "--kebab-name" → "camelName" */
+function nameToProp(longName: string): string {
+  const s = longName.replace(/^--/, "");
+  return s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 }
-`.trim() + "\n";
+
+/** Renderiza un valor JS a JSON inline (sin ident). */
+function jsonValue(v: unknown): string {
+  if (v === undefined) return "undefined";
+  if (typeof v === "string") return JSON.stringify(v);
+  if (typeof v === "number") return String(v);
+  if (typeof v === "boolean") return v ? "true" : "false";
+  return JSON.stringify(v);
+}
+
+/** Lista blanca: opciones que pueden vivir en compilerOptions del ilconfig. */
+const CONFIG_ALLOW = new Set<string>([
+  // global
+  "--strict",
+  "--seed-rng",
+  "--seed-clock",
+  "--max-errors",
+  "--no-color",
+  // build
+  "--target",
+  "--out", // alias de --outDir
+  "--outDir",
+  "--sourcemap",
+  // test
+  "--reporter",
+  "--bail",
+  "--only",
+]);
+
+/** Cuáles dejamos ACTIVOS por defecto en el archivo generado. */
+const ACTIVE_BY_DEFAULT = new Set<string>(["--strict", "--target", "--outDir"]);
+
+/** Agrupa y ordena opciones por el SPEC, filtra, y las renderiza como JSONC. */
+function renderCompilerOptionsFromSpec(): string {
+  const lines: string[] = [];
+  const groups = SPEC.groups
+    .filter((g) => ["global", "build", "test"].includes(g.id))
+    .map((g) => ({
+      id: g.id,
+      title:
+        g.id === "global" ? "Global" : g.id[0].toUpperCase() + g.id.slice(1),
+      options: g.options
+        .filter((o) => o.name.startsWith("--") && CONFIG_ALLOW.has(o.name))
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    }));
+
+  for (const group of groups) {
+    lines.push(`    // --- ${group.title} options ---`);
+    for (const o of group.options) {
+      const prop = nameToProp(o.name);
+      // descripción + (enum) + notas
+      const descBits = [o.description].filter(Boolean) as string[];
+      const enumHint =
+        o.kind === "enum" && o.enumValues?.length
+          ? `Allowed: ${o.enumValues.join(" | ")}`
+          : "";
+      if (enumHint) descBits.push(enumHint);
+      if (o.notes?.length) descBits.push(...o.notes);
+
+      for (const d of descBits) lines.push(`    // ${d}`);
+      const defShown =
+        o.default === null
+          ? "null"
+          : o.default === undefined
+            ? undefined
+            : jsonValue(o.default);
+
+      const active = ACTIVE_BY_DEFAULT.has(o.name);
+      const key = `"${prop}"`;
+      if (active) {
+        // dejamos activas sólo las básicas
+        const value =
+          // normalizamos algunos defaults con sentido para init
+          o.name === "--outDir"
+            ? jsonValue("dist")
+            : o.name === "--target"
+              ? jsonValue("ts")
+              : (defShown ??
+                (o.kind === "string" ? jsonValue("") : jsonValue(false)));
+        lines.push(`    ${key}: ${value},`);
+      } else {
+        const placeholder =
+          defShown ??
+          (o.kind === "string"
+            ? `"${prop === "only" ? "pattern" : ""}"`
+            : o.kind === "number"
+              ? "0"
+              : o.kind === "enum"
+                ? o.enumValues?.[0]
+                  ? JSON.stringify(o.enumValues[0])
+                  : "null"
+                : "false");
+        lines.push(`    // ${key}: ${placeholder},`);
+      }
+      if (o.examples?.length) {
+        for (const ex of o.examples) {
+          if (ex.cli) lines.push(`    // e.g. ${ex.cli}`);
+        }
+      }
+      lines.push(""); // línea en blanco entre opciones
+    }
+  }
+  return lines.join("\n");
+}
+
+/** Crea el contenido JSONC final de ilconfig.json (determinista). */
+function buildIlconfigJsonc(): string {
+  const compilerOptions = renderCompilerOptionsFromSpec();
+  const body =
+    `{
+  // IntentLang project config (JSON with comments)
+  // Enable/disable options by uncommenting the entries below.
+
+  "compilerOptions": {
+${compilerOptions}
+  },
+
+  // Globs of files to include/exclude (like tsconfig).
+  "include": ["src/**/*.il"],
+  // "exclude": ["**/node_modules/**", "dist/**"]
+}
+`.replace(/\s+$/m, "") + "\n";
+
+  return body;
+}
 
 const helloMinimal =
   `intent "hello"
@@ -74,7 +193,7 @@ export async function runInit(targetDir: string, flags: InitFlags) {
   const abs = (p: string) => path.resolve(targetDir, p);
 
   const files: FileSpec[] = [
-    { rel: "ilconfig.json", content: ilconfig },
+    { rel: "ilconfig.json", content: buildIlconfigJsonc() },
     {
       rel: "src/hello.il",
       content: flags.template === "tests" ? helloWithTests : helloMinimal,

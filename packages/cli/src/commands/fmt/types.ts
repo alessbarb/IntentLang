@@ -12,5 +12,5 @@ export type FmtFlags = GlobalFlags & {
 export type FmtResult = {
   path: string;
   changed: boolean;
-  diff?: string; // opcional para futuro
+  diff?: string;
 };

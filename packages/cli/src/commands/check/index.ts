@@ -1,4 +1,4 @@
-import { parse, check as checkProgram } from "@intentlang/core";
+import { parseToAst, check as checkProgram } from "@intentlang/core";
 import type { GlobalFlags } from "../../flags.js";
 import { exitCodeFrom, summarize } from "../../diagnostics/exit-code.js";
 import { readStdin, checkFiles } from "./helpers.js";
@@ -13,7 +13,7 @@ async function handleStdin(global: GlobalFlags) {
   const src = await readStdin();
   const diagnostics: Diagnostic[] = /^\s*$/.test(src)
     ? []
-    : checkProgram(parse(src));
+    : checkProgram(parseToAst(src));
   diagnostics.forEach((d) => (d.file = "(stdin)"));
 
   const { errors, warnings } = summarize(diagnostics);
