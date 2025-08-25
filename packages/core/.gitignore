@@ -1,2 +1,3 @@
-src/generated/**
+src/_generated/
+grammar/*.g4
 .antlr

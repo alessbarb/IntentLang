@@ -1,18 +1,20 @@
 // packages/core/src/diagnostics.ts
 
+import type { Span } from "./pos.js";
+
 export type DiagnosticLevel = "error" | "warning";
+export type Diagnostic = {
+  level: DiagnosticLevel;
+  code: string;
+  message: string;
+  span?: Span;
+};
 export type DiagnosticDef = { level: DiagnosticLevel; message: string };
 
 export const DIAGNOSTICS = {
   // ILC02xx: Types
-  ILC0201: {
-    level: "error",
-    message: "Duplicate type '{type}'.",
-  },
-  ILC0202: {
-    level: "error",
-    message: "Unknown type '{type}'.",
-  },
+  ILC0201: { level: "error", message: "Duplicate type '{type}'." },
+  ILC0202: { level: "error", message: "Unknown type '{type}'." },
   ILC0203: {
     level: "warning",
     message:
@@ -22,10 +24,7 @@ export const DIAGNOSTICS = {
     level: "error",
     message: "Duplicate constructor '{ctor}' in union.",
   },
-  ILC0205: {
-    level: "error",
-    message: "'{kind}' must be Bool. Got {type}.",
-  },
+  ILC0205: { level: "error", message: "'{kind}' must be Bool. Got {type}." },
   ILC0206: {
     level: "error",
     message: "Unknown function or effect '{name}' in test.",
@@ -38,26 +37,11 @@ export const DIAGNOSTICS = {
     level: "error",
     message: "If condition must be Bool. Got {type}.",
   },
-  ILC0209: {
-    level: "error",
-    message: "Unknown identifier '{name}'.",
-  },
-  ILC0210: {
-    level: "error",
-    message: "Cannot resolve call target.",
-  },
-  ILC0211: {
-    level: "error",
-    message: "'!' expects Bool. Got {type}.",
-  },
-  ILC0212: {
-    level: "error",
-    message: "Unary '-' expects Number. Got {type}.",
-  },
-  ILC0213: {
-    level: "error",
-    message: "Logical '{op}' expects Bool operands.",
-  },
+  ILC0209: { level: "error", message: "Unknown identifier '{name}'." },
+  ILC0210: { level: "error", message: "Cannot resolve call target." },
+  ILC0211: { level: "error", message: "'!' expects Bool. Got {type}." },
+  ILC0212: { level: "error", message: "Unary '-' expects Number. Got {type}." },
+  ILC0213: { level: "error", message: "Logical '{op}' expects Bool operands." },
   ILC0214: {
     level: "error",
     message: "'{op}' requires comparable operands. Got {left} and {right}.",
@@ -120,11 +104,7 @@ export const DIAGNOSTICS = {
     level: "warning",
     message: "'match' on non-union type {type} — exhaustiveness not enforced.",
   },
-
-  ILC0229: {
-    level: "error",
-    message: "Match guard must be Bool. Got {type}.",
-  },
+  ILC0229: { level: "error", message: "Match guard must be Bool. Got {type}." },
 
   // ILC03xx: Capabilities & Effects
   ILC0301: {
@@ -153,12 +133,29 @@ export const DIAGNOSTICS = {
     message:
       "Unknown flag or invalid combination of flags '{flags}' in 'uses' declaration.",
   },
-  ILC0402: {
-    level: "error",
-    message: "File not found or empty pattern.",
-  },
-  ILC0403: {
-    level: "error",
-    message: "Invalid configuration file.",
-  },
-} as const satisfies Record<string, DiagnosticDef>;
+  ILC0402: { level: "error", message: "File not found or empty pattern." },
+  ILC0403: { level: "error", message: "Invalid configuration file." },
+} as const;
+
+export function report(
+  diags: Diagnostic[],
+  code: keyof typeof DIAGNOSTICS,
+  span: Span | undefined,
+  params: Record<string, string | number> = {},
+) {
+  const def: DiagnosticDef = DIAGNOSTICS[code] as DiagnosticDef;
+
+  let message: string = def.message;
+  for (const [k, v] of Object.entries(params)) {
+    message = message.replace(`{${k}}`, String(v));
+  }
+
+  const out: Diagnostic = {
+    level: def.level,
+    code: String(code),
+    message,
+    span,
+  };
+
+  diags.push(out);
+}

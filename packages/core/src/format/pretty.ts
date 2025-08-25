@@ -17,7 +17,7 @@ class Writer {
   private buf: string[] = [];
   private lvl = 0;
   private atLineStart = true;
-  constructor(private opt: Required<FormatOptions>) {}
+  constructor(public opt: Required<FormatOptions>) {}
 
   push(s: string) {
     if (this.atLineStart && s.length > 0)
@@ -61,21 +61,20 @@ export function formatProgram(
     writeUses(w, prog.uses);
   }
 
-  // Types section (si existe como bloque explícito)
+  // Types
   if (prog.types && prog.types.declarations.length > 0) {
     writeTypes(w, prog.types);
   }
 
-  // Top level items (func/effect/test, y secciones anidadas si vinieran)
+  // Top level items
   for (const it of prog.items) {
     if (
       it.kind === "IntentSection" ||
       it.kind === "UsesSection" ||
       it.kind === "TypesSection"
-    ) {
-      // ya impresos arriba si existen a nivel archivo
+    )
       continue;
-    }
+
     w.nl();
     switch (it.kind) {
       case "FuncDecl":
@@ -88,7 +87,7 @@ export function formatProgram(
         writeTestDecl(w, it);
         break;
       default:
-        break;
+        /* TODO */ break;
     }
   }
 
@@ -113,8 +112,9 @@ function writeIntent(w: Writer, sec: AST.IntentSection) {
       w.push("tags [");
       w.nl();
       w.indent(() => {
-        for (const t of sec.tags!) {
-          w.push(q(t) + ",");
+        for (let i = 0; i < sec.tags!.length; i++) {
+          w.push(q(sec.tags![i]));
+          if (i < sec.tags!.length - 1 || w.opt.trailingCommas) w.push(",");
           w.nl();
         }
       });
@@ -130,23 +130,31 @@ function writeUses(w: Writer, sec: AST.UsesSection) {
   w.push("uses {");
   w.nl();
   w.indent(() => {
-    for (const e of sortBy(sec.entries, (x) => x.name.name)) {
-      w.push(e.name.name);
+    const entries = [...sec.entries].sort((a: any, b: any) =>
+      (a?.name?.name ?? "").localeCompare(b?.name?.name ?? ""),
+    );
+    for (let i = 0; i < entries.length; i++) {
+      const e: any = entries[i];
+      const name = e?.name?.name ?? "unknown";
+      const typeIdent = e?.typeName ?? e?.target;
+      const typeName = typeIdent?.name ?? "Unknown";
+
+      w.push(name);
       w.push(": ");
-      w.push(e.typeName.name);
-      if (Object.keys(e.params ?? {}).length > 0) {
-        const pairs = Object.entries(e.params);
+      w.push(typeName);
+
+      const literalParams = extractUseParamsAsLiterals(e);
+      if (literalParams && Object.keys(literalParams).length > 0) {
+        const pairs = Object.entries(literalParams);
         const inline = pairs.every(
           ([k, v]) => k.length + literalLen(v) + 4 < 22,
         );
         if (inline) {
           w.space();
           w.push("{ ");
-          for (let i = 0; i < pairs.length; i++) {
-            const [k, v] = pairs[i];
-            if (i > 0) {
-              w.push(", ");
-            }
+          for (let j = 0; j < pairs.length; j++) {
+            if (j > 0) w.push(", ");
+            const [k, v] = pairs[j];
             w.push(`${k}: ${literal(v)}`);
           }
           w.push(" }");
@@ -155,15 +163,18 @@ function writeUses(w: Writer, sec: AST.UsesSection) {
           w.push("{");
           w.nl();
           w.indent(() => {
-            for (const [k, v] of pairs) {
-              w.push(`${k}: ${literal(v)},`);
+            for (let j = 0; j < pairs.length; j++) {
+              const [k, v] = pairs[j];
+              w.push(`${k}: ${literal(v)}`);
+              if (j < pairs.length - 1 || w.opt.trailingCommas) w.push(",");
               w.nl();
             }
           });
           w.push("}");
         }
       }
-      w.push(",");
+
+      if (i < entries.length - 1 || w.opt.trailingCommas) w.push(",");
       w.nl();
     }
   });
@@ -171,13 +182,36 @@ function writeUses(w: Writer, sec: AST.UsesSection) {
   w.nl(2);
 }
 
+function extractUseParamsAsLiterals(
+  e: unknown,
+): Record<string, AST.Literal> | null {
+  const anyE = e as any;
+  if (anyE?.params && typeof anyE.params === "object") {
+    const out: Record<string, AST.Literal> = {};
+    for (const [k, v] of Object.entries(
+      anyE.params as Record<string, AST.Literal>,
+    )) {
+      if (v && (v as AST.Literal).kind) out[k] = v as AST.Literal;
+    }
+    return out;
+  }
+  if (anyE?.config && anyE.config.kind === "ObjectExpr") {
+    const out: Record<string, AST.Literal> = {};
+    for (const f of anyE.config.fields as AST.ObjectField[]) {
+      if (f.value?.kind === "LiteralExpr") out[f.key.name] = f.value.value;
+    }
+    return Object.keys(out).length ? out : null;
+  }
+  return null;
+}
+
 function writeTypes(w: Writer, sec: AST.TypesSection) {
   w.push("types {");
   w.nl();
   w.indent(() => {
-    for (const d of sec.declarations) {
-      writeTypeDecl(w, d);
-      w.nl();
+    for (let i = 0; i < sec.declarations.length; i++) {
+      writeTypeDecl(w, sec.declarations[i]);
+      if (i < sec.declarations.length - 1) w.nl();
     }
   });
   w.push("}");
@@ -205,9 +239,6 @@ function writeType(w: Writer, t: AST.TypeExpr) {
     case "BasicType":
       w.push(t.name);
       return;
-    case "NamedType":
-      w.push(t.name.name);
-      return;
     case "BrandType":
       writeBrandType(w, t);
       return;
@@ -231,9 +262,7 @@ function writeType(w: Writer, t: AST.TypeExpr) {
       for (let i = 0; i < t.params.length; i++) {
         if (i > 0) w.push(", ");
         const p = t.params[i];
-        if (p.name) {
-          w.push(`${p.name.name}: `);
-        }
+        if (p.name) w.push(`${p.name.name}: `);
         writeType(w, p.type);
       }
       w.push(") -> ");
@@ -274,14 +303,15 @@ function writeType(w: Writer, t: AST.TypeExpr) {
         w.push("{");
         w.nl();
         w.indent(() => {
-          for (const f of t.fields) {
+          for (let i = 0; i < t.fields.length; i++) {
+            const f = t.fields[i];
             w.push(`${f.name.name}: `);
             writeType(w, f.type);
             if (f.refinement) {
               w.space();
               w.push(`where ${f.refinement}`);
             }
-            w.push(",");
+            if (i < t.fields.length - 1 || w.opt.trailingCommas) w.push(",");
             w.nl();
           }
         });
@@ -306,13 +336,23 @@ function writeType(w: Writer, t: AST.TypeExpr) {
       } else {
         w.nl();
         w.indent(() => {
-          for (const c of t.ctors) {
+          for (let i = 0; i < t.ctors.length; i++) {
             w.push("| ");
-            writeCtor(w, c);
-            w.nl();
+            writeCtor(w, t.ctors[i]);
+            if (i < t.ctors.length - 1) w.nl();
           }
         });
       }
+      return;
+    }
+    default: {
+      // Soporte para extensiones manuales (p.ej. NamedType)
+      const anyT = t as any;
+      if (anyT?.kind === "NamedType" && anyT.name) {
+        w.push(anyT.name.name ?? String(anyT.name));
+        return;
+      }
+      w.push("/* TODO: unknown type */");
       return;
     }
   }
@@ -352,10 +392,11 @@ function writeCtor(w: Writer, c: AST.UnionCtor) {
       w.push(" {");
       w.nl();
       w.indent(() => {
-        for (const x of f) {
+        for (let i = 0; i < f.length; i++) {
+          const x = f[i];
           w.push(`${x.name.name}: `);
           writeType(w, x.type);
-          w.push(",");
+          if (i < f.length - 1 || w.opt.trailingCommas) w.push(",");
           w.nl();
         }
       });
@@ -400,9 +441,7 @@ function writeEffectDecl(w: Writer, d: AST.EffectDecl) {
     w.space();
     w.push("uses ");
     for (let i = 0; i < d.uses.length; i++) {
-      if (i > 0) {
-        w.push(", ");
-      }
+      if (i > 0) w.push(", ");
       w.push(d.uses[i].name);
     }
   }
@@ -435,10 +474,11 @@ function writeParamSigList(w: Writer, ps: AST.ParamSig[]) {
   } else {
     w.nl();
     w.indent(() => {
-      for (const p of ps) {
+      for (let i = 0; i < ps.length; i++) {
+        const p = ps[i];
         w.push(`${p.name.name}: `);
         writeType(w, p.type);
-        w.push(",");
+        if (i < ps.length - 1 || w.opt.trailingCommas) w.push(",");
         w.nl();
       }
     });
@@ -467,12 +507,12 @@ function writeContracts(
    Blocks, statements, expressions
 ======================================================= */
 
-function writeBlock(w: Writer, b: AST.Block | AST.TestBlock) {
+function writeBlock(w: Writer, b: AST.Block) {
   w.push("{");
   w.nl();
   w.indent(() => {
-    for (const s of b.statements) {
-      writeStmt(w, s);
+    for (let i = 0; i < b.statements.length; i++) {
+      writeStmt(w, b.statements[i]);
       w.nl();
     }
   });
@@ -524,15 +564,17 @@ function writeStmt(w: Writer, s: AST.Stmt) {
         writeBlock(w, s.alternate);
       }
       return;
-    case "MatchStmt":
-      writeMatch(w, {
+    case "MatchStmt": {
+      const m: AST.MatchExpr = (s as any).match ?? {
         kind: "MatchExpr",
-        expr: s.expr,
-        cases: s.cases,
-        span: s.span,
-      } as AST.MatchExpr);
+        expr: (s as any).expr,
+        cases: (s as any).cases,
+        span: (s as any).span,
+      };
+      writeMatch(w, m);
       w.push(";");
       return;
+    }
     case "ForStmt":
       w.push("for ");
       w.push(s.iterator.name);
@@ -606,12 +648,14 @@ function writeExpr(w: Writer, e: AST.Expr) {
       w.push("Map {");
       w.nl();
       w.indent(() => {
-        for (const kv of e.entries) {
+        for (let i = 0; i < e.entries.length; i++) {
+          const kv = e.entries[i];
           w.push("(");
           writeExpr(w, kv.key);
           w.push(": ");
           writeExpr(w, kv.value);
-          w.push("),");
+          w.push(")");
+          if (i < e.entries.length - 1 || w.opt.trailingCommas) w.push(",");
           w.nl();
         }
       });
@@ -642,14 +686,11 @@ function writeExpr(w: Writer, e: AST.Expr) {
       w.push(e.op);
       writeExpr(w, e.argument);
       return;
-    case "BinaryExpr":
-      writeExpr(w, e.left);
-      w.space();
+    case "PostfixUpdateExpr":
+      writeExpr(w, e.argument);
       w.push(e.op);
-      w.space();
-      writeExpr(w, e.right);
       return;
-    case "AssignExpr":
+    case "BinaryExpr":
       writeExpr(w, e.left);
       w.space();
       w.push(e.op);
@@ -706,10 +747,11 @@ function writeExpr(w: Writer, e: AST.Expr) {
           w.push(" {");
           w.nl();
           w.indent(() => {
-            for (const f of e.fields!) {
+            for (let i = 0; i < e.fields!.length; i++) {
+              const f = e.fields![i];
               w.push(`${f.key.name}: `);
               writeExpr(w, f.value);
-              w.push(",");
+              if (i < e.fields!.length - 1 || w.opt.trailingCommas) w.push(",");
               w.nl();
             }
           });
@@ -734,11 +776,8 @@ function writeExpr(w: Writer, e: AST.Expr) {
       }
       w.space();
       w.push("=> ");
-      if ((e.body as any).kind === "Block") {
-        writeBlock(w, e.body as AST.Block);
-      } else {
-        writeExpr(w, e.body as AST.Expr);
-      }
+      if ((e.body as any).kind === "Block") writeBlock(w, e.body as AST.Block);
+      else writeExpr(w, e.body as AST.Expr);
       return;
   }
 }
@@ -748,21 +787,17 @@ function writeObjectExpr(w: Writer, o: AST.ObjectExpr) {
     w.push("{ }");
     return;
   }
-  const inline =
-    o.fields.length <= 2 &&
-    o.fields.every((f) => f.value?.kind === "IdentifierExpr");
+  const shorthand = (f: AST.ObjectField) =>
+    f.value?.kind === "IdentifierExpr" && f.value.id.name === f.key.name;
+
+  const inline = o.fields.length <= 2 && o.fields.every(shorthand);
   if (inline) {
     w.push("{ ");
     for (let i = 0; i < o.fields.length; i++) {
       if (i > 0) w.push(", ");
       const f = o.fields[i];
-      if (
-        f.value &&
-        f.value.kind === "IdentifierExpr" &&
-        f.value.id.name === f.key.name
-      ) {
-        w.push(f.key.name);
-      } else {
+      if (shorthand(f)) w.push(f.key.name);
+      else {
         w.push(f.key.name);
         w.push(": ");
         writeExpr(w, f.value!);
@@ -773,19 +808,15 @@ function writeObjectExpr(w: Writer, o: AST.ObjectExpr) {
     w.push("{");
     w.nl();
     w.indent(() => {
-      for (const f of o.fields) {
-        if (
-          f.value &&
-          f.value.kind === "IdentifierExpr" &&
-          f.value.id.name === f.key.name
-        ) {
-          w.push(f.key.name);
-        } else {
+      for (let i = 0; i < o.fields.length; i++) {
+        const f = o.fields[i];
+        if (shorthand(f)) w.push(f.key.name);
+        else {
           w.push(f.key.name);
           w.push(": ");
           writeExpr(w, f.value!);
         }
-        w.push(",");
+        if (i < o.fields.length - 1 || w.opt.trailingCommas) w.push(",");
         w.nl();
       }
     });
@@ -811,9 +842,9 @@ function writeArrayExpr(w: Writer, a: AST.ArrayExpr) {
     w.push("[");
     w.nl();
     w.indent(() => {
-      for (const el of a.elements) {
-        writeExpr(w, el);
-        w.push(",");
+      for (let i = 0; i < a.elements.length; i++) {
+        writeExpr(w, a.elements[i]);
+        if (i < a.elements.length - 1 || w.opt.trailingCommas) w.push(",");
         w.nl();
       }
     });
@@ -828,7 +859,8 @@ function writeMatch(w: Writer, m: AST.MatchExpr) {
   w.push("{");
   w.nl();
   w.indent(() => {
-    for (const c of m.cases) {
+    for (let i = 0; i < m.cases.length; i++) {
+      const c = m.cases[i];
       writePattern(w, c.pattern);
       if (c.guard) {
         w.space();
@@ -837,11 +869,8 @@ function writeMatch(w: Writer, m: AST.MatchExpr) {
       }
       w.space();
       w.push("=> ");
-      if ((c.body as any).kind === "Block") {
-        writeBlock(w, c.body as AST.Block);
-      } else {
-        writeExpr(w, c.body as AST.Expr);
-      }
+      if ((c.body as any).kind === "Block") writeBlock(w, c.body as AST.Block);
+      else writeExpr(w, c.body as AST.Expr);
       w.push(";");
       w.nl();
     }
@@ -854,15 +883,11 @@ function writePattern(w: Writer, p: AST.Pattern) {
     w.push(literal(p.value));
     return;
   }
-  if (p.kind === "VariantPattern") {
-    if (p.head.tag === "Literal") {
-      w.push(literal(p.head.value));
-      return;
-    }
-    w.push(p.head.name.name);
-
-    const fs = p.fields ?? [];
-    if (fs.length > 0) {
+  if ((p as any).kind === "VariantPattern") {
+    const vp = p as any;
+    w.push(vp.head.name.name);
+    const fs: AST.PatternField[] | undefined = vp.fields;
+    if (fs && fs.length > 0) {
       const inline = fs.length <= 2;
       if (inline) {
         w.push(" { ");
@@ -880,13 +905,14 @@ function writePattern(w: Writer, p: AST.Pattern) {
         w.push(" {");
         w.nl();
         w.indent(() => {
-          for (const f of fs) {
+          for (let i = 0; i < fs.length; i++) {
+            const f = fs[i];
             w.push(f.name.name);
             if (f.alias && f.alias.name !== f.name.name) {
               w.push(": ");
               w.push(f.alias.name);
             }
-            w.push(",");
+            if (i < fs.length - 1 || w.opt.trailingCommas) w.push(",");
             w.nl();
           }
         });
@@ -895,6 +921,8 @@ function writePattern(w: Writer, p: AST.Pattern) {
     }
     return;
   }
+  // WildcardPattern (o simplificado)
+  w.push("_");
 }
 
 /* =======================================================
@@ -928,8 +956,4 @@ function shortExpr(e: AST.Expr): boolean {
     default:
       return false;
   }
-}
-
-function sortBy<T>(arr: T[], key: (x: T) => string): T[] {
-  return [...arr].sort((a, b) => key(a).localeCompare(key(b)));
 }

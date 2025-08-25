@@ -2,21 +2,21 @@
 /**
  * Patch ANTLR TS outputs for TS NodeNext + verbatimModuleSyntax:
  * 1) Añade ".js" a imports/exports relativos sin extensión.
- * 2) Añade ".js" a cualquier submódulo de antlr4ts: `antlr4ts/<X>` -> `antlr4ts/<X>.js`.
- * 3) Reemplaza `tryGetToken(` -> `getToken(` (compat con antlr4ts 0.5.0-alpha.4).
- * 4) Convierte a `import type` los imports que son solo tipos (antlr4ts y locales).
+ * 2) Añade ".js" a cualquier submódulo de antlr4ng: `antlr4ng/<X>` -> `antlr4ng/<X>.js`.
+ * 3) Reemplaza `tryGetToken(` -> `getToken(` (compat con antlr4ng 0.5.0-alpha.4).
+ * 4) Convierte a `import type` los imports que son solo tipos (antlr4ng y locales).
  * 5) Fuerza `Token` y `ParserRuleContext` a ser import **de valor** (no type).
  *
- * Uso: node ./scripts/patch-antlr-esm.mjs ./src/generated
+ * Uso: node ./scripts/patch-antlr-esm.mjs ./src/_generated
  */
 import fs from "node:fs";
 import path from "node:path";
 
-const ROOT = process.argv[2] || "./src/generated";
+const ROOT = process.argv[2] || "./src/_generated";
 
 // ---- Config ----
 const TYPE_ONLY_NAMES = new Set([
-  // antlr4ts que sí son solo tipos en los generados
+  // antlr4ng que sí son solo tipos en los generados
   "CharStream",
   "TokenStream",
   "Vocabulary",
@@ -25,8 +25,8 @@ const TYPE_ONLY_NAMES = new Set([
   "TerminalNode",
   "ParseTree",
   // locales generados (interfaces)
-  "IntentLangListener",
-  "IntentLangVisitor",
+  "IntentLangParserListener",
+  "IntentLangParserVisitor",
 ]);
 // ¡OJO! Estos dos se usan como valores:
 const FORCE_VALUE_IMPORT = new Set(["Token", "ParserRuleContext"]);
@@ -47,8 +47,8 @@ function patchRelativeSpecifiers(src) {
 
 function patchAntlrDeepImports(src) {
   return src.replace(
-    /(from\s+["'])antlr4ts\/([^"']+?)(["'])/g,
-    (_m, a, sub, b) => `${a}antlr4ts/${hasExt(sub) ? sub : sub + ".js"}${b}`,
+    /(from\s+["'])antlr4ng\/([^"']+?)(["'])/g,
+    (_m, a, sub, b) => `${a}antlr4ng/${hasExt(sub) ? sub : sub + ".js"}${b}`,
   );
 }
 
@@ -57,9 +57,9 @@ function patchTryGetToken(src) {
 }
 
 function patchTypeOnlyImports(src) {
-  // a) antlr4ts y submódulos: si TODOS son tipos conocidos -> import type
+  // a) antlr4ng y submódulos: si TODOS son tipos conocidos -> import type
   src = src.replace(
-    /(^|\n)\s*import\s*\{\s*([^}]+)\s*\}\s*from\s*["'](antlr4ts(?:\/[^"']+)?)["'];?/g,
+    /(^|\n)\s*import\s*\{\s*([^}]+)\s*\}\s*from\s*["'](antlr4ng(?:\/[^"']+)?)["'];?/g,
     (full, lead, names, spec) => {
       const list = names
         .split(",")
@@ -74,7 +74,7 @@ function patchTypeOnlyImports(src) {
 
   // b) locales relativos listener/visitor -> type
   src = src.replace(
-    /(^|\n)\s*import\s*\{\s*(IntentLangListener|IntentLangVisitor)\s*\}\s*from\s*["'](\.\/[^"']+)["'];?/g,
+    /(^|\n)\s*import\s*\{\s*(IntentLangParserListener|IntentLangParserVisitor)\s*\}\s*from\s*["'](\.\/[^"']+)["'];?/g,
     (full, lead, name, spec) =>
       `${lead}import type { ${name} } from "${spec}";`,
   );

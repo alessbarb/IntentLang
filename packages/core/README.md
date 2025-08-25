@@ -49,12 +49,12 @@ Creates `grammar/intentlang.g4`.
 pnpm --filter @intentlang/core run generate:antlr
 ```
 
-Runs `antlr4ts-cli` and writes outputs under `src/generated/grammar/`.
+Runs `antlr4ng-cli` and writes outputs under `src/generated/grammar/`.
 Then `scripts/patch-antlr-esm.mjs` post-processes:
 
 - Adds `.js` to relative imports (NodeNext/ESM).
-- Fixes deep imports: `antlr4ts/foo` → `antlr4ts/foo.js`.
-- Replaces `tryGetToken` → `getToken` (compat with `antlr4ts@0.5.0-alpha.4`).
+- Fixes deep imports: `antlr4ng/foo` → `antlr4ng/foo.js`.
+- Replaces `tryGetToken` → `getToken` (compat with `antlr4ng@0.5.0-alpha.4`).
 - Applies `import type` where required.
 - Forces `Token` and `ParserRuleContext` to be imported as **values**, not types.
 
@@ -78,7 +78,7 @@ pnpm --filter @intentlang/core run generate:all
 flowchart LR
   A[EBNF\n(grammar/intentlang.ebnf)]
   B[ANTLR Grammar (.g4)\n(grammar/intentlang.g4)]
-  C[antlr4ts-cli\nParser/Lexer/Visitor TS]
+  C[antlr4ng-cli\nParser/Lexer/Visitor TS]
   D[Patch Script\nscripts/patch-antlr-esm.mjs]
   E[Generated ESM TS\nsrc/generated/grammar/*]
   F[TS Build\n(dist/*)]
@@ -112,12 +112,12 @@ flowchart LR
   Cause: those two are used as runtime values (`Token.EOF`, `new ParserRuleContext(...)`).
   ✅ Solution: the patch forces them to normal (value) imports; regenerate.
 
-- **Missing ANTLR submodules (e.g. `antlr4ts/tree/ParseTreeVisitor`)**
+- **Missing ANTLR submodules (e.g. `antlr4ng/tree/ParseTreeVisitor`)**
   Cause: missing `.js` extension under NodeNext.
   ✅ Solution: the patch appends `.js`. Example:
 
   ```ts
-  import { ParseTreeVisitor } from "antlr4ts/tree/ParseTreeVisitor.js";
+  import { ParseTreeVisitor } from "antlr4ng";
   ```
 
 ---
@@ -169,7 +169,7 @@ flowchart LR
 7. Try verbose messages:
 
    ```bash
-   npx antlr4ts-cli -visitor -long-messages -o ./src/generated/grammar ./grammar/intentlang.g4
+   npx antlr4ng-cli -visitor -long-messages -o ./src/generated/grammar ./grammar/intentlang.g4
    ```
 
 ---

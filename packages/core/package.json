@@ -16,10 +16,15 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "generate:ebnf2antlr_ast": "node ./scripts/ebnf2antlr_ast.mjs -i ./grammar/IntentLang.ebnf -o ./grammar --grammar IntentLang",
-    "generate:antlr4ts": "npx antlr4ts-cli -visitor -o ./src/generated ./grammar/IntentLangLexer.g4 ./grammar/IntentLangParser.g4 && node ./scripts/patch-antlr-esm.mjs ./src/generated/",
-    "generate:all": "pnpm run generate:ebnf2antlr_ast && pnpm run generate:antlr4ts",
-    "build": "pnpm run generate:all && tsc -p tsconfig.json",
+    "gen:clean": "rm -rf ./grammar/*.g4 ./src/_generated",
+    "gen:ebnf": "node ./scripts/ebnf2g4.mjs -i ./grammar/IntentLang.ebnf -o ./grammar --grammar IntentLang",
+    "gen:parser": "mkdir -p ./src/_generated/grammar && npx antlr4ng -Dlanguage=TypeScript -visitor -no-listener -o src/_generated grammar/IntentLangLexer.g4 && npx antlr4ng -Dlanguage=TypeScript -visitor -no-listener -o src/_generated -lib src/_generated/grammar grammar/IntentLangParser.g4",
+    "gen:antlr:patch": "node ./scripts/patch-antlr-esm.mjs ./src/_generated/",
+    "gen:ast": "node ./scripts/gen-ast.mjs",
+    "gen:ast:builder": "node ./scripts/gen-ast-builder.mjs",
+    "gen:post": "node -e \"const fs=require('fs');for (const f of fs.readdirSync('./src/_generated/grammar')) { if (f.endsWith('.ts')) { const p='./src/_generated/grammar/'+f; fs.writeFileSync(p, fs.readFileSync(p,'utf8').replace(/\\s+$/gm,'')+'\\n'); } }\"",
+    "generate": "pnpm gen:clean && pnpm gen:ebnf && pnpm run gen:parser && pnpm run gen:antlr:patch && pnpm run gen:ast && pnpm run gen:ast:builder && pnpm run gen:post",
+    "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json -w",
     "lint": "echo \"(add eslint later)\"",
     "test": "vitest run",
@@ -28,11 +33,11 @@
   "devDependencies": {
     "@types/node": "24.3.0",
     "@vitest/coverage-v8": "^3.2.4",
+    "antlr4ng": "^3.0.16",
+    "antlr4ng-cli": "^2.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },
-  "dependencies": {
-    "antlr4ts": "0.5.0-alpha.4"
-  }
+  "dependencies": {}
 }

@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { parse, check as checkProgram } from "@intentlang/core";
+import { check as checkProgram, parseToAst } from "@intentlang/core";
 import type { Diagnostic, CacheEntry } from "./types.js";
 import { expandInputs } from "../../utils/files.js";
 
@@ -46,7 +46,7 @@ export function checkFiles(
       if (!prev || prev.mtimeMs !== st.mtimeMs) {
         const src = fs.readFileSync(f, "utf8");
         sources.set(f, src);
-        diags = /^\s*$/.test(src) ? [] : checkProgram(parse(src));
+        diags = /^\s*$/.test(src) ? [] : checkProgram(parseToAst(src));
         cache.set(f, { mtimeMs: st.mtimeMs, diags });
       } else {
         diags = prev.diags;
