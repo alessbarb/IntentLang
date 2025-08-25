@@ -1,3 +1,33 @@
+## [1.17.0](https://github.com/alessbarb/IntentLang/compare/v1.16.0...v1.17.0) (2025-08-25)
+
+### Features
+
+* **cli/docs:** add single source of truth for CLI options (SPEC) ([9772a47](https://github.com/alessbarb/IntentLang/commit/9772a47f191f9db8be03321f3a3356cc80e32f17))
+* **cli:** derive global and subcommand flags from SPEC; autogenerate help ([b91d93e](https://github.com/alessbarb/IntentLang/commit/b91d93e8033c7316a3d7e0fcf7bcba0787dd92ff))
+* **cli:** move -s/-j/-w into SPEC and register all flags from SPEC (with enum choices) ([94c92eb](https://github.com/alessbarb/IntentLang/commit/94c92eb6310d7a2206e684778b6e936fc5f3c892))
+* **core/checker:** split checker into modules and fix span typing for match-from-stmt ([d5b4ed8](https://github.com/alessbarb/IntentLang/commit/d5b4ed865639049442e27d705d62b0b475f2c9d1))
+* **core:** introduce new ANTLR-based parser, visitor runtime and pos utilities ([dd501ee](https://github.com/alessbarb/IntentLang/commit/dd501ee7ec1d9a50a43cf6a7f89053c35a6dcd46))
+
+### Bug Fixes
+
+* **cli:** avoid commander flag conflicts by sourcing globals from SPEC (keep only -s/-j/-w manual) ([96f626f](https://github.com/alessbarb/IntentLang/commit/96f626fd866c39185c8bc416a605f85cea17c23c))
+* **docs:** avoid passing React 'key' as prop to CodeToggle in gallery ([501099a](https://github.com/alessbarb/IntentLang/commit/501099ae2c49aa91c14e168b6d01753ce95aaba8))
+* **docs:** ensure Tabs/TabItem/CodeBlock always receive children in CodeToggle ([3b34d37](https://github.com/alessbarb/IntentLang/commit/3b34d37891cb5c521aef410a8efd9ca35d521367))
+* **docs:** make TabItem direct children of Tabs to satisfy Docusaurus sanitizer ([a8532dd](https://github.com/alessbarb/IntentLang/commit/a8532dd70d3f26f12c487076aa2c8332cbe3f8cf))
+* **docs:** move homepageData out of pages to prevent SSG route error (/homepageData without default export) ([dcdddbc](https://github.com/alessbarb/IntentLang/commit/dcdddbc1a34295cf690175f501cb0c94f4918ee8))
+* error in package.json ([0c816be](https://github.com/alessbarb/IntentLang/commit/0c816beec37857cfc7a34fbc731fa2f91320b016))
+
+### Refactors
+
+* **cli:** adapt commands to new core API and move fmt types under commands/fmt ([fad6b16](https://github.com/alessbarb/IntentLang/commit/fad6b16aad8168040b8603adcb146a6731995855))
+* **core/grammar:** migrate to updated EBNF; drop .g4; update generator scripts ([e090b81](https://github.com/alessbarb/IntentLang/commit/e090b8181d70e984337109cb4a88591521b61c9c))
+* **core/grammar:** rename to IntentLang.*; stop tracking generated ANTLR TS; add core .gitignore; update scripts ([70fa995](https://github.com/alessbarb/IntentLang/commit/70fa995b76f54f8a81f66af923758c25c5033c6c))
+* **core/parser:** update imports/paths for ANTLR output and PascalCase grammar ([dbc1218](https://github.com/alessbarb/IntentLang/commit/dbc1218e51839fd8c7f028ff6328ab6601531576))
+* **core:** remove legacy hand-rolled parser/lexer and monolithic checker ([acb8b61](https://github.com/alessbarb/IntentLang/commit/acb8b61398e8de9ebe395e10597954f83a4ef7f3))
+* **core:** wire new parser/pos into AST, diagnostics, formatter, exports and TS transpiler ([bc69e8c](https://github.com/alessbarb/IntentLang/commit/bc69e8c5844d47e5adbdf44759bb6232f6bab5b4))
+* **examples/ts:** move TS goldens under goldens/ts; drop obsolete top-level files; update package metadata ([22f9a62](https://github.com/alessbarb/IntentLang/commit/22f9a62b4c961e5ebccbfd4d7d58dc20b1b5049b))
+* **examples:** move examples under examples/intentlang; update datasets and package metadata ([d5b3e07](https://github.com/alessbarb/IntentLang/commit/d5b3e0769068dbdb2dd7a368eb3d1a24f2a2100a))
+
 ## [1.16.0](https://github.com/alessbarb/IntentLang/compare/v1.15.0...v1.16.0) (2025-08-23)
 
 ### Features
