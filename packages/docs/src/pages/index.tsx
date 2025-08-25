@@ -8,7 +8,11 @@ import TabItem from "@theme/TabItem";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import clsx from "clsx";
 
-import { featureList, principles, type FeatureItem } from "./homepageData";
+import {
+  featureList,
+  principles,
+  type FeatureItem,
+} from "../data/homepageData";
 import styles from "./Homepage.module.css";
 
 /* Inline SVG for tiny icons (no deps) */
